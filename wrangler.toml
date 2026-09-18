@@ -2,9 +2,11 @@ name = "dogdle"
 main = "src/worker.js"
 compatibility_date = "2025-06-01"
 
+# Must stay above [assets]: TOML assigns every key after a table header to that table,
+# so down there this silently became assets.routes and was ignored.
+routes = [{ pattern = "dogdle.swampkat.com", custom_domain = true }]
+
 [assets]
 directory = "public"
 binding = "ASSETS"
 run_worker_first = ["/api/*"]
-
-routes = [{ pattern = "dogdle.swampkat.com", custom_domain = true }]
