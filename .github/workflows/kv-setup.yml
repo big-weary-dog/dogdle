@@ -1,0 +1,22 @@
+name: Create KV namespace
+
+# One-off helper, run by hand. Prints the namespace id to paste into wrangler.toml.
+on: workflow_dispatch
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Create namespace
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx wrangler kv namespace create cards || true
+      - name: List namespaces
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx wrangler kv namespace list
