@@ -173,7 +173,7 @@ async function uploadCard(dog) {
       // Carry the subject-layer filters onto the composite.
       ctx.filter = dogPhoto.style.filter || "none";
       ctx.beginPath();
-      ctx.arc(dx + dw / 2, dy + dh / 2, Math.min(dw, dh) / 2, 0, Math.PI * 2);
+      ctx.ellipse(dx + dw / 2, dy + dh / 2, dw / 2, dh / 2, 0, 0, Math.PI * 2);
       ctx.closePath();
       ctx.clip();
       ctx.drawImage(dogPhoto, dx, dy, dw, dh);
@@ -182,7 +182,7 @@ async function uploadCard(dog) {
       ctx.strokeStyle = dog.rarityColor;
       ctx.lineWidth = Math.max(3, dw * 0.02);
       ctx.beginPath();
-      ctx.arc(dx + dw / 2, dy + dh / 2, Math.min(dw, dh) / 2, 0, Math.PI * 2);
+      ctx.ellipse(dx + dw / 2, dy + dh / 2, dw / 2, dh / 2, 0, 0, Math.PI * 2);
       ctx.stroke();
     }
 
