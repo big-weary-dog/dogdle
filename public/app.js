@@ -1,6 +1,7 @@
 import { Scene, subjectStyle } from "/effects.js";
 
 const PLAYER_KEY = "dogdle-player-id";
+const NAME_KEY = "dogdle-name";
 const RESULT_PREFIX = "dogdle-result-";
 const SPIN_EMOJIS = ["🐶", "🐕", "🦴", "🐾", "🎾", "🐩", "🦮", "🐕‍🦺"];
 const SPIN_MS = 1600;
@@ -46,6 +47,68 @@ function countdown() {
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 
+
+
+function getName() {
+  return localStorage.getItem(NAME_KEY) || "";
+}
+
+const signedStr = (n) => (n > 0 ? `+${n}` : `${n}`);
+
+function fillBoard(rows, mode) {
+  const list = el("boardList");
+  list.innerHTML = "";
+
+  if (!rows.length) {
+    const li = document.createElement("li");
+    li.className = "empty";
+    li.textContent = mode === "today" ? "Nobody has rolled yet today." : "No dogdles saved yet.";
+    list.appendChild(li);
+    return;
+  }
+
+  rows.forEach((row, i) => {
+    const li = document.createElement("li");
+
+    const rank = document.createElement("span");
+    rank.className = "rank";
+    rank.textContent = mode === "today" ? `${i + 1}.` : "";
+
+    const who = document.createElement("span");
+    who.className = "who";
+    // textContent throughout: names are player-supplied.
+    who.textContent = mode === "today" ? (row.player || "anon") : row.date;
+
+    const what = document.createElement("span");
+    what.className = "what";
+    what.textContent = mode === "today"
+      ? `${row.emoji || ""} ${row.dog} the ${row.breed}`
+      : `${row.name} the ${row.breed}`;
+
+    const pts = document.createElement("span");
+    pts.className = "pts";
+    pts.textContent = signedStr(row.score);
+    pts.style.color = row.score > 2 ? "#4ade80" : row.score < -5 ? "#f87171" : "#facc15";
+
+    li.append(rank, who, what, pts);
+    list.appendChild(li);
+  });
+}
+
+async function loadBoard(mode) {
+  el("tabToday").classList.toggle("active", mode === "today");
+  el("tabMine").classList.toggle("active", mode === "mine");
+  try {
+    const url = mode === "today"
+      ? "/api/leaderboard"
+      : `/api/history?player=${encodeURIComponent(getPlayerId())}`;
+    const res = await fetch(url);
+    const body = await res.json();
+    fillBoard(body.rows || [], mode);
+  } catch {
+    fillBoard([], mode);
+  }
+}
 
 function renderBadges(dog) {
   const rail = el("badges");
@@ -312,6 +375,39 @@ async function init() {
     if (key.startsWith(RESULT_PREFIX) && key !== cacheKey()) localStorage.removeItem(key);
   }
 
+  const nameInput = el("nameInput");
+  nameInput.value = getName();
+  nameInput.addEventListener("input", () => {
+    localStorage.setItem(NAME_KEY, nameInput.value.trim().slice(0, 20));
+  });
+
+  el("tabToday").onclick = () => loadBoard("today");
+  el("tabMine").onclick = () => loadBoard("mine");
+  loadBoard("today");
+
+  // The server is the source of truth for a roll that already happened, so ask it before
+  // trusting the local copy -- that is what makes an already-dealt dog survive content
+  // edits, and what keeps the dog consistent across devices.
+  try {
+    const res = await fetch(
+      `/api/roll?player=${encodeURIComponent(getPlayerId())}&name=${encodeURIComponent(getName())}&peek=1`
+    );
+    if (res.ok) {
+      const dog = await res.json();
+      if (dog.replayed) {
+        localStorage.setItem(cacheKey(), JSON.stringify(dog));
+        showDog(dog, { animate: false });
+        return;
+      }
+    }
+  } catch {
+    const cached = localStorage.getItem(cacheKey());
+    if (cached) {
+      showDog(JSON.parse(cached), { animate: false });
+      return;
+    }
+  }
+
   const cached = localStorage.getItem(cacheKey());
   if (cached) {
     showDog(JSON.parse(cached), { animate: false });
@@ -326,11 +422,14 @@ async function init() {
   pullBtn.onclick = async () => {
     pullBtn.onclick = null;
     try {
-      const res = await fetch(`/api/roll?player=${encodeURIComponent(getPlayerId())}`);
+      const res = await fetch(
+        `/api/roll?player=${encodeURIComponent(getPlayerId())}&name=${encodeURIComponent(getName())}`
+      );
       if (!res.ok) throw new Error("roll failed");
       const dog = await res.json();
       localStorage.setItem(cacheKey(), JSON.stringify(dog));
       showDog(dog, { animate: true });
+      loadBoard("today");
     } catch {
       pullBtn.disabled = false;
       pullBtn.textContent = "Something went wrong — tap to retry";

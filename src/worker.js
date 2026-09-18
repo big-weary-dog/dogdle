@@ -17,6 +17,12 @@ function sniffImageType(buf) {
 }
 
 const cardKey = (player, date) => `card:${player}:${date}`;
+// A player's own roll, and the per-day index the leaderboard lists over.
+const rollKey = (player, date) => `roll:${player}:${date}`;
+const dayKey = (date, player) => `day:${date}:${player}`;
+
+const cleanName = (raw) =>
+  String(raw || "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 20);
 
 const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) =>
@@ -61,11 +67,73 @@ export default {
       if (!PLAYER_ID_RE.test(player)) {
         return Response.json({ error: "invalid player id" }, { status: 400 });
       }
+      const date = today();
+      const name = cleanName(url.searchParams.get("name"));
 
-      const dog = rollDailyDog(player, today());
+      // A roll is stored the first time and replayed forever after. Without this, editing
+      // the content tables would silently re-deal every dog already shown that day.
+      const saved = await env.STORE.get(rollKey(player, date), "json");
+      if (saved) {
+        return Response.json({ ...saved, replayed: true }, { headers: { "cache-control": "no-store" } });
+      }
+
+      // A peek reports whether today's dog exists without dealing one. Page load uses it,
+      // so opening the site can't silently consume the roll before the lever is pulled.
+      if (url.searchParams.get("peek")) {
+        return Response.json({ pending: true }, { headers: { "cache-control": "no-store" } });
+      }
+
+      const dog = rollDailyDog(player, date);
       dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
+      dog.player = name;
+
+      await env.STORE.put(rollKey(player, date), JSON.stringify(dog), {
+        metadata: { date, score: dog.score, breed: dog.breed, name: dog.name },
+      });
+      // The leaderboard reads entirely from list metadata, so it never fetches values.
+      await env.STORE.put(dayKey(date, player), "", {
+        metadata: {
+          player: name,
+          dog: dog.name,
+          breed: dog.breed,
+          score: dog.score,
+          quality: dog.qualityLabel,
+          emoji: dog.background.emoji,
+        },
+      });
 
       return Response.json(dog, { headers: { "cache-control": "no-store" } });
+    }
+
+    // Today's scores across everyone who has rolled.
+    if (url.pathname === "/api/leaderboard") {
+      const date = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get("date") || "")
+        ? url.searchParams.get("date")
+        : today();
+
+      const listed = await env.STORE.list({ prefix: `day:${date}:`, limit: 200 });
+      const rows = listed.keys
+        .map((k) => k.metadata)
+        .filter(Boolean)
+        .sort((a, b) => b.score - a.score);
+
+      return Response.json({ date, rows }, { headers: { "cache-control": "no-store" } });
+    }
+
+    // Every dog this player has been dealt, newest first.
+    if (url.pathname === "/api/history") {
+      const player = url.searchParams.get("player") || "";
+      if (!PLAYER_ID_RE.test(player)) {
+        return Response.json({ error: "invalid player id" }, { status: 400 });
+      }
+
+      const listed = await env.STORE.list({ prefix: `roll:${player}:`, limit: 200 });
+      const rows = listed.keys
+        .map((k) => k.metadata)
+        .filter(Boolean)
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+      return Response.json({ rows }, { headers: { "cache-control": "no-store" } });
     }
 
     // Unlimited rerolls for playtesting. Everything it can reach is already public in the
@@ -124,7 +192,7 @@ export default {
         return Response.json({ error: "not a png or gif" }, { status: 415 });
       }
 
-      await env.CARDS.put(cardKey(player, date), body, {
+      await env.STORE.put(cardKey(player, date), body, {
         expirationTtl: CARD_TTL_SECONDS,
         metadata: { date },
       });
@@ -139,7 +207,7 @@ export default {
         return new Response("not found", { status: 404 });
       }
 
-      const card = await env.CARDS.get(cardKey(player, date), "arrayBuffer");
+      const card = await env.STORE.get(cardKey(player, date), "arrayBuffer");
       if (!card) return new Response("not found", { status: 404 });
 
       return new Response(card, {
@@ -183,11 +251,11 @@ Resetting…
         return new Response("not found", { status: 404 });
       }
 
-      const dog = rollDailyDog(player, date);
+      const dog = (await env.STORE.get(rollKey(player, date), "json")) ?? rollDailyDog(player, date);
 
       // Prefer the card the player's browser rendered; fall back to the plain breed photo
       // if they never got far enough to upload one.
-      const hasCard = (await env.CARDS.get(cardKey(player, date), "stream")) !== null;
+      const hasCard = (await env.STORE.get(cardKey(player, date), "stream")) !== null;
       const photo = hasCard
         ? `${url.origin}/i/${player}/${date}.gif`
         : await fetchBreedPhoto(dog.breedSlug, dog.date);

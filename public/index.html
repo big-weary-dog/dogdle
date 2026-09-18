@@ -26,6 +26,10 @@
       <div class="scene-label" id="sceneLabel" hidden></div>
     </section>
 
+    <div class="name-field">
+      <input id="nameInput" type="text" maxlength="20" placeholder="Your name (for the leaderboard)" />
+    </div>
+
     <button id="pullBtn" class="pull-btn">Pull the lever</button>
 
     <section class="result" id="result" hidden>
@@ -44,6 +48,14 @@
 
       <button id="shareBtn" class="share-btn">Copy share card</button>
       <p class="next-roll" id="nextRoll"></p>
+    </section>
+
+    <section class="board" id="board">
+      <div class="board-tabs">
+        <button class="tab active" id="tabToday" type="button">Today</button>
+        <button class="tab" id="tabMine" type="button">My dogdles</button>
+      </div>
+      <ol class="board-list" id="boardList"></ol>
     </section>
 
     <footer>swampkat.com &middot; photos from dog.ceo</footer>
