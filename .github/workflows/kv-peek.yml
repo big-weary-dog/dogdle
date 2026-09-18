@@ -1,0 +1,43 @@
+name: Peek KV
+
+# Run by hand to inspect live game state: who has rolled today, how many dogs are stored,
+# how many share cards exist. Read-only.
+on: workflow_dispatch
+
+env:
+  NS: 4c634ff1e5fd4d3ca547c5a2f1119806
+
+jobs:
+  peek:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Inspect
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          DATE=$(TZ=America/New_York date +%F)
+          echo "=== Eastern date: $DATE ==="
+
+          echo "=== today's leaderboard entries ==="
+          npx wrangler kv key list --namespace-id="$NS" --prefix="day:$DATE:" --remote > day.json
+          node -e '
+            const rows = require("./day.json").map(k => k.metadata).filter(Boolean);
+            rows.sort((a,b) => b.score - a.score);
+            console.log("count:", rows.length);
+            for (const r of rows) {
+              console.log(`  ${String(r.player || "(anon)").padEnd(18)} ${r.dog} the ${r.breed} -> ${r.score}`);
+            }
+          '
+
+          echo "=== stored rolls (all dates) ==="
+          npx wrangler kv key list --namespace-id="$NS" --prefix="roll:" --remote > rolls.json
+          node -e 'const k=require("./rolls.json"); console.log("count:", k.length); k.slice(0,15).forEach(x=>console.log("  ", x.name));'
+
+          echo "=== share cards stored ==="
+          npx wrangler kv key list --namespace-id="$NS" --prefix="card:" --remote > cards.json
+          node -e 'const k=require("./cards.json"); console.log("count:", k.length); k.slice(0,10).forEach(x=>console.log("  ", x.name));'
