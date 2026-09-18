@@ -1,4 +1,4 @@
-import { Scene } from "/effects.js";
+import { Scene, subjectStyle } from "/effects.js";
 
 const PLAYER_KEY = "dogdle-player-id";
 const RESULT_PREFIX = "dogdle-result-";
@@ -13,8 +13,10 @@ const sceneLabel = el("sceneLabel");
 const pullBtn = el("pullBtn");
 const result = el("result");
 
-const scene = new Scene(el("scene"));
-window.addEventListener("resize", () => scene.resize());
+const sceneBack = new Scene(el("sceneBack"), "back");
+const sceneFront = new Scene(el("sceneFront"), "front");
+const scenes = [sceneBack, sceneFront];
+window.addEventListener("resize", () => scenes.forEach((s) => s.resize()));
 
 function getPlayerId() {
   let id = localStorage.getItem(PLAYER_KEY);
@@ -39,8 +41,15 @@ const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 
 function applyScene(dog) {
   const effects = [dog.background.effect, ...dog.modifiers.map((m) => m.effect)];
-  scene.setScene({ sky: dog.background.sky, ground: dog.background.ground, effects });
-  scene.start();
+  for (const s of scenes) {
+    s.setScene({ sky: dog.background.sky, ground: dog.background.ground, effects });
+    s.start();
+  }
+
+  const subject = subjectStyle(effects);
+  dogPhoto.style.filter = subject.filter;
+  dogPhoto.style.animation = subject.animation;
+  if (subject.opacity) dogPhoto.style.opacity = subject.opacity;
 
   const shake = dog.modifiers.find((m) => m.effect?.type === "shake");
   if (shake && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -100,12 +109,16 @@ function renderResult(dog) {
   result.hidden = false;
 
   el("shareBtn").onclick = () => {
+    // The trailing link carries OpenGraph tags, so Discord unfurls it into a card with the
+    // real breed photo rather than showing a bare URL.
+    const shareUrl = `${location.origin}/s/${encodeURIComponent(getPlayerId())}/${dog.date}`;
     const text = [
       `Dogdle ${dog.date}`,
       `${dog.name} the ${dog.breed} (${dog.rarityLabel})`,
       `📍 ${dog.background.name}`,
       ...dog.modifiers.map((m) => `${m.value >= 0 ? "✅" : "❌"} ${m.text}`),
       `Score: ${signed(dog.score)} — ${dog.qualityLabel}`,
+      shareUrl,
     ].join("\n");
 
     navigator.clipboard.writeText(text).then(() => {
@@ -172,8 +185,10 @@ async function init() {
     return;
   }
 
-  scene.setScene({ sky: ["#1e293b", "#334155"], ground: "#0f172a", effects: [] });
-  scene.start();
+  for (const s of scenes) {
+    s.setScene({ sky: ["#1e293b", "#334155"], ground: "#0f172a", effects: [] });
+    s.start();
+  }
 
   pullBtn.onclick = async () => {
     pullBtn.onclick = null;

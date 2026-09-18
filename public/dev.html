@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dogdle — dev</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .dev-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+    .dev-bar button { flex: 1; padding: 12px; border: none; border-radius: 11px;
+                      font-weight: 650; cursor: pointer; background: #1f2937; color: #e5e7eb; }
+    .dev-bar button.primary { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; }
+    .seed { font-size: 0.75rem; color: var(--muted); text-align: center; margin: 0 0 14px; }
+    .dev-note { font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 18px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Dogdle dev</h1>
+      <p class="tagline">Unlimited rerolls. Not the real game.</p>
+    </header>
+
+    <div class="dev-bar">
+      <button id="rerollBtn" class="primary">Reroll</button>
+      <button id="reroll10Btn">Reroll ×10 (fast)</button>
+    </div>
+    <p class="seed" id="seedLabel"></p>
+
+    <section class="stage" id="stage">
+      <canvas id="sceneBack"></canvas>
+      <div class="dog-slot" id="dogSlot">
+        <div class="spinner" id="spinner">🐾</div>
+        <img id="dogPhoto" alt="" hidden />
+      </div>
+      <canvas id="sceneFront"></canvas>
+      <div class="scene-label" id="sceneLabel" hidden></div>
+    </section>
+
+    <section class="result" id="result" hidden>
+      <div class="name-row">
+        <h2 id="dogName"></h2>
+        <span class="rarity-badge" id="rarityBadge"></span>
+      </div>
+      <p class="breed" id="breedName"></p>
+      <div class="score-row">
+        <span class="quality" id="qualityLabel"></span>
+        <span class="score" id="scoreValue"></span>
+      </div>
+      <ul class="modifiers" id="modifiersList"></ul>
+    </section>
+
+    <p class="dev-note">Rolls bypass the once-a-day lock via /api/dev-roll.</p>
+  </main>
+
+  <script type="module" src="/dev.js"></script>
+</body>
+</html>

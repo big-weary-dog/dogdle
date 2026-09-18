@@ -2,7 +2,7 @@
 // refreshing can't reroll, but two friends on the same day get independent pulls.
 
 import { BREEDS, RARITIES, RARITY_ORDER, breedsByRarity } from "./breeds.js";
-import { NAMES, BACKGROUNDS, MODIFIERS, MODIFIER_COUNT, QUALITY_TIERS } from "./content.js";
+import { NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, MODIFIER_COUNT, QUALITY_TIERS } from "./content.js";
 
 function mulberry32(seed) {
   return function () {
@@ -27,15 +27,17 @@ function pick(rng, arr) {
   return arr[Math.floor(rng() * arr.length)];
 }
 
-function pickRarity(rng) {
-  const total = RARITY_ORDER.reduce((sum, key) => sum + RARITIES[key].weight, 0);
+function pickRarity(rng, weights) {
+  const total = RARITY_ORDER.reduce((sum, key) => sum + weights[key], 0);
   let roll = rng() * total;
   for (const key of RARITY_ORDER) {
-    roll -= RARITIES[key].weight;
+    roll -= weights[key];
     if (roll <= 0) return key;
   }
   return "common";
 }
+
+const BREED_WEIGHTS = Object.fromEntries(RARITY_ORDER.map((k) => [k, RARITIES[k].weight]));
 
 function sampleDistinct(rng, arr, count) {
   const pool = arr.slice();
@@ -57,12 +59,12 @@ export function todayUTC() {
 export function rollDailyDog(playerId, dateStr = todayUTC()) {
   const rng = mulberry32(hashString(`${playerId}:${dateStr}`));
 
-  const breedRarity = pickRarity(rng);
+  const breedRarity = pickRarity(rng, BREED_WEIGHTS);
   const pool = breedsByRarity(breedRarity);
   const breed = pool.length ? pick(rng, pool) : pick(rng, BREEDS);
 
   // Backgrounds roll their own rarity, so a common breed can still land somewhere absurd.
-  const bgRarity = pickRarity(rng);
+  const bgRarity = pickRarity(rng, BACKGROUND_WEIGHTS);
   const bgPool = BACKGROUNDS.filter((b) => b.rarity === bgRarity);
   const background = bgPool.length ? pick(rng, bgPool) : pick(rng, BACKGROUNDS);
 

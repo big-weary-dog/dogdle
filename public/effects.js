@@ -20,6 +20,13 @@ function rgba(hex, alpha) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
+function shade(hex, amount) {
+  const [r, g, b] = hexToRgb(hex).map((c) =>
+    Math.round(Math.min(255, Math.max(0, c + c * amount)))
+  );
+  return `rgb(${r},${g},${b})`;
+}
+
 // ---------------------------------------------------------------------------
 // Shape drawing helpers, shared by the particle effects
 // ---------------------------------------------------------------------------
@@ -462,10 +469,48 @@ const EFFECTS = {
 // `shake` moves the whole card rather than drawing pixels, so app.js handles it.
 export const DOM_EFFECTS = new Set(["shake"]);
 
+// Effects come in three classes, which is what gives a scene any depth:
+//   back    -- the world behind the dog (sky, weather, distant light)
+//   front   -- stuff dumped on top, passing between you and the dog
+//   subject -- CSS applied to the dog photo itself, so effects visibly touch it
+//
+// Subject effects are plain CSS rather than canvas work: cheap, and they alter the actual
+// photo instead of decorating around it.
+export const SUBJECT_STYLES = {
+  tint: (p) => ({ filter: `sepia(${p.sepia ?? 0.5}) hue-rotate(${p.hue ?? 0}deg) saturate(${p.saturate ?? 1.2})` }),
+  drain: (p) => ({ filter: `grayscale(${p.amount ?? 0.85}) contrast(1.1)` }),
+  blur: (p) => ({ filter: `blur(${p.amount ?? 1.5}px)` }),
+  halo: (p) => ({ filter: `drop-shadow(0 0 ${p.size ?? 14}px ${p.color ?? "#fcd34d"}) brightness(${p.brightness ?? 1.1})` }),
+  invert: (p) => ({ filter: `invert(${p.amount ?? 0.85}) hue-rotate(180deg)` }),
+  chromatic: (p) => ({
+    filter: `drop-shadow(${p.offset ?? 3}px 0 0 rgba(239,68,68,.8)) drop-shadow(-${p.offset ?? 3}px 0 0 rgba(34,211,238,.8))`,
+  }),
+  ghost: (p) => ({ opacity: String(p.opacity ?? 0.55), filter: `blur(${p.blur ?? 0.6}px)` }),
+  wobble: (p) => ({ animation: `subject-wobble ${p.period ?? 700}ms ease-in-out infinite` }),
+  spin: (p) => ({ animation: `subject-spin ${p.period ?? 4000}ms linear infinite` }),
+  squish: (p) => ({ animation: `subject-squish ${p.period ?? 1400}ms ease-in-out infinite` }),
+  bounce: (p) => ({ animation: `subject-bounce ${p.period ?? 900}ms ease-in-out infinite` }),
+};
+
+// Merges every subject effect on a dog into one set of inline styles. Multiple filters
+// concatenate, which is how a blessed-and-haunted dog gets both.
+export function subjectStyle(effects) {
+  const out = { filter: "", animation: "", opacity: "" };
+  for (const e of effects) {
+    if (!e || e.layer !== "subject" || !SUBJECT_STYLES[e.type]) continue;
+    const style = SUBJECT_STYLES[e.type](e.params ?? {});
+    if (style.filter) out.filter += (out.filter ? " " : "") + style.filter;
+    if (style.animation) out.animation = style.animation;
+    if (style.opacity) out.opacity = style.opacity;
+  }
+  return out;
+}
+
 export class Scene {
-  constructor(canvas) {
+  constructor(canvas, layer = "back") {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
+    this.layer = layer;
     this.layers = [];
     this.sky = ["#1e293b", "#334155"];
     this.ground = null;
@@ -477,7 +522,7 @@ export class Scene {
     this.sky = sky ?? this.sky;
     this.ground = ground ?? null;
     this.layers = effects
-      .filter((e) => e && EFFECTS[e.type] && !DOM_EFFECTS.has(e.type))
+      .filter((e) => e && EFFECTS[e.type] && !DOM_EFFECTS.has(e.type) && (e.layer ?? "back") === this.layer)
       .map((e) => EFFECTS[e.type](e.params ?? {}));
   }
 
@@ -499,7 +544,9 @@ export class Scene {
 
     const frame = (now) => {
       if (!this.running) return;
-      const dt = Math.min(now - this.last, 64);
+      // rAF timestamps mark the frame's start, which can predate the performance.now()
+      // captured in start() -- without the floor, the first frame steps everything backwards.
+      const dt = Math.max(0, Math.min(now - this.last, 64));
       this.last = now;
       this.render(dt, now);
       requestAnimationFrame(frame);
@@ -515,17 +562,32 @@ export class Scene {
     const { ctx, w, h } = this;
     if (!w || !h) return;
 
-    const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, this.sky[0]);
-    grad.addColorStop(1, this.sky[1] ?? this.sky[0]);
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, w, h);
+    ctx.clearRect(0, 0, w, h);
 
-    if (this.ground) {
-      ctx.fillStyle = this.ground;
-      ctx.beginPath();
-      ctx.ellipse(w / 2, h * 1.02, w * 0.75, h * 0.22, 0, 0, TAU);
-      ctx.fill();
+    // Only the back layer paints the world; the front layer stays transparent so the dog
+    // shows through everywhere its effects aren't.
+    if (this.layer === "back") {
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, this.sky[0]);
+      grad.addColorStop(1, this.sky[1] ?? this.sky[0]);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      if (this.ground) {
+        // A flat plane with a horizon reads as ground; the old bulging ellipse did not.
+        const horizon = h * 0.68;
+        const gGrad = ctx.createLinearGradient(0, horizon, 0, h);
+        gGrad.addColorStop(0, this.ground);
+        gGrad.addColorStop(1, shade(this.ground, -0.35));
+        ctx.fillStyle = gGrad;
+        ctx.fillRect(0, horizon, w, h - horizon);
+
+        // Contact shadow, so the dog sits on the ground instead of hovering over it.
+        ctx.fillStyle = "rgba(0,0,0,.28)";
+        ctx.beginPath();
+        ctx.ellipse(w / 2, horizon + 6, w * 0.22, h * 0.035, 0, 0, TAU);
+        ctx.fill();
+      }
     }
 
     for (const layer of this.layers) layer.draw(ctx, w, h, dt, t);
