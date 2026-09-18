@@ -2,7 +2,7 @@
 // refreshing can't reroll, but two friends on the same day get independent pulls.
 
 import { BREEDS, RARITIES, RARITY_ORDER, breedsByRarity } from "./breeds.js";
-import { NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, MODIFIER_COUNT, QUALITY_TIERS } from "./content.js";
+import { NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS } from "./content.js";
 
 function mulberry32(seed) {
   return function () {
@@ -69,7 +69,9 @@ export function rollDailyDog(playerId, dateStr = todayUTC()) {
   const background = bgPool.length ? pick(rng, bgPool) : pick(rng, BACKGROUNDS);
 
   const name = pick(rng, NAMES);
-  const modifiers = sampleDistinct(rng, MODIFIERS, MODIFIER_COUNT);
+  const span = MODIFIER_COUNT_MAX - MODIFIER_COUNT_MIN + 1;
+  const modifierCount = MODIFIER_COUNT_MIN + Math.floor(rng() * span);
+  const modifiers = sampleDistinct(rng, MODIFIERS, modifierCount);
 
   const score = background.value + modifiers.reduce((sum, m) => sum + m.value, 0);
   const quality = qualityFor(score);
@@ -86,6 +88,7 @@ export function rollDailyDog(playerId, dateStr = todayUTC()) {
     rarityGlow: rarity.glow,
     background: {
       key: background.key,
+      emoji: background.emoji,
       name: background.name,
       rarity: background.rarity,
       rarityLabel: RARITIES[background.rarity].label,
@@ -96,6 +99,7 @@ export function rollDailyDog(playerId, dateStr = todayUTC()) {
     },
     modifiers: modifiers.map((m) => ({
       text: m.text,
+      emoji: m.emoji,
       value: m.value,
       category: m.category,
       effect: m.effect,

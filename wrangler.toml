@@ -10,3 +10,8 @@ routes = [{ pattern = "dogdle.swampkat.com", custom_domain = true }]
 directory = "public"
 binding = "ASSETS"
 run_worker_first = ["/api/*"]
+
+# Rendered share cards uploaded by the browser, read back by /i/ and the OG tags.
+[[kv_namespaces]]
+binding = "CARDS"
+id = "4c634ff1e5fd4d3ca547c5a2f1119806"

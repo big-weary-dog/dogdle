@@ -37,7 +37,8 @@ function render(dog) {
   }
 
   if (dog.photo) {
-    dogPhoto.src = dog.photo;
+    dogPhoto.crossOrigin = "anonymous";
+    dogPhoto.src = `/img?u=${encodeURIComponent(dog.photo)}`;
     dogPhoto.style.borderColor = dog.rarityColor;
     dogPhoto.style.boxShadow = `0 10px 30px rgba(0,0,0,.55), ${dog.rarityGlow}`;
     dogPhoto.hidden = false;
@@ -63,14 +64,22 @@ function render(dog) {
   el("scoreValue").style.color = dog.qualityColor;
   el("sceneLabel").textContent = `${dog.background.name} · ${dog.background.rarityLabel}`;
   el("sceneLabel").hidden = false;
+
+  const rail = el("badges");
+  rail.innerHTML = "";
+  for (const item of [dog.background, ...dog.modifiers]) {
+    const span = document.createElement("span");
+    span.textContent = item.emoji;
+    rail.appendChild(span);
+  }
   el("seedLabel").textContent = `seed: ${dog.devSeed}`;
 
   const list = el("modifiersList");
   list.innerHTML = "";
   const rows = [
-    { label: dog.background.name, category: "background", value: dog.background.value, scene: true },
+    { label: `${dog.background.emoji} ${dog.background.name}`, category: "background", value: dog.background.value, scene: true },
     ...dog.modifiers.map((m) => ({
-      label: m.text, category: `${m.category}${m.effect ? ` · ${m.effect.type}/${m.effect.layer}` : ""}`,
+      label: `${m.emoji} ${m.text}`, category: `${m.category}${m.effect ? ` · ${m.effect.type}/${m.effect.layer}` : ""}`,
       value: m.value,
     })),
   ];

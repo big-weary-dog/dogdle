@@ -3,6 +3,11 @@ import { BREEDS, photoEndpoint } from "./breeds.js";
 
 const PLAYER_ID_RE = /^[a-zA-Z0-9-]{8,64}$/;
 const PHOTO_TIMEOUT_MS = 4000;
+const MAX_CARD_BYTES = 2_000_000;
+const CARD_TTL_SECONDS = 60 * 60 * 24 * 30;
+const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+
+const cardKey = (player, date) => `card:${player}:${date}`;
 
 const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) =>
@@ -65,6 +70,75 @@ export default {
       return Response.json(dog, { headers: { "cache-control": "no-store" } });
     }
 
+    // Drawing a cross-origin image onto a canvas taints it, and a tainted canvas can't be
+    // exported. Re-serving dog.ceo photos from our own origin keeps the canvas clean.
+    // Strictly host-locked: this must never become a general-purpose fetch proxy.
+    if (url.pathname === "/img") {
+      const target = url.searchParams.get("u") || "";
+      let parsed;
+      try {
+        parsed = new URL(target);
+      } catch {
+        return new Response("bad url", { status: 400 });
+      }
+      if (parsed.protocol !== "https:" || parsed.hostname !== "images.dog.ceo") {
+        return new Response("forbidden host", { status: 403 });
+      }
+
+      const upstream = await fetch(parsed.toString(), { signal: AbortSignal.timeout(PHOTO_TIMEOUT_MS) });
+      if (!upstream.ok) return new Response("upstream error", { status: 502 });
+
+      const type = upstream.headers.get("content-type") || "";
+      if (!type.startsWith("image/")) return new Response("not an image", { status: 502 });
+
+      return new Response(upstream.body, {
+        headers: { "content-type": type, "cache-control": "public, max-age=86400" },
+      });
+    }
+
+    // The browser composites the live stage (back canvas + photo + front canvas + stats)
+    // and posts the PNG here, so the embed shows exactly what the player saw, effects and
+    // all. Keyed by player+date, so a given dog has at most one card.
+    if (url.pathname === "/api/card" && request.method === "PUT") {
+      const player = url.searchParams.get("player") || "";
+      const date = url.searchParams.get("date") || "";
+      if (!PLAYER_ID_RE.test(player) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return Response.json({ error: "bad params" }, { status: 400 });
+      }
+
+      const body = await request.arrayBuffer();
+      if (body.byteLength > MAX_CARD_BYTES) {
+        return Response.json({ error: "too large" }, { status: 413 });
+      }
+      // Only store things that really are PNGs, rather than whatever was posted.
+      const magic = new Uint8Array(body.slice(0, 8));
+      if (!PNG_MAGIC.every((b, i) => magic[i] === b)) {
+        return Response.json({ error: "not a png" }, { status: 415 });
+      }
+
+      await env.CARDS.put(cardKey(player, date), body, {
+        expirationTtl: CARD_TTL_SECONDS,
+        metadata: { date },
+      });
+
+      return Response.json({ ok: true, url: `/i/${player}/${date}.png` });
+    }
+
+    if (url.pathname.startsWith("/i/")) {
+      const [, , player, file] = url.pathname.split("/");
+      const date = (file || "").replace(/\.png$/, "");
+      if (!PLAYER_ID_RE.test(player || "") || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return new Response("not found", { status: 404 });
+      }
+
+      const card = await env.CARDS.get(cardKey(player, date), "arrayBuffer");
+      if (!card) return new Response("not found", { status: 404 });
+
+      return new Response(card, {
+        headers: { "content-type": "image/png", "cache-control": "public, max-age=86400" },
+      });
+    }
+
     // Share links are stateless: a dog is fully determined by (player, date), so this
     // re-rolls the same animal and serves OpenGraph tags that Discord/Slack unfurl into a
     // card with the real breed photo. No storage, nothing to expire.
@@ -75,7 +149,13 @@ export default {
       }
 
       const dog = rollDailyDog(player, date);
-      const photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
+
+      // Prefer the card the player's browser rendered; fall back to the plain breed photo
+      // if they never got far enough to upload one.
+      const hasCard = (await env.CARDS.get(cardKey(player, date), "stream")) !== null;
+      const photo = hasCard
+        ? `${url.origin}/i/${player}/${date}.png`
+        : await fetchBreedPhoto(dog.breedSlug, dog.date);
 
       const title = `${dog.name} the ${dog.breed} — ${dog.qualityLabel} (${dog.score > 0 ? "+" : ""}${dog.score})`;
       const description = [
@@ -100,7 +180,7 @@ ${photo ? `<meta property="og:image" content="${esc(photo)}" />` : ""}
 </html>`;
 
       return new Response(html, {
-        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600" },
+        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" },
       });
     }
 
