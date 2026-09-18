@@ -53,8 +53,6 @@ function getName() {
   return localStorage.getItem(NAME_KEY) || "";
 }
 
-const signedStr = (n) => (n > 0 ? `+${n}` : `${n}`);
-
 function fillBoard(rows, mode) {
   const list = el("boardList");
   list.innerHTML = "";
@@ -87,7 +85,7 @@ function fillBoard(rows, mode) {
 
     const pts = document.createElement("span");
     pts.className = "pts";
-    pts.textContent = signedStr(row.score);
+    pts.textContent = signed(row.score);
     pts.style.color = row.score > 2 ? "#4ade80" : row.score < -5 ? "#f87171" : "#facc15";
 
     li.append(rank, who, what, pts);
@@ -377,8 +375,37 @@ async function init() {
 
   const nameInput = el("nameInput");
   nameInput.value = getName();
-  nameInput.addEventListener("input", () => {
-    localStorage.setItem(NAME_KEY, nameInput.value.trim().slice(0, 20));
+  async function saveName() {
+    const value = nameInput.value.trim().slice(0, 20);
+    localStorage.setItem(NAME_KEY, value);
+
+    const saved = el("nameSaved");
+    saved.hidden = false;
+    saved.style.color = "#4ade80";
+
+    if (!value) {
+      saved.style.color = "#f87171";
+      saved.textContent = "Enter a name first";
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `/api/name?player=${encodeURIComponent(getPlayerId())}&name=${encodeURIComponent(value)}`,
+        { method: "POST" }
+      );
+      // ok is false when today's dog hasn't been rolled yet; the name still applies to it.
+      saved.textContent = (await res.json()).ok ? `Saved as ${value}` : `Saved — applies when you roll`;
+      loadBoard("today");
+    } catch {
+      saved.style.color = "#f87171";
+      saved.textContent = "Couldn't save, try again";
+    }
+  }
+
+  el("nameBtn").onclick = saveName;
+  nameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") saveName();
   });
 
   el("tabToday").onclick = () => loadBoard("today");
@@ -408,8 +435,26 @@ async function init() {
     }
   }
 
+  // Someone who rolled before rolls were stored server-side has a dog in this browser and
+  // nothing on the server, so they never reached the leaderboard. Materialise it now. The
+  // server re-derives the dog itself rather than trusting anything posted from here, so
+  // this can't be used to submit an invented score.
   const cached = localStorage.getItem(cacheKey());
   if (cached) {
+    try {
+      const res = await fetch(
+        `/api/roll?player=${encodeURIComponent(getPlayerId())}&name=${encodeURIComponent(getName())}`
+      );
+      if (res.ok) {
+        const dog = await res.json();
+        localStorage.setItem(cacheKey(), JSON.stringify(dog));
+        showDog(dog, { animate: false });
+        loadBoard("today");
+        return;
+      }
+    } catch {
+      // Offline: fall back to the local copy.
+    }
     showDog(JSON.parse(cached), { animate: false });
     return;
   }

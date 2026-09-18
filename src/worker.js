@@ -105,6 +105,31 @@ export default {
       return Response.json(dog, { headers: { "cache-control": "no-store" } });
     }
 
+    // A name entered after rolling still needs to reach the board.
+    if (url.pathname === "/api/name" && request.method === "POST") {
+      const player = url.searchParams.get("player") || "";
+      const name = cleanName(url.searchParams.get("name"));
+      if (!PLAYER_ID_RE.test(player)) {
+        return Response.json({ error: "invalid player id" }, { status: 400 });
+      }
+
+      const date = today();
+      const saved = await env.STORE.get(rollKey(player, date), "json");
+      if (!saved) return Response.json({ ok: false });
+
+      await env.STORE.put(dayKey(date, player), "", {
+        metadata: {
+          player: name,
+          dog: saved.name,
+          breed: saved.breed,
+          score: saved.score,
+          quality: saved.qualityLabel,
+          emoji: saved.background.emoji,
+        },
+      });
+      return Response.json({ ok: true });
+    }
+
     // Today's scores across everyone who has rolled.
     if (url.pathname === "/api/leaderboard") {
       const date = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get("date") || "")

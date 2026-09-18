@@ -13,6 +13,7 @@
     <header>
       <h1>Dogdle</h1>
       <p class="tagline">One dog. Once a day. No rerolls.</p>
+      <p class="beta">BETA &middot; expect bugs, and dogs</p>
     </header>
 
     <section class="stage" id="stage">
@@ -27,7 +28,12 @@
     </section>
 
     <div class="name-field">
-      <input id="nameInput" type="text" maxlength="20" placeholder="Your name (for the leaderboard)" />
+      <label for="nameInput">Your name on the leaderboard</label>
+      <div class="name-row-input">
+        <input id="nameInput" type="text" maxlength="20" placeholder="e.g. Zach" autocomplete="nickname" />
+        <button id="nameBtn" type="button">Set name</button>
+      </div>
+      <span class="name-saved" id="nameSaved" hidden></span>
     </div>
 
     <button id="pullBtn" class="pull-btn">Pull the lever</button>
