@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dogdle</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>🎰 Dogdle</h1>
+      <p class="tagline">One dog. Once a day. No rerolls.</p>
+    </header>
+
+    <section class="machine" id="machine">
+      <div class="reel" id="reel">
+        <div class="reel-item" id="reelItem">🐾</div>
+      </div>
+
+      <button id="pullBtn" class="pull-btn">Pull the lever</button>
+
+      <div class="result" id="result" hidden>
+        <div class="card" id="card">
+          <div class="rarity-badge" id="rarityBadge">Common</div>
+          <h2 id="breedName">Labrador Retriever</h2>
+          <div class="quality" id="qualityLabel">Solidly Average Good Boy</div>
+          <div class="meta">
+            <span id="sizeTag"></span>
+            <span id="coatTag"></span>
+          </div>
+          <ul class="modifiers" id="modifiersList"></ul>
+        </div>
+        <button id="shareBtn" class="share-btn">Copy share card</button>
+        <p class="next-roll" id="nextRoll"></p>
+      </div>
+    </section>
+
+    <footer>
+      <p>swampkat.com &middot; dogdle</p>
+    </footer>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
