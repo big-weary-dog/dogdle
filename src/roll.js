@@ -39,6 +39,10 @@ function pickRarity(rng, weights) {
 
 const BREED_WEIGHTS = Object.fromEntries(RARITY_ORDER.map((k) => [k, RARITIES[k].weight]));
 
+// Retired modifiers stay in the table so anything still referencing one resolves to its
+// text, emoji and effect; they just never land on a new dog.
+const SPAWNABLE_MODIFIERS = MODIFIERS.filter((m) => !m.obsolete);
+
 function sampleDistinct(rng, arr, count) {
   const pool = arr.slice();
   const out = [];
@@ -71,7 +75,7 @@ export function rollDailyDog(playerId, dateStr = todayUTC()) {
   const name = pick(rng, NAMES);
   const span = MODIFIER_COUNT_MAX - MODIFIER_COUNT_MIN + 1;
   const modifierCount = MODIFIER_COUNT_MIN + Math.floor(rng() * span);
-  const modifiers = sampleDistinct(rng, MODIFIERS, modifierCount);
+  const modifiers = sampleDistinct(rng, SPAWNABLE_MODIFIERS, modifierCount);
 
   const score = background.value + modifiers.reduce((sum, m) => sum + m.value, 0);
   const quality = qualityFor(score);

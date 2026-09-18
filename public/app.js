@@ -125,7 +125,7 @@ function renderResult(dog) {
     // Link the PNG itself, not the /s/ page: a direct image URL unfurls in Discord as a
     // bare image with no title/description chrome. The angle brackets around the game link
     // stop it unfurling a second embed underneath.
-    const imageUrl = `${location.origin}/i/${encodeURIComponent(getPlayerId())}/${dog.date}.png`;
+    const imageUrl = `${location.origin}/i/${encodeURIComponent(getPlayerId())}/${dog.date}.gif`;
     const text = [
       `Dogdle ${dog.date}`,
       `${dog.name} the ${dog.breed} (${dog.rarityLabel})`,
@@ -144,86 +144,104 @@ function renderResult(dog) {
 }
 
 
-// Composites the live stage -- back canvas, the photo with its subject filters, then the
-// front canvas -- into one PNG and stores it, so the Discord embed shows the actual card
-// rather than a bare breed photo. Best-effort: sharing still works without it.
+// Draws one composite frame of the live stage: back canvas, the photo with its subject
+// filters, the front canvas, the badge rail, then the caption bar.
+function drawCardFrame(ctx, w, h, dog) {
+  const stageEl = el("stage");
+  ctx.drawImage(el("sceneBack"), 0, 0, w, h);
+
+  if (!dogPhoto.hidden && dogPhoto.complete && dogPhoto.naturalWidth) {
+    const rect = dogPhoto.getBoundingClientRect();
+    const stageRect = stageEl.getBoundingClientRect();
+    const scale = w / stageRect.width;
+    const dw = rect.width * scale;
+    const dh = rect.height * scale;
+    const dx = (rect.left - stageRect.left) * scale;
+    const dy = (rect.top - stageRect.top) * scale;
+
+    ctx.save();
+    ctx.filter = dogPhoto.style.filter || "none";
+    ctx.beginPath();
+    ctx.ellipse(dx + dw / 2, dy + dh / 2, dw / 2, dh / 2, 0, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.clip();
+    ctx.drawImage(dogPhoto, dx, dy, dw, dh);
+    ctx.restore();
+
+    ctx.strokeStyle = dog.rarityColor;
+    ctx.lineWidth = Math.max(2, dw * 0.02);
+    ctx.beginPath();
+    ctx.ellipse(dx + dw / 2, dy + dh / 2, dw / 2, dh / 2, 0, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.drawImage(el("sceneFront"), 0, 0, w, h);
+
+  const items = [dog.background, ...dog.modifiers];
+  const size = Math.round(w * 0.052);
+  const gap = Math.round(size * 0.28);
+  let by = Math.round(h * 0.035);
+  for (const item of items) {
+    const bx = w - size - Math.round(w * 0.028);
+    ctx.fillStyle = "rgba(0,0,0,.5)";
+    ctx.beginPath();
+    ctx.roundRect(bx, by, size, size, size * 0.28);
+    ctx.fill();
+    ctx.font = `${Math.round(size * 0.62)}px -apple-system, system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#fff";
+    ctx.fillText(item.emoji, bx + size / 2, by + size / 2);
+    by += size + gap;
+  }
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+
+  const barH = Math.round(h * 0.16);
+  ctx.fillStyle = "rgba(8,10,16,.82)";
+  ctx.fillRect(0, h - barH, w, barH);
+  ctx.fillStyle = "#fff";
+  ctx.font = `600 ${Math.round(barH * 0.34)}px -apple-system, system-ui, sans-serif`;
+  ctx.fillText(`${dog.name} — ${dog.breed}`, w * 0.024, h - barH + barH * 0.42);
+  ctx.fillStyle = dog.qualityColor;
+  ctx.font = `700 ${Math.round(barH * 0.3)}px -apple-system, system-ui, sans-serif`;
+  ctx.fillText(`${dog.qualityLabel}  ${signed(dog.score)}`, w * 0.024, h - barH + barH * 0.82);
+}
+
+// Records the stage as an animated GIF so the shared card moves the way the game does.
+// Kept small deliberately: GIF is limited to 256 colours and grows fast with size and
+// frame count, so this is 480px wide over a ~2s loop. Best-effort -- sharing still works
+// without it, falling back to the plain breed photo.
 async function uploadCard(dog) {
   try {
+    const { GIFEncoder, quantize, applyPalette } = await import("/vendor/gifenc.js");
+
     const stageEl = el("stage");
-    const back = el("sceneBack");
-    const front = el("sceneFront");
-    const w = 1200;
+    const w = 480;
     const h = Math.round((w * stageEl.clientHeight) / stageEl.clientWidth);
+    const frames = 16;
+    const delay = 120;
 
     const out = document.createElement("canvas");
     out.width = w;
     out.height = h;
-    const ctx = out.getContext("2d");
+    const ctx = out.getContext("2d", { willReadFrequently: true });
 
-    ctx.drawImage(back, 0, 0, w, h);
+    const gif = GIFEncoder();
+    let palette = null;
 
-    if (!dogPhoto.hidden && dogPhoto.complete && dogPhoto.naturalWidth) {
-      const rect = dogPhoto.getBoundingClientRect();
-      const stageRect = stageEl.getBoundingClientRect();
-      const scale = w / stageRect.width;
-      const dw = rect.width * scale;
-      const dh = rect.height * scale;
-      const dx = (rect.left - stageRect.left) * scale;
-      const dy = (rect.top - stageRect.top) * scale;
-
-      ctx.save();
-      // Carry the subject-layer filters onto the composite.
-      ctx.filter = dogPhoto.style.filter || "none";
-      ctx.beginPath();
-      ctx.ellipse(dx + dw / 2, dy + dh / 2, dw / 2, dh / 2, 0, 0, Math.PI * 2);
-      ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(dogPhoto, dx, dy, dw, dh);
-      ctx.restore();
-
-      ctx.strokeStyle = dog.rarityColor;
-      ctx.lineWidth = Math.max(3, dw * 0.02);
-      ctx.beginPath();
-      ctx.ellipse(dx + dw / 2, dy + dh / 2, dw / 2, dh / 2, 0, 0, Math.PI * 2);
-      ctx.stroke();
+    for (let i = 0; i < frames; i++) {
+      drawCardFrame(ctx, w, h, dog);
+      const { data } = ctx.getImageData(0, 0, w, h);
+      // One palette for the whole animation: reusing it compresses far better than
+      // quantising every frame separately.
+      if (!palette) palette = quantize(data, 256);
+      gif.writeFrame(applyPalette(data, palette), w, h, { palette, delay });
+      await new Promise((r) => setTimeout(r, delay));
     }
 
-    ctx.drawImage(front, 0, 0, w, h);
-
-    // Same badge rail as on screen, so the shared card matches what the player saw.
-    const items = [dog.background, ...dog.modifiers];
-    const size = Math.round(w * 0.052);
-    const gap = Math.round(size * 0.28);
-    let by = Math.round(h * 0.035);
-    for (const item of items) {
-      const bx = w - size - Math.round(w * 0.028);
-      ctx.fillStyle = "rgba(0,0,0,.5)";
-      ctx.beginPath();
-      ctx.roundRect(bx, by, size, size, size * 0.28);
-      ctx.fill();
-      ctx.font = `${Math.round(size * 0.62)}px -apple-system, system-ui, sans-serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = "#fff";
-      ctx.fillText(item.emoji, bx + size / 2, by + size / 2);
-      by += size + gap;
-    }
-    ctx.textAlign = "left";
-    ctx.textBaseline = "alphabetic";
-
-    // Caption bar, so the embed carries the verdict even when scaled down.
-    const barH = Math.round(h * 0.16);
-    ctx.fillStyle = "rgba(8,10,16,.82)";
-    ctx.fillRect(0, h - barH, w, barH);
-    ctx.fillStyle = "#fff";
-    ctx.font = `600 ${Math.round(barH * 0.34)}px -apple-system, system-ui, sans-serif`;
-    ctx.fillText(`${dog.name} — ${dog.breed}`, 28, h - barH + barH * 0.42);
-    ctx.fillStyle = dog.qualityColor;
-    ctx.font = `700 ${Math.round(barH * 0.3)}px -apple-system, system-ui, sans-serif`;
-    ctx.fillText(`${dog.qualityLabel}  ${signed(dog.score)}`, 28, h - barH + barH * 0.82);
-
-    const blob = await new Promise((res) => out.toBlob(res, "image/png"));
-    if (!blob) return;
+    gif.finish();
+    const blob = new Blob([gif.bytes()], { type: "image/gif" });
 
     await fetch(
       `/api/card?player=${encodeURIComponent(getPlayerId())}&date=${encodeURIComponent(dog.date)}`,

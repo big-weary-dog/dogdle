@@ -3,9 +3,18 @@ import { BREEDS, photoEndpoint } from "./breeds.js";
 
 const PLAYER_ID_RE = /^[a-zA-Z0-9-]{8,64}$/;
 const PHOTO_TIMEOUT_MS = 4000;
-const MAX_CARD_BYTES = 2_000_000;
+const MAX_CARD_BYTES = 8_000_000; // animated cards are far heavier than a still
 const CARD_TTL_SECONDS = 60 * 60 * 24 * 30;
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const GIF_MAGIC = [0x47, 0x49, 0x46, 0x38]; // "GIF8", covering 87a and 89a
+
+// Cards may be a still or an animation; the stored bytes decide how they're served.
+function sniffImageType(buf) {
+  const head = new Uint8Array(buf.slice(0, 8));
+  if (PNG_MAGIC.every((b, i) => head[i] === b)) return "image/png";
+  if (GIF_MAGIC.every((b, i) => head[i] === b)) return "image/gif";
+  return null;
+}
 
 const cardKey = (player, date) => `card:${player}:${date}`;
 
@@ -110,10 +119,9 @@ export default {
       if (body.byteLength > MAX_CARD_BYTES) {
         return Response.json({ error: "too large" }, { status: 413 });
       }
-      // Only store things that really are PNGs, rather than whatever was posted.
-      const magic = new Uint8Array(body.slice(0, 8));
-      if (!PNG_MAGIC.every((b, i) => magic[i] === b)) {
-        return Response.json({ error: "not a png" }, { status: 415 });
+      // Only store real images, rather than whatever was posted.
+      if (!sniffImageType(body)) {
+        return Response.json({ error: "not a png or gif" }, { status: 415 });
       }
 
       await env.CARDS.put(cardKey(player, date), body, {
@@ -126,7 +134,7 @@ export default {
 
     if (url.pathname.startsWith("/i/")) {
       const [, , player, file] = url.pathname.split("/");
-      const date = (file || "").replace(/\.png$/, "");
+      const date = (file || "").replace(/\.(png|gif)$/, "");
       if (!PLAYER_ID_RE.test(player || "") || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
         return new Response("not found", { status: 404 });
       }
@@ -135,7 +143,10 @@ export default {
       if (!card) return new Response("not found", { status: 404 });
 
       return new Response(card, {
-        headers: { "content-type": "image/png", "cache-control": "public, max-age=86400" },
+        headers: {
+          "content-type": sniffImageType(card) ?? "image/png",
+          "cache-control": "public, max-age=86400",
+        },
       });
     }
 
@@ -178,7 +189,7 @@ Resetting…
       // if they never got far enough to upload one.
       const hasCard = (await env.CARDS.get(cardKey(player, date), "stream")) !== null;
       const photo = hasCard
-        ? `${url.origin}/i/${player}/${date}.png`
+        ? `${url.origin}/i/${player}/${date}.gif`
         : await fetchBreedPhoto(dog.breedSlug, dog.date);
 
       const title = `${dog.name} the ${dog.breed} — ${dog.qualityLabel} (${dog.score > 0 ? "+" : ""}${dog.score})`;
