@@ -139,6 +139,30 @@ export default {
       });
     }
 
+    // Clears the local save and bounces back to the game. The roll is deterministic from
+    // (player, date), so dropping only the cached result would deal the identical dog --
+    // a genuine reroll needs a new player id, which is what this issues.
+    if (url.pathname === "/reset") {
+      const html = `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8" /><title>Resetting…</title></head>
+<body style="background:#0b0d12;color:#98a1b3;font-family:system-ui;padding:40px;text-align:center">
+Resetting…
+<script>
+  try {
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith("dogdle-")) localStorage.removeItem(k);
+    }
+  } catch {}
+  location.replace("/");
+</script>
+</body>
+</html>`;
+      return new Response(html, {
+        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+      });
+    }
+
     // Share links are stateless: a dog is fully determined by (player, date), so this
     // re-rolls the same animal and serves OpenGraph tags that Discord/Slack unfurl into a
     // card with the real breed photo. No storage, nothing to expire.
