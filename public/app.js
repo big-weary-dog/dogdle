@@ -122,16 +122,18 @@ function renderResult(dog) {
   result.hidden = false;
 
   el("shareBtn").onclick = () => {
-    // The trailing link carries OpenGraph tags, so Discord unfurls it into a card with the
-    // real breed photo rather than showing a bare URL.
-    const shareUrl = `${location.origin}/s/${encodeURIComponent(getPlayerId())}/${dog.date}`;
+    // Link the PNG itself, not the /s/ page: a direct image URL unfurls in Discord as a
+    // bare image with no title/description chrome. The angle brackets around the game link
+    // stop it unfurling a second embed underneath.
+    const imageUrl = `${location.origin}/i/${encodeURIComponent(getPlayerId())}/${dog.date}.png`;
     const text = [
       `Dogdle ${dog.date}`,
       `${dog.name} the ${dog.breed} (${dog.rarityLabel})`,
       `${dog.background.emoji} ${dog.background.name} (${signed(dog.background.value)})`,
       ...dog.modifiers.map((m) => `${m.emoji} ${m.text} (${signed(m.value)})`),
       `Score: ${signed(dog.score)} — ${dog.qualityLabel}`,
-      shareUrl,
+      imageUrl,
+      `Try yourself: <${location.origin}>`,
     ].join("\n");
 
     navigator.clipboard.writeText(text).then(() => {
