@@ -4,43 +4,49 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dogdle</title>
+  <meta name="description" content="One dog. Once a day. No rerolls." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🐕</text></svg>" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <main class="wrap">
     <header>
-      <h1>🎰 Dogdle</h1>
+      <h1>Dogdle</h1>
       <p class="tagline">One dog. Once a day. No rerolls.</p>
     </header>
 
-    <section class="machine" id="machine">
-      <div class="reel" id="reel">
-        <div class="reel-item" id="reelItem">🐾</div>
+    <section class="stage" id="stage">
+      <canvas id="scene"></canvas>
+      <div class="dog-slot" id="dogSlot">
+        <div class="spinner" id="spinner">🐾</div>
+        <img id="dogPhoto" alt="" hidden />
       </div>
-
-      <button id="pullBtn" class="pull-btn">Pull the lever</button>
-
-      <div class="result" id="result" hidden>
-        <div class="card" id="card">
-          <div class="rarity-badge" id="rarityBadge">Common</div>
-          <h2 id="breedName">Labrador Retriever</h2>
-          <div class="quality" id="qualityLabel">Solidly Average Good Boy</div>
-          <div class="meta">
-            <span id="sizeTag"></span>
-            <span id="coatTag"></span>
-          </div>
-          <ul class="modifiers" id="modifiersList"></ul>
-        </div>
-        <button id="shareBtn" class="share-btn">Copy share card</button>
-        <p class="next-roll" id="nextRoll"></p>
-      </div>
+      <div class="scene-label" id="sceneLabel" hidden></div>
     </section>
 
-    <footer>
-      <p>swampkat.com &middot; dogdle</p>
-    </footer>
+    <button id="pullBtn" class="pull-btn">Pull the lever</button>
+
+    <section class="result" id="result" hidden>
+      <div class="name-row">
+        <h2 id="dogName">Bailey</h2>
+        <span class="rarity-badge" id="rarityBadge">Common</span>
+      </div>
+      <p class="breed" id="breedName">Labrador Retriever</p>
+
+      <div class="score-row">
+        <span class="quality" id="qualityLabel">Solidly Average Good Boy</span>
+        <span class="score" id="scoreValue">+0</span>
+      </div>
+
+      <ul class="modifiers" id="modifiersList"></ul>
+
+      <button id="shareBtn" class="share-btn">Copy share card</button>
+      <p class="next-roll" id="nextRoll"></p>
+    </section>
+
+    <footer>swampkat.com &middot; photos from dog.ceo</footer>
   </main>
 
-  <script src="/app.js"></script>
+  <script type="module" src="/app.js"></script>
 </body>
 </html>
