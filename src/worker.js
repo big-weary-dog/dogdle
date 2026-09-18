@@ -1,4 +1,4 @@
-import { rollDailyDog, todayUTC } from "./roll.js";
+import { rollDailyDog, today } from "./roll.js";
 import { BREEDS, photoEndpoint } from "./breeds.js";
 
 const PLAYER_ID_RE = /^[a-zA-Z0-9-]{8,64}$/;
@@ -62,7 +62,7 @@ export default {
         return Response.json({ error: "invalid player id" }, { status: 400 });
       }
 
-      const dog = rollDailyDog(player, todayUTC());
+      const dog = rollDailyDog(player, today());
       dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
 
       return Response.json(dog, { headers: { "cache-control": "no-store" } });
@@ -72,7 +72,7 @@ export default {
     // client bundle, so there's nothing to gate -- it just skips the once-a-day lock.
     if (url.pathname === "/api/dev-roll") {
       const seed = url.searchParams.get("seed") || crypto.randomUUID();
-      const dog = rollDailyDog(`dev-${seed}`, todayUTC());
+      const dog = rollDailyDog(`dev-${seed}`, today());
       dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
       dog.devSeed = seed;
 

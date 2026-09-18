@@ -27,14 +27,21 @@ function getPlayerId() {
   return id;
 }
 
-const todayUTC = () => new Date().toISOString().slice(0, 10);
-const cacheKey = () => `${RESULT_PREFIX}${todayUTC()}`;
+// Must match the server's day boundary, or the local cache and the roll disagree.
+const DAY_ZONE = "America/New_York";
+const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: DAY_ZONE }).format(new Date());
+const cacheKey = () => `${RESULT_PREFIX}${today()}`;
 
 function countdown() {
-  const now = new Date();
-  const next = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
-  const ms = next - now;
-  return `Next dog in ${Math.floor(ms / 3_600_000)}h ${Math.floor((ms % 3_600_000) / 60_000)}m`;
+  // Time left in the Eastern day, read off the wall clock in that zone. On the two DST
+  // changeover days this is an hour out for part of the day, which nobody will notice.
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: DAY_ZONE, hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(new Date());
+  const get = (type) => Number(parts.find((p) => p.type === type).value);
+  const elapsed = (get("hour") % 24) * 3600 + get("minute") * 60 + get("second");
+  const left = 86400 - elapsed;
+  return `Next dog in ${Math.floor(left / 3600)}h ${Math.floor((left % 3600) / 60)}m`;
 }
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);

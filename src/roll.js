@@ -56,11 +56,16 @@ function qualityFor(score) {
   return QUALITY_TIERS.find((t) => score <= t.max);
 }
 
-export function todayUTC() {
-  return new Date().toISOString().slice(0, 10);
+// The day rolls over at midnight Eastern. Using the IANA zone rather than a fixed -5
+// offset means EST/EDT is handled for us instead of drifting an hour each summer.
+export const DAY_ZONE = "America/New_York";
+
+export function today(now = new Date()) {
+  // en-CA formats as YYYY-MM-DD, which is the key format used everywhere else.
+  return new Intl.DateTimeFormat("en-CA", { timeZone: DAY_ZONE }).format(now);
 }
 
-export function rollDailyDog(playerId, dateStr = todayUTC()) {
+export function rollDailyDog(playerId, dateStr = today()) {
   const rng = mulberry32(hashString(`${playerId}:${dateStr}`));
 
   const breedRarity = pickRarity(rng, BREED_WEIGHTS);
