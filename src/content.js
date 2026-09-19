@@ -383,7 +383,7 @@ export const MODIFIERS = [
   { text: "Steals food off the counter", emoji: "🥩", value: -2, category: "habit", effect: null },
   { text: "Digs holes in the yard", emoji: "🕳️", value: -2, category: "habit",
     effect: { type: "fall", layer: "front", params: { color: "#92400e", shape: "square", count: 30, speed: 1.3, sway: 0.6, size: 5 } } },
-  { text: "Rolls in dead things", emoji: "🦨", value: -3, category: "habit",
+  { text: "Rolls in dead things", emoji: "🦨", value: -2, category: "habit",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.6, hue: 60, saturate: 0.7 } } },
   { text: "Chases his tail for hours", emoji: "🌀", value: -2, category: "habit",
     effect: { type: "spin", layer: "subject", params: { period: 3500 } } },
@@ -402,7 +402,7 @@ export const MODIFIERS = [
     effect: { type: "fall", layer: "front", params: { color: "#78350f", shape: "dot", count: 40, speed: 1.4, sway: 1, size: 4.5 } } },
   { text: "Groomed this morning", emoji: "💈", value: 3, category: "condition",
     effect: { type: "halo", layer: "subject", params: { color: "#ffffff", size: 10, brightness: 1.15 } } },
-  { text: "Smells, and everyone knows", emoji: "🤢", value: -3, category: "condition",
+  { text: "Smells, and everyone knows", emoji: "🤢", value: -2, category: "condition",
     effect: { type: "rise", layer: "front", params: { color: "#84cc16", count: 20, speed: 0.4, sway: 2.6, size: 4, glow: true } } },
   { text: "Wearing a sweater someone knitted", emoji: "🧶", value: 3, category: "condition",
     effect: { type: "fall", layer: "front", params: { color: "#fda4af", shape: "dot", count: 22, speed: 0.3, sway: 2, size: 4 } } },
@@ -518,7 +518,7 @@ export const MODIFIERS = [
     effect: { type: "ghost", layer: "subject", params: { opacity: 0.8 } } },
   { text: "Unusually large brain", emoji: "🧠", value: 5, category: "health",
     effect: { type: "pulse", layer: "back", params: { color: "#c084fc", period: 2200, radius: 175 } } },
-  { text: "Somehow smells of cigarettes", emoji: "🚬", value: -3, category: "condition",
+  { text: "Somehow smells of cigarettes", emoji: "🚬", value: -2, category: "condition",
     effect: { type: "fog", layer: "front", params: { color: "#d6d3d1", bands: 3, opacity: 0.26, speed: 0.3 } } },
   { text: "Expensive tastes", emoji: "💸", value: -2, category: "habit",
     effect: { type: "burst", layer: "front", params: { color: "#4ade80", count: 22, spread: 130 } } },
@@ -534,6 +534,8 @@ export const MODIFIERS = [
     effect: { type: "ghost", layer: "subject", params: { opacity: 0.4, blur: 0.5 } } },
   { text: "Survived something from space", emoji: "☄️", value: 7, category: "circumstance",
     effect: { type: "rise", layer: "front", params: { color: "#fb923c", count: 30, speed: 1.3, sway: 2, size: 4, glow: true } } },
+  { text: "Doesn\'t return the shopping cart", emoji: "🛒", value: -3, category: "habit",
+    effect: { type: "spotlight", layer: "front", params: { color: "#e5e7eb", radius: 105, speed: 0.75 } } },
 ];
 
 // Traits per dog: varies so cards aren't uniform, averaging 6.
