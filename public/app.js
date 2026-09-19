@@ -167,8 +167,8 @@ function renderResult(dog) {
   list.innerHTML = "";
 
   const rows = [
-    { label: `${dog.background.emoji} ${dog.background.name}`, category: "background", value: dog.background.value, scene: true },
-    ...dog.modifiers.map((m) => ({ label: `${m.emoji} ${m.text}`, category: m.category, value: m.value })),
+    { label: `${dog.background.emoji} ${dog.background.name}`, value: dog.background.value, scene: true },
+    ...dog.modifiers.map((m) => ({ label: `${m.emoji} ${m.text}`, value: m.value })),
   ];
 
   rows.forEach((row, i) => {
@@ -178,10 +178,7 @@ function renderResult(dog) {
 
     const label = document.createElement("div");
     label.className = "mod-label";
-    const cat = document.createElement("span");
-    cat.className = "mod-cat";
-    cat.textContent = row.category;
-    label.append(cat, document.createTextNode(row.label));
+    label.textContent = row.label;
 
     const value = document.createElement("span");
     value.className = `mod-value ${row.value > 0 ? "pos" : row.value < 0 ? "neg" : ""}`;

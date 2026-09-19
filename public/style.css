@@ -155,23 +155,14 @@ header h1 {
 /* ---------- name field, leaderboard ---------- */
 
 .beta {
-  margin: 8px 0 0;
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 800;
   letter-spacing: 0.1em;
   color: #fbbf24;
+  vertical-align: 1px;
 }
 
 .name-field { margin-top: 14px; }
-
-.name-field label {
-  display: block;
-  font-size: 0.76rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  margin-bottom: 6px;
-}
 
 .name-row-input { display: flex; align-items: center; gap: 8px; }
 
@@ -339,15 +330,6 @@ header h1 {
 .modifiers li.scene { border-left-color: #818cf8; }
 
 .mod-label { line-height: 1.35; }
-
-.mod-cat {
-  display: block;
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  margin-bottom: 2px;
-}
 
 .mod-value {
   font-variant-numeric: tabular-nums;

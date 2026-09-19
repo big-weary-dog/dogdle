@@ -12,8 +12,7 @@
   <main class="wrap">
     <header>
       <h1>Dogdle</h1>
-      <p class="tagline">One dog. Once a day. No rerolls.</p>
-      <p class="beta">BETA &middot; expect bugs, and dogs</p>
+      <p class="tagline">One dog. Once a day. No rerolls. <span class="beta">BETA</span></p>
     </header>
 
     <section class="stage" id="stage">
@@ -28,9 +27,9 @@
     </section>
 
     <div class="name-field">
-      <label for="nameInput">Your name on the leaderboard</label>
       <div class="name-row-input">
-        <input id="nameInput" type="text" maxlength="20" placeholder="pick any handle"
+        <input id="nameInput" type="text" maxlength="20" placeholder="Name for the leaderboard"
+               aria-label="Your name on the leaderboard"
                autocomplete="off" autocapitalize="off" spellcheck="false" name="dogdle-handle" />
         <button id="nameBtn" type="button">Set name</button>
       </div>
@@ -41,14 +40,14 @@
 
     <section class="result" id="result" hidden>
       <div class="name-row">
-        <h2 id="dogName">Bailey</h2>
-        <span class="rarity-badge" id="rarityBadge">Common</span>
+        <h2 id="dogName"></h2>
+        <span class="rarity-badge" id="rarityBadge"></span>
       </div>
-      <p class="breed" id="breedName">Labrador Retriever</p>
+      <p class="breed" id="breedName"></p>
 
       <div class="score-row">
-        <span class="quality" id="qualityLabel">Solidly Average Good Boy</span>
-        <span class="score" id="scoreValue">+0</span>
+        <span class="quality" id="qualityLabel"></span>
+        <span class="score" id="scoreValue"></span>
       </div>
 
       <ul class="modifiers" id="modifiersList"></ul>
@@ -65,7 +64,7 @@
       <ol class="board-list" id="boardList"></ol>
     </section>
 
-    <footer>swampkat.com &middot; photos from dog.ceo</footer>
+    <footer>photos from dog.ceo</footer>
   </main>
 
   <script type="module" src="/app.js"></script>
