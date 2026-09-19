@@ -104,7 +104,6 @@ export function rollDailyDog(playerId, dateStr = today()) {
       value: background.value,
       sky: background.sky,
       ground: background.ground,
-      horizon: background.horizon,
       props: background.props ?? [],
       effect: background.effect,
     },

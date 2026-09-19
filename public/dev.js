@@ -21,7 +21,6 @@ function render(dog) {
     s.setScene({
       sky: dog.background.sky,
       ground: dog.background.ground,
-      horizon: dog.background.horizon,
       props: dog.background.props,
       effects,
     });

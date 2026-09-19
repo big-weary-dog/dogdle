@@ -4,6 +4,9 @@
 
 const TAU = Math.PI * 2;
 
+// Where the ground meets the sky, as a fraction of stage height.
+const HORIZON = 0.68;
+
 function rand(min, max) {
   return min + Math.random() * (max - min);
 }
@@ -406,25 +409,6 @@ const EFFECTS = {
     };
   },
 
-  // Emoji sprites orbiting the dog.
-  orbit(p) {
-    const count = p.count ?? 3;
-    return {
-      draw(ctx, w, h, dt, t) {
-        ctx.font = `${p.size ?? 15}px sans-serif`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        for (let i = 0; i < count; i++) {
-          const a = (t / 1000) * (p.speed ?? 0.8) + (i / count) * TAU;
-          const wobble = Math.sin(t / 500 + i) * 8;
-          const x = w / 2 + Math.cos(a) * ((p.radius ?? 80) + wobble);
-          const y = h / 2 + Math.sin(a) * ((p.radius ?? 80) * 0.45 + wobble);
-          ctx.fillText(p.emoji ?? "🐾", x, y);
-        }
-      },
-    };
-  },
-
   // A wandering spotlight cone.
   spotlight(p) {
     return {
@@ -589,10 +573,9 @@ export class Scene {
     this.last = 0;
   }
 
-  setScene({ sky, ground, effects, horizon, props }) {
+  setScene({ sky, ground, effects, props }) {
     this.sky = sky ?? this.sky;
     this.ground = ground ?? null;
-    this.horizon = horizon ?? 0.68;
     this.props = props ?? [];
     this.layers = effects
       .filter((e) => e && EFFECTS[e.type] && !DOM_EFFECTS.has(e.type) && (e.layer ?? "back") === this.layer)
@@ -650,7 +633,7 @@ export class Scene {
       drawProps(ctx, w, h, this.props.filter((p) => p.layer === "sky"));
 
       if (this.ground) {
-        const horizon = h * this.horizon;
+        const horizon = h * HORIZON;
         const gGrad = ctx.createLinearGradient(0, horizon, 0, h);
         gGrad.addColorStop(0, this.ground);
         gGrad.addColorStop(1, shade(this.ground, -0.35));

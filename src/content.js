@@ -133,7 +133,7 @@ export const BACKGROUNDS = [
   {
     key: "storm", emoji: "⛈️", name: "A Thunderstorm", rarity: "rare", value: -2,
     sky: ["#1e1b4b", "#475569"], ground: "#0f172a",
-    effect: { type: "lightning", layer: "front", params: { color: "#e0e7ff", frequency: 0.014, bolts: 2 } },
+    effect: { type: "lightning", layer: "front", params: { color: "#e0e7ff", frequency: 0.014 } },
     props: [{ shape: "hills", y: 0.7, h: 0.05, waves: 2, color: "#020617" }, { shape: "tri", x: 0.18, y: 0.4, w: 0.3, h: 0.32, color: "#020617" }],
   },
   {
@@ -527,7 +527,7 @@ export const MODIFIERS = [
   { text: "Local celebrity", emoji: "👑", value: 6, category: "circumstance",
     effect: { type: "spotlight", layer: "front", params: { color: "#fde047", radius: 135, speed: 0.45 } } },
   { text: "Banned from one (1) country", emoji: "🚨", value: -3, category: "circumstance",
-    effect: { type: "lightning", layer: "front", params: { color: "#fca5a5", frequency: 0.008, bolts: 1 } } },
+    effect: { type: "lightning", layer: "front", params: { color: "#fca5a5", frequency: 0.008 } } },
   { text: "Appears in two places at once", emoji: "🌀", value: 5, category: "condition",
     effect: { type: "chromatic", layer: "subject", params: { offset: 6 } } },
   { text: "No reflection", emoji: "🪞", value: -5, category: "condition",
