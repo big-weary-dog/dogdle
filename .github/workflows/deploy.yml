@@ -18,6 +18,9 @@ jobs:
 
       - run: npm ci
 
+      # A broken content table shouldn't reach the live game.
+      - run: npm test
+
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

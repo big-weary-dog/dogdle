@@ -534,6 +534,10 @@ function drawProps(ctx, w, h, props) {
   ctx.globalAlpha = 1;
 }
 
+// Exposed so tests can assert every effect the content references actually exists -- an
+// unknown type is silently skipped at runtime, which just looks like "no visual".
+export const EFFECT_TYPES = new Set(Object.keys(EFFECTS));
+
 export const DOM_EFFECTS = new Set(["shake"]);
 
 // Effects come in three classes, which is what gives a scene any depth:
