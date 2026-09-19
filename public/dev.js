@@ -18,7 +18,13 @@ function render(dog) {
   const effects = [dog.background.effect, ...dog.modifiers.map((m) => m.effect)];
 
   for (const s of scenes) {
-    s.setScene({ sky: dog.background.sky, ground: dog.background.ground, effects });
+    s.setScene({
+      sky: dog.background.sky,
+      ground: dog.background.ground,
+      horizon: dog.background.horizon,
+      props: dog.background.props,
+      effects,
+    });
     s.start();
   }
 

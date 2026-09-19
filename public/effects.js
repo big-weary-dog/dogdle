@@ -299,24 +299,36 @@ const EFFECTS = {
     };
   },
 
-  // Drifting horizontal mist bands.
+  // Drifting mist. Soft radial puffs rather than hard-edged bands: rectangles with a
+  // gradient across them read as painted stripes, not fog.
   fog(p) {
-    const bands = Array.from({ length: p.bands ?? 3 }, (_, i) => ({
-      y: (i + 0.5) / (p.bands ?? 3),
-      off: rand(0, 1), dir: i % 2 ? 1 : -1, h: rand(0.12, 0.28),
+    const count = (p.bands ?? 3) * 3;
+    const puffs = Array.from({ length: count }, (_, i) => ({
+      x: Math.random(),
+      y: 0.25 + Math.random() * 0.6,
+      r: 0.18 + Math.random() * 0.22,
+      dir: i % 2 ? 1 : -1,
+      speed: 0.4 + Math.random() * 0.8,
     }));
 
     return {
-      draw(ctx, w, h, dt, t) {
-        for (const b of bands) {
-          b.off += (b.dir * (p.speed ?? 0.3) * dt) / 9000;
-          const x = ((b.off % 1) + 1) % 1;
-          const grad = ctx.createLinearGradient(0, 0, w, 0);
-          grad.addColorStop(0, rgba(p.color, 0));
-          grad.addColorStop(Math.min(0.99, x), rgba(p.color, p.opacity ?? 0.25));
+      draw(ctx, w, h, dt) {
+        for (const puff of puffs) {
+          puff.x += (puff.dir * (p.speed ?? 0.3) * puff.speed * dt) / 12000;
+          if (puff.x > 1.3) puff.x = -0.3;
+          if (puff.x < -0.3) puff.x = 1.3;
+
+          const cx = puff.x * w;
+          const cy = puff.y * h;
+          const r = puff.r * w;
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+          grad.addColorStop(0, rgba(p.color, (p.opacity ?? 0.25) * 0.9));
+          grad.addColorStop(0.6, rgba(p.color, (p.opacity ?? 0.25) * 0.35));
           grad.addColorStop(1, rgba(p.color, 0));
           ctx.fillStyle = grad;
-          ctx.fillRect(0, (b.y - b.h / 2) * h, w, b.h * h);
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r, r * 0.5, 0, 0, TAU);
+          ctx.fill();
         }
       },
     };
@@ -370,14 +382,20 @@ const EFFECTS = {
 
         if (t > nextTear) {
           nextTear = t + rand(180, 900) / intensity;
+          // Partial-width slices rather than full-width bars: a band spanning the whole
+          // frame reads as a painted stripe, not a tear.
           tears = Array.from({ length: Math.ceil(intensity * 4) }, () => ({
-            y: Math.random() * h, h: rand(4, 26), dx: rand(-22, 22) * intensity,
+            y: Math.random() * h,
+            h: rand(3, 14),
+            x: rand(-0.1, 0.7),
+            w: rand(0.25, 0.7),
+            dx: rand(-22, 22) * intensity,
           }));
         }
 
         for (const tear of tears) {
-          ctx.fillStyle = rgba(p.color, 0.5 * intensity);
-          ctx.fillRect(tear.dx, tear.y, w, tear.h);
+          ctx.fillStyle = rgba(p.color, 0.32 * intensity);
+          ctx.fillRect(tear.x * w + tear.dx, tear.y, tear.w * w, tear.h);
         }
 
         if (p.tear) {
@@ -467,6 +485,55 @@ const EFFECTS = {
 };
 
 // `shake` moves the whole card rather than drawing pixels, so app.js handles it.
+
+// Simple silhouettes drawn behind the dog. Coordinates are relative to the stage, so a
+// scene can describe itself as a handful of shapes without knowing the canvas size.
+function drawProps(ctx, w, h, props) {
+  for (const prop of props) {
+    ctx.fillStyle = prop.color;
+    ctx.globalAlpha = prop.alpha ?? 1;
+    const xs = prop.repeat
+      ? Array.from({ length: prop.repeat }, (_, i) =>
+          prop.x + (i * (prop.gap ?? 0.2)))
+      : [prop.x];
+
+    for (const x of xs) {
+      const px = x * w;
+      const py = prop.y * h;
+      const pw = (prop.w ?? 0.1) * w;
+      const ph = (prop.h ?? 0.1) * h;
+
+      ctx.beginPath();
+      switch (prop.shape) {
+        case "ellipse":
+          ctx.ellipse(px, py, pw / 2, ph / 2, 0, 0, TAU);
+          break;
+        case "tri":
+          ctx.moveTo(px - pw / 2, py + ph);
+          ctx.lineTo(px, py);
+          ctx.lineTo(px + pw / 2, py + ph);
+          ctx.closePath();
+          break;
+        case "hills": {
+          ctx.moveTo(0, h);
+          for (let i = 0; i <= w; i += 6) {
+            const t = i / w;
+            const y = py - Math.sin(t * Math.PI * (prop.waves ?? 2)) * ph;
+            ctx.lineTo(i, y);
+          }
+          ctx.lineTo(w, h);
+          ctx.closePath();
+          break;
+        }
+        default:
+          ctx.rect(px - pw / 2, py, pw, ph);
+      }
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
 export const DOM_EFFECTS = new Set(["shake"]);
 
 // Effects come in three classes, which is what gives a scene any depth:
@@ -518,9 +585,11 @@ export class Scene {
     this.last = 0;
   }
 
-  setScene({ sky, ground, effects }) {
+  setScene({ sky, ground, effects, horizon, props }) {
     this.sky = sky ?? this.sky;
     this.ground = ground ?? null;
+    this.horizon = horizon ?? 0.68;
+    this.props = props ?? [];
     this.layers = effects
       .filter((e) => e && EFFECTS[e.type] && !DOM_EFFECTS.has(e.type) && (e.layer ?? "back") === this.layer)
       .map((e) => EFFECTS[e.type](e.params ?? {}));
@@ -573,21 +642,32 @@ export class Scene {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
+      // Scenery sits behind the ground when it's sky-side, so draw it first.
+      drawProps(ctx, w, h, this.props.filter((p) => p.layer === "sky"));
+
       if (this.ground) {
-        // A flat plane with a horizon reads as ground; the old bulging ellipse did not.
-        const horizon = h * 0.68;
+        const horizon = h * this.horizon;
         const gGrad = ctx.createLinearGradient(0, horizon, 0, h);
         gGrad.addColorStop(0, this.ground);
         gGrad.addColorStop(1, shade(this.ground, -0.35));
         ctx.fillStyle = gGrad;
         ctx.fillRect(0, horizon, w, h - horizon);
 
-        // Contact shadow, so the dog sits on the ground instead of hovering over it.
+        // A soft haze along the horizon stops it reading as a hard colour seam.
+        const haze = ctx.createLinearGradient(0, horizon - h * 0.09, 0, horizon + h * 0.05);
+        haze.addColorStop(0, rgba(this.sky[1] ?? this.sky[0], 0));
+        haze.addColorStop(0.6, rgba(this.sky[1] ?? this.sky[0], 0.5));
+        haze.addColorStop(1, rgba(this.sky[1] ?? this.sky[0], 0));
+        ctx.fillStyle = haze;
+        ctx.fillRect(0, horizon - h * 0.09, w, h * 0.14);
+
         ctx.fillStyle = "rgba(0,0,0,.28)";
         ctx.beginPath();
         ctx.ellipse(w / 2, horizon + 6, w * 0.22, h * 0.035, 0, 0, TAU);
         ctx.fill();
       }
+
+      drawProps(ctx, w, h, this.props.filter((p) => p.layer !== "sky"));
     }
 
     for (const layer of this.layers) layer.draw(ctx, w, h, dt, t);
