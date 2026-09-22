@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 
 import { rollDailyDog } from "../src/roll.js";
 import { renderCardGif, composeCard, CARD } from "../src/card.js";
-import { BACKGROUNDS, MODIFIERS } from "../src/content.js";
+import { BACKGROUNDS, MODIFIERS } from "../src/content/index.js";
 import ATLAS from "../src/generated/atlas.js";
 
 const GIF89A = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61];
@@ -87,8 +87,12 @@ test("the still composer fills the whole card", () => {
   }
 });
 
-test("the atlas covers every emoji the content tables use", () => {
-  const used = new Set([...BACKGROUNDS.map((b) => b.emoji), ...MODIFIERS.map((m) => m.emoji)]);
+test("the atlas covers every emoji the card draws", () => {
+  const used = new Set([
+    ...BACKGROUNDS.map((b) => b.emoji),
+    ...MODIFIERS.map((m) => m.emoji),
+    "🧬", // the breed row, which belongs to no table
+  ]);
   const missing = [...used].filter((e) => ATLAS.emoji.index[e] === undefined);
   assert.deepEqual(missing, [], "run scripts/build-atlas.mjs after adding emoji");
 });

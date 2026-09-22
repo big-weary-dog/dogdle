@@ -5,7 +5,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { rollDailyDog, today, DAY_ZONE } from "../src/roll.js";
-import { MODIFIERS, QUALITY_TIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX } from "../src/content.js";
+import { MODIFIERS, QUALITY_TIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX } from "../src/content/index.js";
+import { BREEDS, RARITY_VALUE, breedValue } from "../src/breeds.js";
 
 const sample = (n, date = "2026-09-19") =>
   Array.from({ length: n }, (_, i) => rollDailyDog(`test-player-${i}`, date));
@@ -28,10 +29,31 @@ test("different players mostly get different dogs", () => {
   assert.ok(new Set(names).size > 250, `only ${new Set(names).size} distinct dogs in 300`);
 });
 
-test("score equals the background plus its modifiers, every time", () => {
+test("score equals the breed plus the background plus its modifiers, every time", () => {
   for (const dog of sample(500)) {
-    const expected = dog.background.value + dog.modifiers.reduce((sum, m) => sum + m.value, 0);
+    const expected =
+      dog.breedValue + dog.background.value + dog.modifiers.reduce((sum, m) => sum + m.value, 0);
     assert.equal(dog.score, expected, `score mismatch for ${dog.name}`);
+  }
+});
+
+test("a breed is worth points only once it's uncommon, and one is worth less than none", () => {
+  const value = Object.fromEntries(BREEDS.map((b) => [b.name, breedValue(b)]));
+
+  for (const breed of BREEDS.filter((b) => b.rarity === "common")) {
+    assert.equal(value[breed.name], 0, `${breed.name} is common and should be worth nothing`);
+  }
+  assert.ok(value["Pit Bull Terrier"] < 0, "the pit bull is the negative breed");
+  assert.equal(
+    BREEDS.filter((b) => breedValue(b) < 0).length,
+    1,
+    "exactly one breed is worth negative points"
+  );
+
+  // Rarer is worth more, all the way up.
+  const tiers = ["common", "uncommon", "rare", "epic", "legendary"];
+  for (let i = 1; i < tiers.length; i++) {
+    assert.ok(RARITY_VALUE[tiers[i]] > RARITY_VALUE[tiers[i - 1]], `${tiers[i]} should beat ${tiers[i - 1]}`);
   }
 });
 

@@ -167,6 +167,8 @@ function renderResult(dog) {
   list.innerHTML = "";
 
   const rows = [
+    // Only when it scores: a common breed is worth nothing and a zero row is just noise.
+    ...(dog.breedValue ? [{ label: `🧬 ${dog.breed}`, value: dog.breedValue }] : []),
     { label: `${dog.background.emoji} ${dog.background.name}`, value: dog.background.value, scene: true },
     ...dog.modifiers.map((m) => ({ label: `${m.emoji} ${m.text}`, value: m.value })),
   ];

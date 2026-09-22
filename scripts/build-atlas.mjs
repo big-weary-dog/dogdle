@@ -13,7 +13,7 @@
 
 import { chromium } from "playwright";
 import { writeFileSync, mkdirSync } from "fs";
-import { BACKGROUNDS, MODIFIERS } from "../src/content.js";
+import { BACKGROUNDS, MODIFIERS } from "../src/content/index.js";
 
 const TEXT_SIZES = [
   { key: "sm", px: 11, weight: 400 },
@@ -23,9 +23,13 @@ const TEXT_SIZES = [
 const EMOJI_PX = 20;
 const ASCII = Array.from({ length: 95 }, (_, i) => String.fromCharCode(32 + i));
 
+// Emoji the card draws that aren't attached to a background or a trait.
+const EXTRA = ["🧬"]; // the breed's own scoring row
+
 const emoji = [...new Set([
   ...BACKGROUNDS.map((b) => b.emoji),
   ...MODIFIERS.map((m) => m.emoji),
+  ...EXTRA,
 ])];
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });
