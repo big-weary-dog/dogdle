@@ -37,9 +37,12 @@ export const boardRow = (name, dog) => ({
   ...(dog.test ? { test: true } : {}),
 });
 
-// Boards hide test rows unless something explicitly asks for them.
+// Boards hide test rows unless something explicitly asks for them. Metadata is whatever
+// was written at roll time, so a row from before a field existed is filled in here --
+// otherwise a board mixes rows with the field and rows without for a day.
 export const visibleRows = (keys, includeTest) =>
   keys
     .map((k) => k.metadata)
     .filter((row) => row && (includeTest || !row.test))
+    .map((row) => (row.qualityEmoji ? row : { ...row, qualityEmoji: qualityFor(row.score).emoji }))
     .sort((a, b) => b.score - a.score);

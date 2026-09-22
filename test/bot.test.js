@@ -100,9 +100,16 @@ test("board rows carry what a digest needs, and the public board doesn't", async
     body: { discordId: USER, guildId: GUILD, displayName: "Felfox" },
   });
 
+  // A row written before tiers had an emoji, as today's live rows were.
+  e.STORE.store.set(`guild:${GUILD}:${today()}:discord-333333333333333333`, {
+    value: "",
+    metadata: { player: "old", dog: "Rex", breed: "Pug", score: -12, quality: "Rough" },
+  });
+
   const { rows } = await (await call(e, `/api/bot/leaderboard?guildId=${GUILD}`)).json();
   assert.equal(rows[0].discordId, USER);
   assert.ok(rows[0].image.endsWith(`/i/${botPlayerId(USER)}/${today()}.gif`));
+  assert.equal(rows.at(-1).qualityEmoji, "😬", "old rows get a tier emoji too");
 
   // The website's own board is unauthenticated, so it must not hand out Discord ids.
   const { default: worker } = await import("../src/worker.js");
