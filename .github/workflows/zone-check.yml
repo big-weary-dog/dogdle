@@ -61,3 +61,36 @@ jobs:
             echo "=== ruleset: $phase ==="
             api "/zones/$ZONE/rulesets/phases/$phase/entrypoint" | python3 /tmp/show.py
           done
+
+      # Which request actually gets through tells us more than the settings do: if a
+      # browser-shaped request passes, the block is header-based (Browser Integrity Check)
+      # and a bot can simply send those headers. If every shape is challenged, it's bot
+      # detection on the connection itself and only a zone-level change fixes it.
+      - name: Probe what gets through
+        env:
+          BASE: https://dogdle.swampkat.com
+        run: |
+          set -uo pipefail
+          UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
+
+          probe() {
+            label=$1; path=$2; shift 2
+            printf '  %-28s ' "$label"
+            curl -sS -o /tmp/body -D /tmp/h "$BASE$path" "$@" \
+              -w 'http %{http_code}' || true
+            grep -i '^cf-mitigated:' /tmp/h | tr -d '\r' | sed 's/^/  /' || printf '\n'
+            printf '\n'
+          }
+
+          for path in / /api/bot/leaderboard; do
+            echo "=== $path ==="
+            probe "plain curl" "$path"
+            probe "browser UA" "$path" -A "$UA"
+            probe "browser UA + headers" "$path" -A "$UA" \
+              -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' \
+              -H 'accept-language: en-US,en;q=0.9' \
+              -H 'accept-encoding: gzip, deflate, br' \
+              -H 'sec-fetch-dest: document' -H 'sec-fetch-mode: navigate' \
+              -H 'sec-fetch-site: none' -H 'upgrade-insecure-requests: 1'
+            echo
+          done
