@@ -52,6 +52,12 @@ jobs:
               if (near.length) console.log(`      upstream has: ${near.join(", ")}`);
             }
 
+            // Handy when a slug has to be replaced rather than corrected.
+            const used = new Set(BREEDS.map((b) => b.slug));
+            const spare = [...valid].filter((s) => !used.has(s)).sort();
+            console.log(`\nupstream slugs we do not use (${spare.length}):`);
+            console.log("  " + spare.join(", "));
+
             if (missing.length) process.exit(1);
             console.log("every slug resolves");
           '
