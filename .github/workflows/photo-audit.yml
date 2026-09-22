@@ -1,0 +1,106 @@
+name: Audit stored photos
+
+# A dog's photo URL is fetched once, at roll time, and stored inside the roll -- and rolls
+# are immutable, so a Dog CEO hiccup bakes a photo-less dog in for that player's whole day.
+# This reports how often that has actually happened, and digs into one player by name.
+#
+# Read-only.
+on:
+  workflow_dispatch:
+    inputs:
+      player:
+        description: Display name to look at in detail
+        default: megapwns
+        required: false
+
+env:
+  NS: 4c634ff1e5fd4d3ca547c5a2f1119806
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+
+      - name: Audit
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WANTED: ${{ inputs.player }}
+        run: |
+          set -euo pipefail
+
+          echo "=== every stored roll ==="
+          npx wrangler kv key list --namespace-id="$NS" --prefix="roll:" --remote > rolls.json
+          node -e 'console.log("keys:", require("./rolls.json").length)'
+
+          # Fetch each roll's value and report whether it carries a photo. Values are small
+          # and there are not many players; this is the only way to see photo state, since
+          # it lives in the value rather than the metadata.
+          node -e '
+            const keys = require("./rolls.json").map(k => k.name);
+            console.log(keys.join("\n"));
+          ' > keynames.txt
+
+          : > values.jsonl
+          while read -r key; do
+            [ -z "$key" ] && continue
+            value=$(npx wrangler kv key get --namespace-id="$NS" --remote "$key" 2>/dev/null || echo "")
+            if [ -n "$value" ]; then
+              printf '{"key":%s,"value":%s}\n' "$(node -e 'console.log(JSON.stringify(process.argv[1]))' "$key")" "$value" >> values.jsonl
+            fi
+          done < keynames.txt
+
+          node -e '
+            const fs = require("fs");
+            const rows = fs.readFileSync("values.jsonl", "utf8").trim().split("\n")
+              .filter(Boolean).map(l => JSON.parse(l));
+
+            const missing = rows.filter(r => !r.value.photo);
+            console.log("\n=== photo state across every stored roll ===");
+            console.log("rolls with a photo   :", rows.length - missing.length);
+            console.log("rolls with NO photo  :", missing.length);
+
+            if (missing.length) {
+              console.log("\naffected:");
+              for (const r of missing) {
+                const d = r.value;
+                console.log(`  ${r.key}`);
+                console.log(`      player=${JSON.stringify(d.player)} dog=${d.name} breed=${d.breed} slug=${d.breedSlug} photo=${JSON.stringify(d.photo)}`);
+              }
+            }
+
+            const wanted = (process.env.WANTED || "").toLowerCase();
+            const mine = rows.filter(r => String(r.value.player || "").toLowerCase() === wanted);
+            console.log(`\n=== rolls belonging to ${JSON.stringify(process.env.WANTED)} ===`);
+            if (!mine.length) {
+              console.log("  none found -- names seen:",
+                [...new Set(rows.map(r => r.value.player).filter(Boolean))].join(", "));
+            }
+            for (const r of mine) {
+              const d = r.value;
+              console.log(`  ${r.key}`);
+              console.log(`      ${d.name} the ${d.breed} (${d.rarity}) score ${d.score}`);
+              console.log(`      slug  : ${d.breedSlug}`);
+              console.log(`      photo : ${JSON.stringify(d.photo)}`);
+              fs.appendFileSync("probe.txt", `${d.breedSlug}\t${d.photo || ""}\n`);
+            }
+          '
+
+          echo "=== are those breeds and photos reachable right now? ==="
+          if [ -f probe.txt ]; then
+            while IFS=$'\t' read -r slug photo; do
+              [ -z "$slug" ] && continue
+              echo "--- $slug ---"
+              curl -sS -o /dev/null -w "  random endpoint : http %{http_code} in %{time_total}s\n" \
+                "https://dog.ceo/api/breed/$slug/images/random" || true
+              if [ -n "$photo" ]; then
+                curl -sS -o /dev/null -w "  stored photo    : http %{http_code}\n" "$photo" || true
+              else
+                echo "  stored photo    : (none stored)"
+              fi
+            done < probe.txt
+          fi
