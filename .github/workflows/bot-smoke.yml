@@ -3,10 +3,15 @@ name: Smoke-test the bot API
 # Hits the live Worker from outside Cloudflare, the way Felfox's bot will, using mock
 # Discord users. Every roll is sent with `"test": true`, so it stays off the leaderboards
 # and everything it writes expires in 48 hours -- nothing to clean up afterwards.
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: Origin to test against
+        default: https://dogdle.zach-sullivan2224.workers.dev
+        required: true
 
 env:
-  BASE: https://dogdle.swampkat.com
   GUILD: "900000000000000009"
 
 jobs:
@@ -14,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TOKEN: ${{ secrets.DOGDLE_BOT_TOKEN }}
+      # Not dogdle.swampkat.com: that zone challenges automated traffic, so a bot gets a
+      # 403 interstitial there no matter what headers it sends.
+      BASE: ${{ inputs.base }}
     steps:
       - name: Write the helpers
         run: |

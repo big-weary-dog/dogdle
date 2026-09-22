@@ -11,6 +11,9 @@ routes = [{ pattern = "dogdle.swampkat.com", custom_domain = true }]
 # which a bot can't solve. workers.dev hits the same Worker without the zone's WAF in
 # front, so the Discord bot uses this hostname and players keep the pretty one.
 workers_dev = true
+# Enabling workers.dev turns these on by default, which would publish every past version
+# at its own hostname. Nothing needs that.
+preview_urls = false
 
 [assets]
 directory = "public"
