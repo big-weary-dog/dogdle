@@ -8,6 +8,7 @@ import assert from "node:assert/strict";
 import { handleBot, botPlayerId } from "../src/bot.js";
 import { PLAYER_ID_RE } from "../src/keys.js";
 import { today } from "../src/roll.js";
+import { BREEDS } from "../src/breeds.js";
 
 const TOKEN = "test-token-please-ignore";
 const USER = "123456789012345678";
@@ -213,6 +214,9 @@ test("a roll whose photo never resolved repairs itself, and drops its stale card
   const key = `roll:${botPlayerId(USER)}:${today()}`;
   const stored = JSON.parse(e.STORE.store.get(key).value);
   stored.photo = null;
+  // And the slug it was dealt under is the dead one, as megapwn's German Shepherd was:
+  // retrying that would 404 forever, so the repair has to look the breed up again.
+  stored.breedSlug = "a-slug-that-no-longer-exists";
   e.STORE.store.get(key).value = JSON.stringify(stored);
   const staleCard = e.STORE.store.get(`card:${botPlayerId(USER)}:${today()}`).value;
   assert.ok(staleCard, "no card to invalidate");
@@ -236,6 +240,12 @@ test("a roll whose photo never resolved repairs itself, and drops its stale card
 
   const after = JSON.parse(e.STORE.store.get(key).value);
   assert.equal(after.photo, photoUrl, "photo was not written back");
+  assert.notEqual(after.breedSlug, "a-slug-that-no-longer-exists", "the dead slug was kept");
+  assert.equal(
+    after.breedSlug,
+    BREEDS.find((b) => b.name === after.breed).slug,
+    "the slug should be re-resolved from the breed table"
+  );
   assert.equal(after.name, stored.name, "the dog itself must be untouched");
   assert.notEqual(
     e.STORE.store.get(`card:${botPlayerId(USER)}:${today()}`).value,

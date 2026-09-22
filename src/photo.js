@@ -1,6 +1,6 @@
 // Dog CEO photo lookup, shared by the web routes and the bot card renderer.
 
-import { photoEndpoint } from "./breeds.js";
+import { BREEDS, photoEndpoint } from "./breeds.js";
 
 export const PHOTO_HOST = "images.dog.ceo";
 export const PHOTO_TIMEOUT_MS = 4000;
@@ -46,9 +46,17 @@ export async function fetchBreedPhoto(slug, dateStr) {
 export async function backfillPhoto(env, key, dog) {
   if (dog.photo || dog.test) return false;
 
-  const photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
+  // Look the slug up again by breed name rather than trusting the stored one. A slug is a
+  // lookup key into someone else's API, not part of the dog: when one turns out to be
+  // wrong, every dog already dealt under it has the broken value baked in, and retrying it
+  // just reproduces the same 404 forever. The name is the stable identity.
+  const current = BREEDS.find((b) => b.name === dog.breed);
+  const slug = current?.slug ?? dog.breedSlug;
+
+  const photo = await fetchBreedPhoto(slug, dog.date);
   if (!photo) return false; // still unreachable; try again next load
 
+  dog.breedSlug = slug;
   dog.photo = photo;
   // A put replaces metadata, and the leaderboard reads entirely from metadata.
   const { metadata } = await env.STORE.getWithMetadata(key);
