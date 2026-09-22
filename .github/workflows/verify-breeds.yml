@@ -1,0 +1,57 @@
+name: Verify breed slugs
+
+# Every breed in src/breeds.js has to exist in the Dog CEO API or its dogs get no photo --
+# and because a roll is stored with its photo URL baked in, a bad slug quietly gives every
+# player who draws that breed a photo-less dog for their whole day.
+#
+# There was a /api/verify-breeds route for this, but it was manual and nobody ran it.
+# Weekly, so a slug that rots upstream is caught before somebody rolls it.
+on:
+  schedule:
+    - cron: "17 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check every slug against the live API
+        run: |
+          set -euo pipefail
+          curl -sS --retry 3 https://dog.ceo/api/breeds/list/all > breeds.json
+          node --input-type=module -e '
+            import { readFileSync } from "fs";
+            const { BREEDS } = await import("./src/breeds.js");
+            const body = JSON.parse(readFileSync("breeds.json", "utf8"));
+            if (body.status !== "success") {
+              console.error("API did not answer with a breed list:", body);
+              process.exit(2);
+            }
+
+            const valid = new Set();
+            for (const [breed, subs] of Object.entries(body.message)) {
+              valid.add(breed);
+              for (const sub of subs) valid.add(breed + "/" + sub);
+            }
+
+            const missing = BREEDS.filter((b) => !valid.has(b.slug));
+            console.log(`${BREEDS.length} breeds in the table, ${valid.size} slugs upstream`);
+            console.log(`missing: ${missing.length}`);
+
+            for (const b of missing) {
+              // Offer the nearest upstream slug, since the usual cause is a main breed that
+              // is really a sub-breed (or the other way round).
+              const words = b.name.toLowerCase().split(/[^a-z]+/).filter(Boolean);
+              const near = [...valid].filter((s) => words.some((w) => w.length > 3 && s.includes(w)));
+              console.log(`  ${b.slug.padEnd(24)} (${b.name})`);
+              if (near.length) console.log(`      upstream has: ${near.join(", ")}`);
+            }
+
+            if (missing.length) process.exit(1);
+            console.log("every slug resolves");
+          '
