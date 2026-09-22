@@ -6,6 +6,12 @@ compatibility_date = "2025-06-01"
 # so down there this silently became assets.routes and was ignored.
 routes = [{ pattern = "dogdle.swampkat.com", custom_domain = true }]
 
+# The bot's way in. The swampkat.com zone challenges automated traffic -- every request
+# shape we tried, browser headers included, came back 403 with cf-mitigated: challenge,
+# which a bot can't solve. workers.dev hits the same Worker without the zone's WAF in
+# front, so the Discord bot uses this hostname and players keep the pretty one.
+workers_dev = true
+
 [assets]
 directory = "public"
 binding = "ASSETS"
