@@ -52,7 +52,7 @@ function sampleDistinct(rng, arr, count) {
   return out;
 }
 
-function qualityFor(score) {
+export function qualityFor(score) {
   return QUALITY_TIERS.find((t) => score <= t.max);
 }
 
@@ -117,5 +117,6 @@ export function rollDailyDog(playerId, dateStr = today()) {
     score,
     qualityLabel: quality.label,
     qualityColor: quality.color,
+    qualityEmoji: quality.emoji,
   };
 }

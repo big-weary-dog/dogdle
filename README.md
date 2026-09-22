@@ -176,14 +176,18 @@ A bot owns its own schedule: it calls `POST /api/bot/roll` when someone asks for
 dog, and the Worker deals one, renders the card and hands back an image URL. Nothing here
 is a cron — the Worker never wakes on its own.
 
-**Base URL: `https://dogdle.zach-sullivan2224.workers.dev`, not `dogdle.swampkat.com`.**
-The swampkat.com zone challenges automated traffic: every request from a server comes back
-`403` with `cf-mitigated: challenge`, and plain curl, a browser `User-Agent` and a full set
-of browser headers are all treated alike, so it's the connection being scored and a bot
-cannot satisfy it. workers.dev reaches the same Worker with the zone's WAF out of the way.
-Turning Bot Fight Mode off (Cloudflare → swampkat.com → Security → Bots) would let the bot
-use the pretty hostname instead. Card URLs need no change either way — the API builds them
-from the origin the request arrived on.
+**Base URL: `https://dogdle.swampkat.com`.**
+
+That took a Cloudflare change. With Bot Fight Mode on, the zone answered *every* request
+from a server with `403` and `cf-mitigated: challenge` — plain curl, a browser
+`User-Agent` and a full set of browser headers alike, so it was the connection being
+scored and no bot could satisfy it. It is now off (Cloudflare → swampkat.com → Security →
+Bots). If it ever comes back on, the Worker is also reachable at its `workers.dev`
+hostname, which the zone's WAF isn't in front of; card URLs follow automatically either
+way, since the API builds them from the origin the request arrived on.
+
+**The bot spec lives in [`docs/discord-bot-prompt.md`](docs/discord-bot-prompt.md)** —
+hand that to whoever is writing the bot.
 
 **Discord users are their own players.** A snowflake maps to `discord-<id>`, which can't
 collide with the web game's UUIDs, so rolling in Discord doesn't consume the roll on the

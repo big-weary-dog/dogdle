@@ -88,7 +88,8 @@ export default {
         : today();
 
       const listed = await env.STORE.list({ prefix: `day:${date}:`, limit: 200 });
-      const rows = visibleRows(listed.keys, false);
+      // Rows written by the bot carry the player's Discord id; this endpoint is public.
+      const rows = visibleRows(listed.keys, false).map(({ discordId, ...row }) => row);
 
       return Response.json({ date, rows }, { headers: { "cache-control": "no-store" } });
     }

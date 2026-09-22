@@ -93,6 +93,26 @@ test("rolling twice deals one dog and replays it", async () => {
   assert.deepEqual(second.traits, first.traits);
 });
 
+test("board rows carry what a digest needs, and the public board doesn't", async () => {
+  const e = env();
+  await call(e, "/api/bot/roll", {
+    method: "POST",
+    body: { discordId: USER, guildId: GUILD, displayName: "Felfox" },
+  });
+
+  const { rows } = await (await call(e, `/api/bot/leaderboard?guildId=${GUILD}`)).json();
+  assert.equal(rows[0].discordId, USER);
+  assert.ok(rows[0].image.endsWith(`/i/${botPlayerId(USER)}/${today()}.gif`));
+
+  // The website's own board is unauthenticated, so it must not hand out Discord ids.
+  const { default: worker } = await import("../src/worker.js");
+  const req = new Request("https://dogdle.swampkat.com/api/leaderboard");
+  const web = await (await worker.fetch(req, e)).json();
+  assert.equal(web.rows.length, 1);
+  assert.equal(web.rows[0].discordId, undefined);
+  assert.equal(web.rows[0].player, "Felfox");
+});
+
 test("a roll lands on both the global board and its guild's", async () => {
   const e = env();
   await call(e, "/api/bot/roll", {

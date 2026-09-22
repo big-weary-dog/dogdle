@@ -8,7 +8,7 @@ on:
     inputs:
       base:
         description: Origin to test against
-        default: https://dogdle.zach-sullivan2224.workers.dev
+        default: https://dogdle.swampkat.com
         required: true
 
 env:
@@ -19,8 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TOKEN: ${{ secrets.DOGDLE_BOT_TOKEN }}
-      # Not dogdle.swampkat.com: that zone challenges automated traffic, so a bot gets a
-      # 403 interstitial there no matter what headers it sends.
       BASE: ${{ inputs.base }}
     steps:
       - name: Write the helpers

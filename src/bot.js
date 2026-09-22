@@ -24,6 +24,7 @@ const TEST_TTL_SECONDS = 60 * 60 * 48;
 const BOARD_LIMIT = 200;
 
 export const botPlayerId = (discordId) => `discord-${discordId}`;
+const cardUrl = (origin, player, date) => `${origin}/i/${player}/${date}.gif`;
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 const json = (body, status = 200) =>
@@ -60,6 +61,8 @@ function present(dog, imageUrl, origin) {
     score: dog.score,
     quality: dog.qualityLabel,
     qualityColor: dog.qualityColor,
+    // So a bot can label a tier without hardcoding the ladder.
+    qualityEmoji: dog.qualityEmoji,
     date: dog.date,
     background: {
       name: dog.background.name,
@@ -130,7 +133,9 @@ export async function handleBot(request, url, env) {
       });
     }
 
-    const row = boardRow(name || saved?.player || "anon", dog);
+    // discordId rides along so a digest can @mention the player and find their card
+    // without a second lookup. The public web board strips it.
+    const row = { ...boardRow(name || saved?.player || "anon", dog), discordId };
     await env.STORE.put(dayKey(date, player), "", { ...expiry, metadata: row });
     // Written on every call, not just the first: someone who rolled in one server and
     // asked again in another should appear on both boards.
@@ -139,7 +144,7 @@ export async function handleBot(request, url, env) {
     await ensureCard(env, player, dog, ttl);
 
     return json({
-      ...present(dog, `${url.origin}/i/${player}/${date}.gif`, url.origin),
+      ...present(dog, cardUrl(url.origin, player, date), url.origin),
       replayed: Boolean(saved),
     });
   }
@@ -157,7 +162,7 @@ export async function handleBot(request, url, env) {
     if (!saved) return json({ pending: true, date });
 
     return json({
-      ...present(saved, `${url.origin}/i/${player}/${date}.gif`, url.origin),
+      ...present(saved, cardUrl(url.origin, player, date), url.origin),
       replayed: true,
     });
   }
@@ -172,7 +177,10 @@ export async function handleBot(request, url, env) {
     // No guild means the global board, the same one the website shows.
     const prefix = guildId ? `guild:${guildId}:${date}:` : `day:${date}:`;
     const listed = await env.STORE.list({ prefix, limit: BOARD_LIMIT });
-    const rows = visibleRows(listed.keys, url.searchParams.get("includeTest") === "1");
+    const rows = visibleRows(listed.keys, url.searchParams.get("includeTest") === "1").map(
+      // Web players have no Discord id and no card rendered for them, so no image.
+      (r) => (r.discordId ? { ...r, image: cardUrl(url.origin, botPlayerId(r.discordId), date) } : r)
+    );
 
     return json({ date, guildId: guildId || null, rows });
   }
