@@ -71,6 +71,11 @@ jobs:
                 console.log(`  ${r.key}`);
                 console.log(`      player=${JSON.stringify(d.player)} dog=${d.name} breed=${d.breed} slug=${d.breedSlug} photo=${JSON.stringify(d.photo)}`);
               }
+              // Probe every breed that lost a photo, not just one player's: if they share a
+              // slug the cause is that breed, not a flaky moment.
+              const slugs = [...new Set(missing.map(r => r.value.breedSlug))];
+              console.log("\ndistinct breeds among them:", slugs.join(", "));
+              for (const s of slugs) fs.appendFileSync("probe.txt", `${s}\t\n`);
             }
 
             const wanted = (process.env.WANTED || "").toLowerCase();
@@ -95,8 +100,9 @@ jobs:
             while IFS=$'\t' read -r slug photo; do
               [ -z "$slug" ] && continue
               echo "--- $slug ---"
-              curl -sS -o /dev/null -w "  random endpoint : http %{http_code} in %{time_total}s\n" \
-                "https://dog.ceo/api/breed/$slug/images/random" || true
+              # Print the body: dog.ceo answers 404 with a JSON message naming the problem.
+              curl -sS -w "\n  [http %{http_code} in %{time_total}s]\n" \
+                "https://dog.ceo/api/breed/$slug/images/random" | head -c 400 || true
               if [ -n "$photo" ]; then
                 curl -sS -o /dev/null -w "  stored photo    : http %{http_code}\n" "$photo" || true
               else
