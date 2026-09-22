@@ -1,4 +1,5 @@
 import { rollDailyDog, today } from "./roll.js";
+import { renderCardGif } from "./card.js";
 import { BREEDS, photoEndpoint } from "./breeds.js";
 
 const PLAYER_ID_RE = /^[a-zA-Z0-9-]{8,64}$/;
@@ -240,6 +241,16 @@ export default {
           "content-type": sniffImageType(card) ?? "image/png",
           "cache-control": "public, max-age=86400",
         },
+      });
+    }
+
+    // Server-rendered card, for the Discord bot (and handy for eyeballing the renderer).
+    if (url.pathname === "/api/render-card") {
+      const seed = url.searchParams.get("seed") || crypto.randomUUID();
+      const dog = rollDailyDog(`dev-${seed}`, today());
+      const gif = renderCardGif(dog);
+      return new Response(gif, {
+        headers: { "content-type": "image/gif", "cache-control": "no-store" },
       });
     }
 

@@ -561,6 +561,49 @@ export function subjectStyle(effects) {
   return out;
 }
 
+// Builds the effect instances for one layer. Shared with the headless card renderer.
+export function createLayers(effects, layer) {
+  return effects
+    .filter((e) => e && EFFECTS[e.type] && !DOM_EFFECTS.has(e.type) && (e.layer ?? "back") === layer)
+    .map((e) => EFFECTS[e.type](e.params ?? {}));
+}
+
+// Paints the world behind the dog: sky, scenery, ground, horizon haze, contact shadow.
+export function paintWorld(ctx, w, h, { sky, ground, props = [] }) {
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, sky[0]);
+  grad.addColorStop(1, sky[1] ?? sky[0]);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Scenery sits behind the ground when it's sky-side, so draw it first.
+  drawProps(ctx, w, h, props.filter((p) => p.layer === "sky"));
+
+  if (ground) {
+    const horizon = h * HORIZON;
+    const gGrad = ctx.createLinearGradient(0, horizon, 0, h);
+    gGrad.addColorStop(0, ground);
+    gGrad.addColorStop(1, shade(ground, -0.35));
+    ctx.fillStyle = gGrad;
+    ctx.fillRect(0, horizon, w, h - horizon);
+
+    // A soft haze along the horizon stops it reading as a hard colour seam.
+    const haze = ctx.createLinearGradient(0, horizon - h * 0.09, 0, horizon + h * 0.05);
+    haze.addColorStop(0, rgba(sky[1] ?? sky[0], 0));
+    haze.addColorStop(0.6, rgba(sky[1] ?? sky[0], 0.5));
+    haze.addColorStop(1, rgba(sky[1] ?? sky[0], 0));
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, horizon - h * 0.09, w, h * 0.14);
+
+    ctx.fillStyle = "rgba(0,0,0,.28)";
+    ctx.beginPath();
+    ctx.ellipse(w / 2, horizon + 6, w * 0.22, h * 0.035, 0, 0, TAU);
+    ctx.fill();
+  }
+
+  drawProps(ctx, w, h, props.filter((p) => p.layer !== "sky"));
+}
+
 export class Scene {
   constructor(canvas, layer = "back") {
     this.canvas = canvas;
@@ -577,9 +620,7 @@ export class Scene {
     this.sky = sky ?? this.sky;
     this.ground = ground ?? null;
     this.props = props ?? [];
-    this.layers = effects
-      .filter((e) => e && EFFECTS[e.type] && !DOM_EFFECTS.has(e.type) && (e.layer ?? "back") === this.layer)
-      .map((e) => EFFECTS[e.type](e.params ?? {}));
+    this.layers = createLayers(effects, this.layer);
   }
 
   resize() {
@@ -623,38 +664,7 @@ export class Scene {
     // Only the back layer paints the world; the front layer stays transparent so the dog
     // shows through everywhere its effects aren't.
     if (this.layer === "back") {
-      const grad = ctx.createLinearGradient(0, 0, 0, h);
-      grad.addColorStop(0, this.sky[0]);
-      grad.addColorStop(1, this.sky[1] ?? this.sky[0]);
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, w, h);
-
-      // Scenery sits behind the ground when it's sky-side, so draw it first.
-      drawProps(ctx, w, h, this.props.filter((p) => p.layer === "sky"));
-
-      if (this.ground) {
-        const horizon = h * HORIZON;
-        const gGrad = ctx.createLinearGradient(0, horizon, 0, h);
-        gGrad.addColorStop(0, this.ground);
-        gGrad.addColorStop(1, shade(this.ground, -0.35));
-        ctx.fillStyle = gGrad;
-        ctx.fillRect(0, horizon, w, h - horizon);
-
-        // A soft haze along the horizon stops it reading as a hard colour seam.
-        const haze = ctx.createLinearGradient(0, horizon - h * 0.09, 0, horizon + h * 0.05);
-        haze.addColorStop(0, rgba(this.sky[1] ?? this.sky[0], 0));
-        haze.addColorStop(0.6, rgba(this.sky[1] ?? this.sky[0], 0.5));
-        haze.addColorStop(1, rgba(this.sky[1] ?? this.sky[0], 0));
-        ctx.fillStyle = haze;
-        ctx.fillRect(0, horizon - h * 0.09, w, h * 0.14);
-
-        ctx.fillStyle = "rgba(0,0,0,.28)";
-        ctx.beginPath();
-        ctx.ellipse(w / 2, horizon + 6, w * 0.22, h * 0.035, 0, 0, TAU);
-        ctx.fill();
-      }
-
-      drawProps(ctx, w, h, this.props.filter((p) => p.layer !== "sky"));
+      paintWorld(ctx, w, h, { sky: this.sky, ground: this.ground, props: this.props });
     }
 
     for (const layer of this.layers) layer.draw(ctx, w, h, dt, t);
