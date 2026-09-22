@@ -3,7 +3,7 @@ import { renderCardGif } from "./card.js";
 import { BREEDS } from "./breeds.js";
 import { handleBot } from "./bot.js";
 import { fetchBreedPhoto, fetchPhotoBytes, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
-import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, cleanName, boardRow } from "./keys.js";
+import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, cleanName, boardRow, visibleRows } from "./keys.js";
 
 const MAX_CARD_BYTES = 8_000_000; // animated cards are far heavier than a still
 const CARD_TTL_SECONDS = 60 * 60 * 24 * 30;
@@ -88,10 +88,7 @@ export default {
         : today();
 
       const listed = await env.STORE.list({ prefix: `day:${date}:`, limit: 200 });
-      const rows = listed.keys
-        .map((k) => k.metadata)
-        .filter(Boolean)
-        .sort((a, b) => b.score - a.score);
+      const rows = visibleRows(listed.keys, false);
 
       return Response.json({ date, rows }, { headers: { "cache-control": "no-store" } });
     }

@@ -28,4 +28,13 @@ export const boardRow = (name, dog) => ({
   score: dog.score,
   quality: dog.qualityLabel,
   emoji: dog.background.emoji,
+  // Smoke-test rolls are real rolls -- same generator, same card -- they just don't count.
+  ...(dog.test ? { test: true } : {}),
 });
+
+// Boards hide test rows unless something explicitly asks for them.
+export const visibleRows = (keys, includeTest) =>
+  keys
+    .map((k) => k.metadata)
+    .filter((row) => row && (includeTest || !row.test))
+    .sort((a, b) => b.score - a.score);

@@ -15,10 +15,12 @@
 import { rollDailyDog, today } from "./roll.js";
 import { renderCardGif } from "./card.js";
 import { fetchBreedPhoto, fetchPhotoBytes } from "./photo.js";
-import { cardKey, rollKey, dayKey, guildKey, cleanName, boardRow, DATE_RE } from "./keys.js";
+import { cardKey, rollKey, dayKey, guildKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
 
 const SNOWFLAKE_RE = /^\d{5,24}$/;
 const CARD_TTL_SECONDS = 60 * 60 * 24 * 30;
+// A smoke test shouldn't leave anything behind that someone has to go and delete.
+const TEST_TTL_SECONDS = 60 * 60 * 48;
 const BOARD_LIMIT = 200;
 
 export const botPlayerId = (discordId) => `discord-${discordId}`;
@@ -73,14 +75,14 @@ function present(dog, imageUrl, origin) {
 
 // Renders the card once per dog and keeps it in KV, so a re-ask is a KV read rather than
 // another few hundred milliseconds of CPU.
-async function ensureCard(env, player, dog) {
+async function ensureCard(env, player, dog, ttl) {
   const key = cardKey(player, dog.date);
   if ((await env.STORE.get(key, "stream")) !== null) return;
 
   const photo = await fetchPhotoBytes(dog.photo);
   const gif = renderCardGif(dog, { photo });
 
-  await env.STORE.put(key, gif, { expirationTtl: CARD_TTL_SECONDS, metadata: { date: dog.date } });
+  await env.STORE.put(key, gif, { expirationTtl: ttl, metadata: { date: dog.date } });
 }
 
 export async function handleBot(request, url, env) {
@@ -106,6 +108,13 @@ export async function handleBot(request, url, env) {
     const date = today();
     const name = cleanName(body?.displayName);
 
+    // A `test` roll is a real roll -- same dog, same card -- that simply doesn't count:
+    // it's hidden from every board and everything it writes expires in two days, so
+    // smoke-testing the live Worker leaves nothing for anyone to clean up.
+    const isTest = body?.test === true;
+    const ttl = isTest ? TEST_TTL_SECONDS : CARD_TTL_SECONDS;
+    const expiry = isTest ? { expirationTtl: TEST_TTL_SECONDS } : {};
+
     // One dog per person per day. A stored roll is replayed verbatim, so editing the
     // content tables never re-deals a dog somebody has already been shown.
     const saved = await env.STORE.get(rollKey(player, date), "json");
@@ -114,18 +123,20 @@ export async function handleBot(request, url, env) {
       dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
       dog.player = name;
       dog.source = "discord";
+      if (isTest) dog.test = true;
       await env.STORE.put(rollKey(player, date), JSON.stringify(dog), {
-        metadata: { date, score: dog.score, breed: dog.breed, name: dog.name },
+        ...expiry,
+        metadata: { date, score: dog.score, breed: dog.breed, name: dog.name, test: dog.test },
       });
     }
 
     const row = boardRow(name || saved?.player || "anon", dog);
-    await env.STORE.put(dayKey(date, player), "", { metadata: row });
+    await env.STORE.put(dayKey(date, player), "", { ...expiry, metadata: row });
     // Written on every call, not just the first: someone who rolled in one server and
     // asked again in another should appear on both boards.
-    if (guildId) await env.STORE.put(guildKey(guildId, date, player), "", { metadata: row });
+    if (guildId) await env.STORE.put(guildKey(guildId, date, player), "", { ...expiry, metadata: row });
 
-    await ensureCard(env, player, dog);
+    await ensureCard(env, player, dog, ttl);
 
     return json({
       ...present(dog, `${url.origin}/i/${player}/${date}.gif`, url.origin),
@@ -161,10 +172,7 @@ export async function handleBot(request, url, env) {
     // No guild means the global board, the same one the website shows.
     const prefix = guildId ? `guild:${guildId}:${date}:` : `day:${date}:`;
     const listed = await env.STORE.list({ prefix, limit: BOARD_LIMIT });
-    const rows = listed.keys
-      .map((k) => k.metadata)
-      .filter(Boolean)
-      .sort((a, b) => b.score - a.score);
+    const rows = visibleRows(listed.keys, url.searchParams.get("includeTest") === "1");
 
     return json({ date, guildId: guildId || null, rows });
   }

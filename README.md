@@ -210,6 +210,18 @@ A roll answers with the pieces of a message, not a formatted one:
 The traits are already drawn into the card's sidebar, which is the point: the message can
 be mostly the GIF.
 
+### Test rolls
+
+`POST /api/bot/roll` with `"test": true` deals a real dog and renders a real card, it just
+doesn't count: the row is hidden from every leaderboard (pass `includeTest=1` to see it)
+and everything it writes carries a 48-hour TTL, so smoke-testing the live Worker leaves
+nothing behind for anyone to go and delete.
+
+`bot-smoke.yml` is a manual workflow that does exactly that against production from a
+GitHub runner — three mock users (`9000000000000000 01/02/03` in guild `…009`), a
+replay check, the boards with and without test rows, auth rejections, and the rendered
+GIFs uploaded as an artifact.
+
 ### Rendering a card without a canvas
 
 Workers have no canvas, no DOM and no image decoder, so the card is rendered onto a plain

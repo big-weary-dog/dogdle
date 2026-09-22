@@ -30,7 +30,7 @@ function makeKV() {
       return type === "json" ? JSON.parse(entry.value) : entry.value;
     },
     async put(key, value, opts = {}) {
-      store.set(key, { value, metadata: opts.metadata ?? null });
+      store.set(key, { value, metadata: opts.metadata ?? null, ttl: opts.expirationTtl ?? 0 });
     },
     async list({ prefix, limit = 1000 }) {
       const keys = [...store.keys()]
@@ -143,6 +143,31 @@ test("history lists a player's dogs newest first", async () => {
   assert.equal(rows.length, 2);
   assert.equal(rows[0].date, today());
   assert.equal(rows[1].name, "Old");
+});
+
+test("a test roll stays off the boards and expires on its own", async () => {
+  const e = env();
+  await call(e, "/api/bot/roll", {
+    method: "POST",
+    body: { discordId: USER, guildId: GUILD, displayName: "mock-alpha", test: true },
+  });
+  await call(e, "/api/bot/roll", {
+    method: "POST",
+    body: { discordId: "222222222222222222", guildId: GUILD, displayName: "real" },
+  });
+
+  const board = await (await call(e, `/api/bot/leaderboard?guildId=${GUILD}`)).json();
+  assert.deepEqual(board.rows.map((r) => r.player), ["real"]);
+
+  const all = await (await call(e, `/api/bot/leaderboard?guildId=${GUILD}&includeTest=1`)).json();
+  assert.equal(all.rows.length, 2);
+  assert.equal(all.rows.find((r) => r.player === "mock-alpha").test, true);
+
+  // Nothing a test roll writes should outlive it.
+  for (const [key, entry] of e.STORE.store) {
+    if (!key.includes(botPlayerId(USER))) continue;
+    assert.ok(entry.ttl > 0 && entry.ttl <= 60 * 60 * 48, `${key} has no short TTL`);
+  }
 });
 
 test("junk ids are rejected before anything is written", async () => {
