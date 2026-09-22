@@ -10,7 +10,11 @@ on:
     inputs:
       player:
         description: Display name to look at in detail
-        default: megapwns
+        default: megapwn
+        required: false
+      repair:
+        description: Also re-request the photo for affected Discord players
+        default: "false"
         required: false
 
 env:
@@ -76,6 +80,13 @@ jobs:
               const slugs = [...new Set(missing.map(r => r.value.breedSlug))];
               console.log("\ndistinct breeds among them:", slugs.join(", "));
               for (const s of slugs) fs.appendFileSync("probe.txt", `${s}\t\n`);
+
+              // Discord rolls can be repaired from here; web ones repair when the player
+              // next loads the page, which needs nobody.
+              for (const r of missing) {
+                const m = r.key.match(/^roll:discord-(\d+):/);
+                if (m && !r.value.test) fs.appendFileSync("broken-discord.txt", m[1] + "\n");
+              }
             }
 
             const wanted = (process.env.WANTED || "").toLowerCase();
@@ -110,3 +121,29 @@ jobs:
               fi
             done < probe.txt
           fi
+
+      # Repairing is a read on the live Worker: /api/bot/roll is idempotent, so for a
+      # player who has already rolled it returns the same dog and backfills the photo.
+      # It cannot deal anybody a dog they do not already have.
+      - name: Repair the Discord ones
+        if: ${{ inputs.repair == 'true' }}
+        env:
+          TOKEN: ${{ secrets.DOGDLE_BOT_TOKEN }}
+          BASE: https://dogdle.swampkat.com
+        run: |
+          set -uo pipefail
+          [ -f broken-discord.txt ] || { echo "nothing to repair"; exit 0; }
+          while read -r id; do
+            [ -z "$id" ] && continue
+            echo "--- discord $id ---"
+            curl -sS -X POST "$BASE/api/bot/roll" \
+              -H "Authorization: Bearer $TOKEN" -H 'content-type: application/json' \
+              -d "{\"discordId\":\"$id\"}" \
+            | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          print('  ', d.get('text'))
+          print('   replayed:', d.get('replayed'))
+          print('   image   :', d.get('image'))
+          "
+          done < broken-discord.txt
