@@ -71,7 +71,7 @@ jobs:
                 console.log(`  ${r.key}`);
                 console.log(`      player=${JSON.stringify(d.player)} dog=${d.name} breed=${d.breed} slug=${d.breedSlug} photo=${JSON.stringify(d.photo)}`);
               }
-              // Probe every breed that lost a photo, not just one player's: if they share a
+              // Probe every breed that lost a photo, not just one named player: if they share a
               // slug the cause is that breed, not a flaky moment.
               const slugs = [...new Set(missing.map(r => r.value.breedSlug))];
               console.log("\ndistinct breeds among them:", slugs.join(", "));
