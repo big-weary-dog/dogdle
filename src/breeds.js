@@ -60,7 +60,9 @@ export const BREEDS = [
   { slug: "whippet", name: "Whippet", rarity: "uncommon" },
   { slug: "ridgeback/rhodesian", name: "Rhodesian Ridgeback", rarity: "uncommon" },
   { slug: "cattledog/australian", name: "Australian Cattle Dog", rarity: "uncommon" },
-  { slug: "pitbull", name: "Pit Bull Terrier", rarity: "uncommon" },
+  // The one breed worth negative points. Not a statement about the dog -- a statement
+  // about the insurance, the landlord and the way people cross the street.
+  { slug: "pitbull", name: "Pit Bull Terrier", rarity: "uncommon", value: -3 },
   { slug: "retriever/chesapeake", name: "Chesapeake Bay Retriever", rarity: "uncommon" },
   { slug: "mastiff/english", name: "English Mastiff", rarity: "uncommon" },
   { slug: "mastiff/bull", name: "Bullmastiff", rarity: "uncommon" },
@@ -159,6 +161,25 @@ export const RARITIES = {
 };
 
 export const RARITY_ORDER = ["common", "uncommon", "rare", "epic", "legendary"];
+
+// A breed is worth points once it's actually uncommon. Every Labrador and every Pug is a
+// flat zero -- they're the baseline a dog is measured against, and giving the dogs you
+// see at the park a bonus would just move the average.
+//
+// Kept small on purpose. A rare breed is a nice start, not a win: pulling a Xoloitzcuintli
+// and then a page of misfortune should still be a bad dog. The traits are the game.
+export const RARITY_VALUE = {
+  common: 0,
+  uncommon: 1,
+  rare: 2,
+  epic: 4,
+  legendary: 6,
+};
+
+// A breed may override it. Exactly one does.
+export function breedValue(breed) {
+  return breed.value ?? RARITY_VALUE[breed.rarity];
+}
 
 export function breedsByRarity(rarity) {
   return BREEDS.filter((b) => b.rarity === rarity);

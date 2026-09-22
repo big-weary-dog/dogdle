@@ -19,13 +19,13 @@ Every dog is four independent rolls, combined:
 
 | Part | Source | Notes |
 |---|---|---|
-| **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. |
-| **Background** | `src/content.js` | 46 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
-| **Name** | `src/content.js` | Flat pick from a list. |
-| **Traits** | `src/content.js` | 4–8 of them, averaging 6, drawn without replacement. |
+| **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
+| **Background** | `src/content/backgrounds.js` | 46 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
+| **Name** | `src/content/names.js` | Flat pick from 150. |
+| **Traits** | `src/content/traits/` | 4–8 of them, averaging 6, drawn without replacement. |
 
-**Score** = the background's value + every trait's value. The content is balanced so the
-average dog scores **0** — see [Balance](#balance).
+**Score** = the breed's value + the background's value + every trait's value. The content
+is balanced so the average dog scores **0** — see [Balance](#balance).
 
 The roll is deterministic: `hash(playerId + date)` seeds a PRNG, so the same player on the
 same day always produces the same dog. That is what lets a share link re-create a dog
@@ -35,13 +35,18 @@ without storing anything.
 
 These are separate axes and it is worth keeping them straight:
 
-- **Rarity** (Common → Legendary) describes how unusual the *breed* is. It has no effect
-  on score.
+- **Rarity** (Common → Legendary) describes how unusual the *breed* is. It is worth a few
+  points — 0 / +1 / +2 / +4 / +6 — and no more than that.
 - **Quality** (Should Not Have Happened → Platonic Ideal of Dog) is nine tiers derived
   from the score.
 
-So a Common Labrador can be a Platonic Ideal, and a Legendary Xoloitzcuintli can be a
-disaster. That tension is most of the fun.
+The breed's points are kept small on purpose: a rare breed is a nice start, not a win. A
+Common Labrador can still be a Platonic Ideal and a Legendary Xoloitzcuintli can still be
+a disaster, because six traits swamp six points. That tension is most of the fun.
+
+Common breeds are a flat zero — they're the baseline a dog is measured against. **One
+breed is worth negative points**: the Pit Bull Terrier, at −3. Not a claim about the dog,
+a claim about the insurance and the landlord.
 
 ---
 
@@ -69,7 +74,7 @@ the dog, which read as scattered clip art; a fixed rail reads as designed.
 
 ### Adding a trait
 
-Append to `MODIFIERS` in `src/content.js`:
+Append to the right category file in `src/content/traits/`:
 
 ```js
 { text: "Has a nemesis", emoji: "😾", value: -2, category: "circumstance",
@@ -89,16 +94,20 @@ obsolete trait stays resolvable but never spawns again.
 
 The average dog scores 0 by construction, not by moving the goalposts.
 
-With a rarity-weighted background mean of about **+1.04** and six traits per dog, the trait
-pool has to average **−0.174** for the whole thing to centre on zero. When new traits push
-it off, the correction is spread **one point at a time across distinct traits** in the
-−4…−2 band. Concentrating it on the harshest traits — which a greedy pass does by default —
-flattens the tail and takes the drama out of an extreme roll.
+Two of the three parts pull upward: a rarity-weighted breed mean of **+0.92** and a
+background mean of **+1.04**. With six traits per dog, the trait pool therefore has to
+average **−0.327** for the whole thing to centre on zero.
 
-Backgrounds are deliberately left lopsided (Heaven +12, Hell −7). They are the jackpots.
+When a change pushes it off, the correction is spread **one point at a time across
+distinct traits** in the −4…−2 band, across all five categories. Concentrating it on the
+harshest traits — which a greedy pass does by default — flattens the tail and takes the
+drama out of an extreme roll.
 
-Measured over 40k rolls: mean −0.05, median 0, tiers landing at roughly
-0.4 / 4.5 / 13.8 / 21.7 / **20.9** / 20.4 / 12.9 / 4.7 / 0.6.
+Breeds and backgrounds are deliberately left lopsided (Heaven +12, Hell −7). They are the
+jackpots.
+
+Measured over 60k rolls: mean **+0.004**, median 0, tiers landing at roughly
+0.5 / 5.0 / 14.0 / 21.1 / **19.9** / 20.1 / 13.4 / 5.2 / 0.8.
 
 `npm test` fails if the mean drifts past ±0.5.
 
@@ -113,8 +122,9 @@ src/
   worker.js    routes: roll, leaderboard, history, card upload/serve, image proxy, share page
   bot.js       the Discord bot API (/api/bot/*)
   roll.js      the deterministic generator and the Eastern day boundary
-  content.js   backgrounds, traits, names, tier thresholds
-  breeds.js    breed table and rarity weights
+  content/     the content tables, one file per kind:
+                 names.js, backgrounds.js, tiers.js, traits/<category>.js
+  breeds.js    breed table, rarity weights and what a rarity is worth
   keys.js      the KV key layout, shared by the web routes and the bot
   photo.js     Dog CEO lookup and photo bytes
   card.js      the headless card renderer — scene, dog, trait sidebar, GIF
@@ -130,7 +140,8 @@ public/
   vendor/      gifenc, vendored (see package.json devDependencies for the source)
 scripts/
   build-atlas.mjs   bakes the glyph/emoji atlas with a headless browser
-test/          node:test suites — content, roll, effects, card, bot
+  bake-golden.mjs   re-records the content and generator snapshots
+test/          node:test suites — content, roll, effects, card, bot, inventory, golden
 ```
 
 ### Storage

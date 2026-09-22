@@ -54,8 +54,11 @@ export function paintSidebar(surface, dog, x, width, height) {
 
   fillRect(surface, left, 72, inner, 1, [38, 43, 54]);
 
-  // One row per trait, background first, each with its emoji and value.
+  // One row per scoring thing, so the rows visibly add up to the number above them. The
+  // breed only earns a row once it's worth something -- a common breed scores nothing and
+  // a row of zero would be noise on every second card.
   const rows = [
+    ...(dog.breedValue ? [{ emoji: "🧬", text: dog.breed, value: dog.breedValue }] : []),
     { emoji: dog.background.emoji, text: dog.background.name, value: dog.background.value },
     ...dog.modifiers.map((m) => ({ emoji: m.emoji, text: m.text, value: m.value })),
   ];

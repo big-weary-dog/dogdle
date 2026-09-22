@@ -1,13 +1,14 @@
 [
  {
   "date": "2026-01-01",
-  "name": "Biscuit",
+  "name": "Moose",
   "breed": "Weimaraner",
   "breedSlug": "weimaraner",
   "rarity": "uncommon",
   "rarityLabel": "Uncommon",
   "rarityColor": "#34d399",
   "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "breedValue": 1,
   "background": {
    "key": "vet",
    "emoji": "🏥",
@@ -107,20 +108,21 @@
     }
    }
   ],
-  "score": -6,
+  "score": -5,
   "qualityLabel": "Below Average",
   "qualityColor": "#fbbf24",
   "qualityEmoji": "🙃"
  },
  {
   "date": "2026-01-01",
-  "name": "Ramona",
+  "name": "Steve",
   "breed": "Yorkshire Terrier",
   "breedSlug": "terrier/yorkshire",
   "rarity": "common",
   "rarityLabel": "Common",
   "rarityColor": "#9ca3af",
   "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
+  "breedValue": 0,
   "background": {
    "key": "moon",
    "emoji": "🌙",
@@ -237,13 +239,14 @@
  },
  {
   "date": "2026-03-08",
-  "name": "Daisy",
+  "name": "Cooper",
   "breed": "Shih Tzu",
   "breedSlug": "shihtzu",
   "rarity": "common",
   "rarityLabel": "Common",
   "rarityColor": "#9ca3af",
   "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
+  "breedValue": 0,
   "background": {
    "key": "autumn",
    "emoji": "🍂",
@@ -350,7 +353,7 @@
    {
     "text": "Vet says he's fine. He is not fine.",
     "emoji": "🩺",
-    "value": -3,
+    "value": -4,
     "category": "health",
     "effect": {
      "type": "chromatic",
@@ -361,20 +364,21 @@
     }
    }
   ],
-  "score": -4,
+  "score": -5,
   "qualityLabel": "Below Average",
   "qualityColor": "#fbbf24",
   "qualityEmoji": "🙃"
  },
  {
   "date": "2026-03-08",
-  "name": "Fig",
+  "name": "Pierogi",
   "breed": "Cairn Terrier",
   "breedSlug": "terrier/cairn",
   "rarity": "rare",
   "rarityLabel": "Rare",
   "rarityColor": "#38bdf8",
   "rarityGlow": "0 0 22px rgba(56,189,248,.75)",
+  "breedValue": 2,
   "background": {
    "key": "couch",
    "emoji": "🛋️",
@@ -525,20 +529,21 @@
     }
    }
   ],
-  "score": -4,
-  "qualityLabel": "Below Average",
-  "qualityColor": "#fbbf24",
-  "qualityEmoji": "🙃"
+  "score": -2,
+  "qualityLabel": "Perfectly Average",
+  "qualityColor": "#facc15",
+  "qualityEmoji": "😐"
  },
  {
   "date": "2026-06-15",
-  "name": "Rufus",
+  "name": "Willow",
   "breed": "Clumber Spaniel",
   "breedSlug": "clumber",
   "rarity": "epic",
   "rarityLabel": "Epic",
   "rarityColor": "#a78bfa",
   "rarityGlow": "0 0 28px rgba(167,139,250,.85)",
+  "breedValue": 4,
   "background": {
    "key": "fallout",
    "emoji": "☢️",
@@ -591,7 +596,7 @@
    {
     "text": "Smells, and everyone knows",
     "emoji": "🤢",
-    "value": -2,
+    "value": -3,
     "category": "condition",
     "effect": {
      "type": "rise",
@@ -672,20 +677,21 @@
     }
    }
   ],
-  "score": -25,
-  "qualityLabel": "Should Not Have Happened",
-  "qualityColor": "#dc2626",
-  "qualityEmoji": "💀"
+  "score": -22,
+  "qualityLabel": "Genuinely Concerning",
+  "qualityColor": "#f87171",
+  "qualityEmoji": "🚨"
  },
  {
   "date": "2026-06-15",
-  "name": "Hazel",
+  "name": "Scout",
   "breed": "Havanese",
   "breedSlug": "havanese",
   "rarity": "uncommon",
   "rarityLabel": "Uncommon",
   "rarityColor": "#34d399",
   "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "breedValue": 1,
   "background": {
    "key": "dream",
    "emoji": "💭",
@@ -743,7 +749,7 @@
    {
     "text": "Shits itself sometimes",
     "emoji": "💩",
-    "value": -3,
+    "value": -4,
     "category": "health",
     "effect": {
      "type": "fall",
@@ -781,13 +787,14 @@
  },
  {
   "date": "2026-09-22",
-  "name": "Marbles",
+  "name": "Cinnamon",
   "breed": "Belgian Groenendael",
   "breedSlug": "groenendael",
   "rarity": "rare",
   "rarityLabel": "Rare",
   "rarityColor": "#38bdf8",
   "rarityGlow": "0 0 22px rgba(56,189,248,.75)",
+  "breedValue": 2,
   "background": {
    "key": "couch",
    "emoji": "🛋️",
@@ -915,20 +922,21 @@
     "effect": null
    }
   ],
-  "score": 5,
+  "score": 7,
   "qualityLabel": "Above Average",
   "qualityColor": "#a3e635",
   "qualityEmoji": "🙂"
  },
  {
   "date": "2026-09-22",
-  "name": "Cinnamon",
+  "name": "Odin",
   "breed": "Lhasa Apso",
   "breedSlug": "lhasa",
   "rarity": "uncommon",
   "rarityLabel": "Uncommon",
   "rarityColor": "#34d399",
   "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "breedValue": 1,
   "background": {
    "key": "summit",
    "emoji": "🏔️",
@@ -1067,20 +1075,21 @@
     }
    }
   ],
-  "score": 15,
-  "qualityLabel": "Good Dog",
-  "qualityColor": "#4ade80",
-  "qualityEmoji": "🦴"
+  "score": 16,
+  "qualityLabel": "Exceptional Animal",
+  "qualityColor": "#22d3ee",
+  "qualityEmoji": "🌟"
  },
  {
   "date": "2026-11-01",
-  "name": "Tofu",
+  "name": "Kiwi",
   "breed": "Italian Greyhound",
   "breedSlug": "greyhound/italian",
   "rarity": "uncommon",
   "rarityLabel": "Uncommon",
   "rarityColor": "#34d399",
   "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "breedValue": 1,
   "background": {
    "key": "jet",
    "emoji": "✈️",
@@ -1135,7 +1144,7 @@
    {
     "text": "Rolls in dead things",
     "emoji": "🦨",
-    "value": -2,
+    "value": -3,
     "category": "habit",
     "effect": {
      "type": "tint",
@@ -1195,7 +1204,7 @@
    {
     "text": "Owner is getting divorced",
     "emoji": "💔",
-    "value": -3,
+    "value": -4,
     "category": "circumstance",
     "effect": {
      "type": "drain",
@@ -1208,7 +1217,7 @@
    {
     "text": "Gambling addiction",
     "emoji": "🎰",
-    "value": -3,
+    "value": -4,
     "category": "habit",
     "effect": {
      "type": "burst",
@@ -1237,20 +1246,21 @@
     }
    }
   ],
-  "score": 12,
+  "score": 10,
   "qualityLabel": "Good Dog",
   "qualityColor": "#4ade80",
   "qualityEmoji": "🦴"
  },
  {
   "date": "2026-11-01",
-  "name": "Maple",
+  "name": "Kevin",
   "breed": "Bichon Frise",
   "breedSlug": "frise/bichon",
   "rarity": "uncommon",
   "rarityLabel": "Uncommon",
   "rarityColor": "#34d399",
   "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "breedValue": 1,
   "background": {
    "key": "fireflies",
    "emoji": "✨",
@@ -1395,20 +1405,21 @@
     "effect": null
    }
   ],
-  "score": 2,
-  "qualityLabel": "Perfectly Average",
-  "qualityColor": "#facc15",
-  "qualityEmoji": "😐"
+  "score": 3,
+  "qualityLabel": "Above Average",
+  "qualityColor": "#a3e635",
+  "qualityEmoji": "🙂"
  },
  {
   "date": "2026-12-31",
-  "name": "Duke",
+  "name": "Jellybean",
   "breed": "Patterdale Terrier",
   "breedSlug": "terrier/patterdale",
   "rarity": "epic",
   "rarityLabel": "Epic",
   "rarityColor": "#a78bfa",
   "rarityGlow": "0 0 28px rgba(167,139,250,.85)",
+  "breedValue": 4,
   "background": {
    "key": "forest",
    "emoji": "🌲",
@@ -1517,20 +1528,21 @@
     }
    }
   ],
-  "score": 10,
+  "score": 14,
   "qualityLabel": "Good Dog",
   "qualityColor": "#4ade80",
   "qualityEmoji": "🦴"
  },
  {
   "date": "2026-12-31",
-  "name": "Waffles",
+  "name": "Olive",
   "breed": "Appenzeller Sennenhund",
   "breedSlug": "appenzeller",
   "rarity": "epic",
   "rarityLabel": "Epic",
   "rarityColor": "#a78bfa",
   "rarityGlow": "0 0 28px rgba(167,139,250,.85)",
+  "breedValue": 4,
   "background": {
    "key": "sidewalk",
    "emoji": "🚶",
@@ -1607,7 +1619,7 @@
    {
     "text": "Worms",
     "emoji": "🪱",
-    "value": -3,
+    "value": -4,
     "category": "health",
     "effect": {
      "type": "tint",
@@ -1633,20 +1645,21 @@
     }
    }
   ],
-  "score": -7,
+  "score": -4,
   "qualityLabel": "Below Average",
   "qualityColor": "#fbbf24",
   "qualityEmoji": "🙃"
  },
  {
   "date": "2026-09-22",
-  "name": "Sadie",
+  "name": "Duke",
   "breed": "Miniature Schnauzer",
   "breedSlug": "schnauzer/miniature",
   "rarity": "uncommon",
   "rarityLabel": "Uncommon",
   "rarityColor": "#34d399",
   "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "breedValue": 1,
   "background": {
    "key": "sidewalk",
    "emoji": "🚶",
@@ -1715,7 +1728,7 @@
    {
     "text": "Vet says he's fine. He is not fine.",
     "emoji": "🩺",
-    "value": -3,
+    "value": -4,
     "category": "health",
     "effect": {
      "type": "chromatic",
@@ -1728,7 +1741,7 @@
    {
     "text": "Somehow smells of cigarettes",
     "emoji": "🚬",
-    "value": -2,
+    "value": -3,
     "category": "condition",
     "effect": {
      "type": "fog",
@@ -1744,7 +1757,7 @@
    {
     "text": "Smells, and everyone knows",
     "emoji": "🤢",
-    "value": -2,
+    "value": -3,
     "category": "condition",
     "effect": {
      "type": "rise",
@@ -1762,7 +1775,7 @@
    {
     "text": "Allergic to other dogs",
     "emoji": "🤧",
-    "value": -3,
+    "value": -4,
     "category": "health",
     "effect": {
      "type": "tint",
@@ -1788,20 +1801,21 @@
     }
    }
   ],
-  "score": -7,
-  "qualityLabel": "Below Average",
-  "qualityColor": "#fbbf24",
-  "qualityEmoji": "🙃"
+  "score": -10,
+  "qualityLabel": "Rough",
+  "qualityColor": "#fb923c",
+  "qualityEmoji": "😬"
  },
  {
   "date": "2026-09-22",
-  "name": "Mochi",
+  "name": "Juniper",
   "breed": "German Shepherd",
   "breedSlug": "germanshepherd",
   "rarity": "common",
   "rarityLabel": "Common",
   "rarityColor": "#9ca3af",
   "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
+  "breedValue": 0,
   "background": {
    "key": "beach",
    "emoji": "🏖️",
@@ -1896,7 +1910,7 @@
    {
     "text": "Shits itself sometimes",
     "emoji": "💩",
-    "value": -3,
+    "value": -4,
     "category": "health",
     "effect": {
      "type": "fall",
@@ -1928,7 +1942,7 @@
    {
     "text": "Worms",
     "emoji": "🪱",
-    "value": -3,
+    "value": -4,
     "category": "health",
     "effect": {
      "type": "tint",
@@ -1941,20 +1955,21 @@
     }
    }
   ],
-  "score": 5,
+  "score": 3,
   "qualityLabel": "Above Average",
   "qualityColor": "#a3e635",
   "qualityEmoji": "🙂"
  },
  {
   "date": "2026-07-04",
-  "name": "Kiwi",
+  "name": "Crouton",
   "breed": "Weimaraner",
   "breedSlug": "weimaraner",
   "rarity": "uncommon",
   "rarityLabel": "Uncommon",
   "rarityColor": "#34d399",
   "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "breedValue": 1,
   "background": {
    "key": "graveyard",
    "emoji": "🪦",
@@ -2073,20 +2088,21 @@
     }
    }
   ],
-  "score": -12,
+  "score": -11,
   "qualityLabel": "Rough",
   "qualityColor": "#fb923c",
   "qualityEmoji": "😬"
  },
  {
   "date": "2026-07-04",
-  "name": "Kyle",
+  "name": "Roger",
   "breed": "Cocker Spaniel",
   "breedSlug": "spaniel/cocker",
   "rarity": "common",
   "rarityLabel": "Common",
   "rarityColor": "#9ca3af",
   "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
+  "breedValue": 0,
   "background": {
    "key": "dream",
    "emoji": "💭",
@@ -2116,7 +2132,7 @@
    {
     "text": "Kleptomania",
     "emoji": "💍",
-    "value": -3,
+    "value": -4,
     "category": "temperament",
     "effect": null
    },
@@ -2137,7 +2153,7 @@
    {
     "text": "Smells, and everyone knows",
     "emoji": "🤢",
-    "value": -2,
+    "value": -3,
     "category": "condition",
     "effect": {
      "type": "rise",
@@ -2155,7 +2171,7 @@
    {
     "text": "Owner is getting divorced",
     "emoji": "💔",
-    "value": -3,
+    "value": -4,
     "category": "circumstance",
     "effect": {
      "type": "drain",
@@ -2168,7 +2184,7 @@
    {
     "text": "Allergic to other dogs",
     "emoji": "🤧",
-    "value": -3,
+    "value": -4,
     "category": "health",
     "effect": {
      "type": "tint",
@@ -2224,7 +2240,7 @@
     }
    }
   ],
-  "score": -10,
+  "score": -14,
   "qualityLabel": "Rough",
   "qualityColor": "#fb923c",
   "qualityEmoji": "😬"

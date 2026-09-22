@@ -11,7 +11,7 @@
 // Never delete a trait. Mark it `obsolete: true` -- stored dogs still reference theirs.
 
 export const CIRCUMSTANCE = [
-  { text: "Owner is getting divorced", emoji: "💔", value: -3, category: "circumstance",
+  { text: "Owner is getting divorced", emoji: "💔", value: -4, category: "circumstance",
     effect: { type: "drain", layer: "subject", params: { amount: 0.5 } } },
   { text: "Rehomed twice", emoji: "📦", value: -2, category: "circumstance", effect: null },
   { text: "Was on the news once", emoji: "📺", value: 3, category: "circumstance",
@@ -33,7 +33,7 @@ export const CIRCUMSTANCE = [
   { text: "Has a nemesis", emoji: "😾", value: -2, category: "circumstance", effect: null },
   { text: "Has been to Paris", emoji: "🗼", value: 4, category: "circumstance",
     effect: { type: "rays", layer: "back", params: { color: "#fcd34d", beams: 8, opacity: 0.26, speed: 0.09 } } },
-  { text: "Is the reason for the no-dogs rule", emoji: "🚷", value: -3, category: "circumstance",
+  { text: "Is the reason for the no-dogs rule", emoji: "🚷", value: -4, category: "circumstance",
     effect: { type: "glitch", layer: "front", params: { color: "#fb923c", intensity: 0.4, scanlines: false } } },
   { text: "Appears in a stranger's wedding photos", emoji: "💒", value: 3, category: "circumstance",
     effect: { type: "burst", layer: "front", params: { color: "#fbcfe8", count: 26, spread: 140 } } },
@@ -58,7 +58,7 @@ export const CIRCUMSTANCE = [
     effect: { type: "halo", layer: "subject", params: { color: "#22d3ee", size: 14 } } },
   { text: "Local celebrity", emoji: "👑", value: 6, category: "circumstance",
     effect: { type: "spotlight", layer: "front", params: { color: "#fde047", radius: 135, speed: 0.45 } } },
-  { text: "Banned from one (1) country", emoji: "🚨", value: -3, category: "circumstance",
+  { text: "Banned from one (1) country", emoji: "🚨", value: -4, category: "circumstance",
     effect: { type: "lightning", layer: "front", params: { color: "#fca5a5", frequency: 0.008 } } },
   { text: "Survived something from space", emoji: "☄️", value: 7, category: "circumstance",
     effect: { type: "rise", layer: "front", params: { color: "#fb923c", count: 30, speed: 1.3, sway: 2, size: 4, glow: true } } },

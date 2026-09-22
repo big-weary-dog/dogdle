@@ -1,7 +1,7 @@
 // Deterministic daily roll: the same (player, UTC day) always produces the same dog, so
 // refreshing can't reroll, but two friends on the same day get independent pulls.
 
-import { BREEDS, RARITIES, RARITY_ORDER, breedsByRarity } from "./breeds.js";
+import { BREEDS, RARITIES, RARITY_ORDER, breedsByRarity, breedValue } from "./breeds.js";
 import { NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS } from "./content/index.js";
 
 function mulberry32(seed) {
@@ -82,7 +82,9 @@ export function rollDailyDog(playerId, dateStr = today()) {
   const modifierCount = MODIFIER_COUNT_MIN + Math.floor(rng() * span);
   const modifiers = sampleDistinct(rng, SPAWNABLE_MODIFIERS, modifierCount);
 
-  const score = background.value + modifiers.reduce((sum, m) => sum + m.value, 0);
+  const breedPoints = breedValue(breed);
+  const score =
+    breedPoints + background.value + modifiers.reduce((sum, m) => sum + m.value, 0);
   const quality = qualityFor(score);
   const rarity = RARITIES[breed.rarity];
 
@@ -95,6 +97,7 @@ export function rollDailyDog(playerId, dateStr = today()) {
     rarityLabel: rarity.label,
     rarityColor: rarity.color,
     rarityGlow: rarity.glow,
+    breedValue: breedPoints,
     background: {
       key: background.key,
       emoji: background.emoji,
