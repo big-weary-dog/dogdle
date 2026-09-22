@@ -5,13 +5,15 @@
 // you actually see at the park are common, enthusiast breeds are rare, and the genuinely
 // hard-to-find ones are legendary.
 //
-// Slugs are verified against the live API by GET /api/verify-breeds on a deployed Worker.
+// Slugs are verified against the live API weekly by .github/workflows/verify-breeds.yml.
+// A slug that does not resolve is invisible until somebody draws that breed, and then it
+// is permanent for their day, because the photo URL is stored inside the roll.
 
 export const BREEDS = [
   // ---------- common: the dogs you see every single day ----------
   { slug: "labrador", name: "Labrador Retriever", rarity: "common" },
   { slug: "retriever/golden", name: "Golden Retriever", rarity: "common" },
-  { slug: "germanshepherd", name: "German Shepherd", rarity: "common" },
+  { slug: "german/shepherd", name: "German Shepherd", rarity: "common" },
   { slug: "bulldog/french", name: "French Bulldog", rarity: "common" },
   { slug: "poodle/standard", name: "Standard Poodle", rarity: "common" },
   { slug: "beagle", name: "Beagle", rarity: "common" },
@@ -90,7 +92,7 @@ export const BREEDS = [
   { slug: "elkhound/norwegian", name: "Norwegian Elkhound", rarity: "rare" },
   { slug: "schipperke", name: "Schipperke", rarity: "rare" },
   { slug: "brabancon", name: "Brussels Griffon", rarity: "rare" },
-  { slug: "terrier/airedale", name: "Airedale Terrier", rarity: "rare" },
+  { slug: "airedale", name: "Airedale Terrier", rarity: "rare" },
   { slug: "terrier/bedlington", name: "Bedlington Terrier", rarity: "rare" },
   { slug: "terrier/kerryblue", name: "Kerry Blue Terrier", rarity: "rare" },
   { slug: "terrier/cairn", name: "Cairn Terrier", rarity: "rare" },
@@ -140,7 +142,7 @@ export const BREEDS = [
   { slug: "spitz/japanese", name: "Japanese Spitz", rarity: "epic" },
   { slug: "spitz/indian", name: "Indian Spitz", rarity: "epic" },
   { slug: "sheepdog/indian", name: "Indian Sheepdog", rarity: "epic" },
-  { slug: "africanis", name: "Africanis", rarity: "epic" },
+  { slug: "pariah/indian", name: "Indian Pariah Dog", rarity: "epic" },
 
   // ---------- legendary: genuinely hard to find in the wild ----------
   { slug: "otterhound", name: "Otterhound", rarity: "legendary" },

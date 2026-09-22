@@ -32,6 +32,13 @@ function makeKV() {
     async put(key, value, opts = {}) {
       store.set(key, { value, metadata: opts.metadata ?? null, ttl: opts.expirationTtl ?? 0 });
     },
+    async getWithMetadata(key) {
+      const entry = store.get(key);
+      return { value: entry ? entry.value : null, metadata: entry ? entry.metadata : null };
+    },
+    async delete(key) {
+      store.delete(key);
+    },
     async list({ prefix, limit = 1000 }) {
       const keys = [...store.keys()]
         .filter((k) => k.startsWith(prefix))
@@ -195,6 +202,46 @@ test("a test roll stays off the boards and expires on its own", async () => {
     if (!key.includes(botPlayerId(USER))) continue;
     assert.ok(entry.ttl > 0 && entry.ttl <= 60 * 60 * 48, `${key} has no short TTL`);
   }
+});
+
+test("a roll whose photo never resolved repairs itself, and drops its stale card", async () => {
+  const e = env();
+  await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER } });
+
+  // Stand in for the real failure: Dog CEO was unreachable (or the slug was wrong) when
+  // this dog was dealt, so the roll was stored with no photo and its card drawn without one.
+  const key = `roll:${botPlayerId(USER)}:${today()}`;
+  const stored = JSON.parse(e.STORE.store.get(key).value);
+  stored.photo = null;
+  e.STORE.store.get(key).value = JSON.stringify(stored);
+  const staleCard = e.STORE.store.get(`card:${botPlayerId(USER)}:${today()}`).value;
+  assert.ok(staleCard, "no card to invalidate");
+
+  const photoUrl = "https://images.dog.ceo/breeds/pug/repaired.jpg";
+  const offline = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ status: "success", message: photoUrl }), {
+      headers: { "content-type": "application/json" },
+    });
+  try {
+    const again = await (await call(e, "/api/bot/roll", {
+      method: "POST",
+      body: { discordId: USER },
+    })).json();
+    assert.equal(again.replayed, true, "repairing must not re-deal the dog");
+    assert.equal(again.name, stored.name);
+  } finally {
+    globalThis.fetch = offline;
+  }
+
+  const after = JSON.parse(e.STORE.store.get(key).value);
+  assert.equal(after.photo, photoUrl, "photo was not written back");
+  assert.equal(after.name, stored.name, "the dog itself must be untouched");
+  assert.notEqual(
+    e.STORE.store.get(`card:${botPlayerId(USER)}:${today()}`).value,
+    staleCard,
+    "the card drawn without a photo should have been re-rendered"
+  );
 });
 
 test("junk ids are rejected before anything is written", async () => {

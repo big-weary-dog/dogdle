@@ -14,7 +14,7 @@
 
 import { rollDailyDog, today } from "./roll.js";
 import { renderCardGif } from "./card.js";
-import { fetchBreedPhoto, fetchPhotoBytes } from "./photo.js";
+import { fetchBreedPhoto, fetchPhotoBytes, backfillPhoto } from "./photo.js";
 import { cardKey, rollKey, dayKey, guildKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
 
 const SNOWFLAKE_RE = /^\d{5,24}$/;
@@ -122,6 +122,11 @@ export async function handleBot(request, url, env) {
     // content tables never re-deals a dog somebody has already been shown.
     const saved = await env.STORE.get(rollKey(player, date), "json");
     const dog = saved ?? rollDailyDog(player, date);
+    // Same repair as the web route: a photo that never resolved is filled in on read.
+    // The card was rendered without it and cached for a month, so that has to go too.
+    if (saved && (await backfillPhoto(env, rollKey(player, date), dog))) {
+      await env.STORE.delete(cardKey(player, date));
+    }
     if (!saved) {
       dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
       dog.player = name;

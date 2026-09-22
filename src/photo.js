@@ -35,6 +35,27 @@ export async function fetchBreedPhoto(slug, dateStr) {
   }
 }
 
+// A roll is immutable so that editing the content tables can't re-deal a dog somebody has
+// already been shown. The photo URL is the one part of a stored roll that isn't a dealt
+// outcome -- it's decoration, resolved by a network call that can simply fail, and when it
+// does the player stares at a photo-less dog for the rest of their day.
+//
+// So: fill it in on read, and keep it. The dog itself is untouched.
+// Returns whether it actually repaired anything, because a caller that has already
+// rendered something from the photo-less dog needs to throw that away.
+export async function backfillPhoto(env, key, dog) {
+  if (dog.photo || dog.test) return false;
+
+  const photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
+  if (!photo) return false; // still unreachable; try again next load
+
+  dog.photo = photo;
+  // A put replaces metadata, and the leaderboard reads entirely from metadata.
+  const { metadata } = await env.STORE.getWithMetadata(key);
+  await env.STORE.put(key, JSON.stringify(dog), metadata ? { metadata } : {});
+  return true;
+}
+
 // The bytes themselves, for the headless renderer. Host-locked like /img is: this only
 // ever fetches what fetchBreedPhoto handed back.
 export async function fetchPhotoBytes(photoUrl) {

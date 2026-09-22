@@ -2,7 +2,7 @@ import { rollDailyDog, today } from "./roll.js";
 import { renderCardGif } from "./card.js";
 import { BREEDS } from "./breeds.js";
 import { handleBot } from "./bot.js";
-import { fetchBreedPhoto, fetchPhotoBytes, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
+import { fetchBreedPhoto, fetchPhotoBytes, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
 import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, cleanName, boardRow, visibleRows } from "./keys.js";
 
 const MAX_CARD_BYTES = 8_000_000; // animated cards are far heavier than a still
@@ -43,6 +43,9 @@ export default {
       // the content tables would silently re-deal every dog already shown that day.
       const saved = await env.STORE.get(rollKey(player, date), "json");
       if (saved) {
+        // A roll whose photo never resolved repairs itself here rather than staying
+        // pictureless until midnight.
+        await backfillPhoto(env, rollKey(player, date), saved);
         return Response.json({ ...saved, replayed: true }, { headers: { "cache-control": "no-store" } });
       }
 
