@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { BACKGROUNDS, MODIFIERS } from "../src/content.js";
+import { BACKGROUNDS, MODIFIERS } from "../src/content/index.js";
 import { EFFECT_TYPES, DOM_EFFECTS, SUBJECT_STYLES, subjectStyle } from "../public/effects.js";
 
 const LAYERS = new Set(["back", "front", "subject"]);

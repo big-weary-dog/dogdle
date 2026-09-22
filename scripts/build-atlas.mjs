@@ -13,7 +13,7 @@
 
 import { chromium } from "playwright";
 import { writeFileSync, mkdirSync } from "fs";
-import { BACKGROUNDS, MODIFIERS } from "../src/content.js";
+import { BACKGROUNDS, MODIFIERS } from "../src/content/index.js";
 
 const TEXT_SIZES = [
   { key: "sm", px: 11, weight: 400 },

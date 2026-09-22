@@ -5,7 +5,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { rollDailyDog, today, DAY_ZONE } from "../src/roll.js";
-import { MODIFIERS, QUALITY_TIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX } from "../src/content.js";
+import { MODIFIERS, QUALITY_TIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX } from "../src/content/index.js";
 
 const sample = (n, date = "2026-09-19") =>
   Array.from({ length: n }, (_, i) => rollDailyDog(`test-player-${i}`, date));

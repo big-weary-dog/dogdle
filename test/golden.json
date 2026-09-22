@@ -9,240 +9,6 @@
   "rarityColor": "#34d399",
   "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
   "background": {
-   "key": "wendys",
-   "emoji": "🍔",
-   "name": "A Wendy's Parking Lot",
-   "rarity": "uncommon",
-   "rarityLabel": "Uncommon",
-   "value": -1,
-   "sky": [
-    "#7f1d1d",
-    "#f87171"
-   ],
-   "ground": "#3f3f46",
-   "props": [
-    {
-     "shape": "rect",
-     "x": 0.5,
-     "y": 0.22,
-     "w": 0.7,
-     "h": 0.32,
-     "color": "#991b1b"
-    },
-    {
-     "shape": "rect",
-     "x": 0.5,
-     "y": 0.3,
-     "w": 0.42,
-     "h": 0.1,
-     "color": "#fecaca"
-    },
-    {
-     "shape": "rect",
-     "x": 0.5,
-     "y": 0.78,
-     "w": 0.36,
-     "h": 0.015,
-     "color": "#fbbf24"
-    }
-   ],
-   "effect": {
-    "type": "fall",
-    "layer": "front",
-    "params": {
-     "color": "#fca5a5",
-     "shape": "square",
-     "count": 18,
-     "speed": 0.7,
-     "sway": 1.4,
-     "size": 4
-    }
-   }
-  },
-  "modifiers": [
-   {
-    "text": "Does math for treats",
-    "emoji": "🧮",
-    "value": 4,
-    "category": "temperament",
-    "effect": {
-     "type": "halo",
-     "layer": "subject",
-     "params": {
-      "color": "#38bdf8",
-      "size": 12
-     }
-    }
-   },
-   {
-    "text": "Banned from one (1) country",
-    "emoji": "🚨",
-    "value": -3,
-    "category": "circumstance",
-    "effect": {
-     "type": "lightning",
-     "layer": "front",
-     "params": {
-      "color": "#fca5a5",
-      "frequency": 0.008
-     }
-    }
-   },
-   {
-    "text": "First time homeowner",
-    "emoji": "🏡",
-    "value": 3,
-    "category": "circumstance",
-    "effect": {
-     "type": "vignette",
-     "layer": "front",
-     "params": {
-      "color": "#78350f",
-      "opacity": 0.35
-     }
-    }
-   },
-   {
-    "text": "Appears in a stranger's wedding photos",
-    "emoji": "💒",
-    "value": 3,
-    "category": "circumstance",
-    "effect": {
-     "type": "burst",
-     "layer": "front",
-     "params": {
-      "color": "#fbcfe8",
-      "count": 26,
-      "spread": 140
-     }
-    }
-   }
-  ],
-  "score": 6,
-  "qualityLabel": "Above Average",
-  "qualityColor": "#a3e635",
-  "qualityEmoji": "🙂"
- },
- {
-  "date": "2026-01-01",
-  "name": "Ramona",
-  "breed": "Yorkshire Terrier",
-  "breedSlug": "terrier/yorkshire",
-  "rarity": "common",
-  "rarityLabel": "Common",
-  "rarityColor": "#9ca3af",
-  "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
-  "background": {
-   "key": "icehotel",
-   "emoji": "🧊",
-   "name": "An Ice Hotel",
-   "rarity": "epic",
-   "rarityLabel": "Epic",
-   "value": 6,
-   "sky": [
-    "#93c5fd",
-    "#e0f2fe"
-   ],
-   "ground": "#f8fafc",
-   "props": [
-    {
-     "shape": "rect",
-     "x": 0.14,
-     "y": 0.26,
-     "w": 0.2,
-     "h": 0.46,
-     "color": "#bfdbfe",
-     "alpha": 0.7
-    },
-    {
-     "shape": "rect",
-     "x": 0.86,
-     "y": 0.32,
-     "w": 0.22,
-     "h": 0.4,
-     "color": "#dbeafe",
-     "alpha": 0.7
-    },
-    {
-     "shape": "tri",
-     "x": 0.5,
-     "y": 0.2,
-     "w": 0.4,
-     "h": 0.2,
-     "color": "#e0f2fe",
-     "alpha": 0.5
-    }
-   ],
-   "effect": {
-    "type": "fall",
-    "layer": "front",
-    "params": {
-     "color": "#ffffff",
-     "shape": "dot",
-     "count": 80,
-     "speed": 0.5,
-     "sway": 1.4,
-     "size": 3
-    }
-   }
-  },
-  "modifiers": [
-   {
-    "text": "Insured, thankfully",
-    "emoji": "📋",
-    "value": 3,
-    "category": "health",
-    "effect": null
-   },
-   {
-    "text": "Experimental test subject",
-    "emoji": "🧪",
-    "value": -5,
-    "category": "health",
-    "effect": {
-     "type": "chromatic",
-     "layer": "subject",
-     "params": {
-      "offset": 3
-     }
-    }
-   },
-   {
-    "text": "Wearing a small hat",
-    "emoji": "🎩",
-    "value": 3,
-    "category": "condition",
-    "effect": null
-   },
-   {
-    "text": "Dreams violently",
-    "emoji": "💤",
-    "value": -1,
-    "category": "habit",
-    "effect": {
-     "type": "wobble",
-     "layer": "subject",
-     "params": {
-      "period": 420
-     }
-    }
-   }
-  ],
-  "score": 6,
-  "qualityLabel": "Above Average",
-  "qualityColor": "#a3e635",
-  "qualityEmoji": "🙂"
- },
- {
-  "date": "2026-03-08",
-  "name": "Daisy",
-  "breed": "Shih Tzu",
-  "breedSlug": "shihtzu",
-  "rarity": "common",
-  "rarityLabel": "Common",
-  "rarityColor": "#9ca3af",
-  "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
-  "background": {
    "key": "vet",
    "emoji": "🏥",
    "name": "The Vet's Waiting Room",
@@ -291,6 +57,284 @@
   },
   "modifiers": [
    {
+    "text": "Technically deceased",
+    "emoji": "⚰️",
+    "value": -6,
+    "category": "condition",
+    "effect": {
+     "type": "ghost",
+     "layer": "subject",
+     "params": {
+      "opacity": 0.45,
+      "blur": 1.2
+     }
+    }
+   },
+   {
+    "text": "Wearing a small hat",
+    "emoji": "🎩",
+    "value": 3,
+    "category": "condition",
+    "effect": null
+   },
+   {
+    "text": "Practicing therapist",
+    "emoji": "🛋️",
+    "value": 5,
+    "category": "temperament",
+    "effect": {
+     "type": "pulse",
+     "layer": "back",
+     "params": {
+      "color": "#4ade80",
+      "period": 2800,
+      "radius": 190
+     }
+    }
+   },
+   {
+    "text": "No reflection",
+    "emoji": "🪞",
+    "value": -5,
+    "category": "condition",
+    "effect": {
+     "type": "ghost",
+     "layer": "subject",
+     "params": {
+      "opacity": 0.4,
+      "blur": 0.5
+     }
+    }
+   }
+  ],
+  "score": -6,
+  "qualityLabel": "Below Average",
+  "qualityColor": "#fbbf24",
+  "qualityEmoji": "🙃"
+ },
+ {
+  "date": "2026-01-01",
+  "name": "Ramona",
+  "breed": "Yorkshire Terrier",
+  "breedSlug": "terrier/yorkshire",
+  "rarity": "common",
+  "rarityLabel": "Common",
+  "rarityColor": "#9ca3af",
+  "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
+  "background": {
+   "key": "moon",
+   "emoji": "🌙",
+   "name": "The Moon",
+   "rarity": "epic",
+   "rarityLabel": "Epic",
+   "value": 6,
+   "sky": [
+    "#0f172a",
+    "#1e293b"
+   ],
+   "ground": "#d4d4d8",
+   "props": [
+    {
+     "shape": "ellipse",
+     "x": 0.5,
+     "y": 0.9,
+     "w": 2.2,
+     "h": 0.5,
+     "color": "#a1a1aa"
+    },
+    {
+     "shape": "ellipse",
+     "x": 0.2,
+     "y": 0.24,
+     "w": 0.3,
+     "h": 0.3,
+     "color": "#1e40af",
+     "alpha": 0.8
+    },
+    {
+     "shape": "ellipse",
+     "x": 0.2,
+     "y": 0.24,
+     "w": 0.22,
+     "h": 0.22,
+     "color": "#3b82f6",
+     "alpha": 0.7
+    }
+   ],
+   "effect": {
+    "type": "stars",
+    "layer": "back",
+    "params": {
+     "color": "#ffffff",
+     "count": 90,
+     "twinkle": 0.5
+    }
+   }
+  },
+  "modifiers": [
+   {
+    "text": "Ate a bee. Again.",
+    "emoji": "🐝",
+    "value": -2,
+    "category": "health",
+    "effect": {
+     "type": "squish",
+     "layer": "subject",
+     "params": {
+      "period": 800
+     }
+    }
+   },
+   {
+    "text": "Perfect bloodwork",
+    "emoji": "🩸",
+    "value": 4,
+    "category": "health",
+    "effect": {
+     "type": "halo",
+     "layer": "subject",
+     "params": {
+      "color": "#4ade80",
+      "size": 12
+     }
+    }
+   },
+   {
+    "text": "Expensive tastes",
+    "emoji": "💸",
+    "value": -2,
+    "category": "habit",
+    "effect": {
+     "type": "burst",
+     "layer": "front",
+     "params": {
+      "color": "#4ade80",
+      "count": 22,
+      "spread": 130
+     }
+    }
+   },
+   {
+    "text": "Knows when you're sad",
+    "emoji": "🫂",
+    "value": 5,
+    "category": "temperament",
+    "effect": {
+     "type": "pulse",
+     "layer": "back",
+     "params": {
+      "color": "#f472b6",
+      "period": 2400,
+      "radius": 180
+     }
+    }
+   }
+  ],
+  "score": 11,
+  "qualityLabel": "Good Dog",
+  "qualityColor": "#4ade80",
+  "qualityEmoji": "🦴"
+ },
+ {
+  "date": "2026-03-08",
+  "name": "Daisy",
+  "breed": "Shih Tzu",
+  "breedSlug": "shihtzu",
+  "rarity": "common",
+  "rarityLabel": "Common",
+  "rarityColor": "#9ca3af",
+  "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
+  "background": {
+   "key": "autumn",
+   "emoji": "🍂",
+   "name": "A Park in Autumn",
+   "rarity": "uncommon",
+   "rarityLabel": "Uncommon",
+   "value": 3,
+   "sky": [
+    "#ea580c",
+    "#fed7aa"
+   ],
+   "ground": "#7c2d12",
+   "props": [
+    {
+     "shape": "rect",
+     "x": 0.14,
+     "y": 0.2,
+     "w": 0.05,
+     "h": 0.52,
+     "color": "#78350f"
+    },
+    {
+     "shape": "ellipse",
+     "x": 0.14,
+     "y": 0.22,
+     "w": 0.34,
+     "h": 0.3,
+     "color": "#c2410c"
+    },
+    {
+     "shape": "rect",
+     "x": 0.86,
+     "y": 0.3,
+     "w": 0.04,
+     "h": 0.42,
+     "color": "#78350f"
+    },
+    {
+     "shape": "ellipse",
+     "x": 0.86,
+     "y": 0.3,
+     "w": 0.26,
+     "h": 0.24,
+     "color": "#ea580c"
+    }
+   ],
+   "effect": {
+    "type": "fall",
+    "layer": "front",
+    "params": {
+     "color": "#f97316",
+     "shape": "leaf",
+     "count": 50,
+     "speed": 0.65,
+     "sway": 3.2,
+     "size": 9
+    }
+   }
+  },
+  "modifiers": [
+   {
+    "text": "Existential crisis",
+    "emoji": "🕳️",
+    "value": -2,
+    "category": "temperament",
+    "effect": {
+     "type": "ghost",
+     "layer": "subject",
+     "params": {
+      "opacity": 0.6,
+      "blur": 0.8
+     }
+    }
+   },
+   {
+    "text": "Smells like a hospital",
+    "emoji": "🏥",
+    "value": -2,
+    "category": "condition",
+    "effect": {
+     "type": "fog",
+     "layer": "front",
+     "params": {
+      "color": "#e0f2fe",
+      "bands": 3,
+      "opacity": 0.24,
+      "speed": 0.35
+     }
+    }
+   },
+   {
     "text": "Sleeps in an upsetting position",
     "emoji": "🛌",
     "value": 0,
@@ -304,57 +348,23 @@
     }
    },
    {
-    "text": "Fetch world champion",
-    "emoji": "🥇",
-    "value": 8,
-    "category": "temperament",
-    "effect": {
-     "type": "burst",
-     "layer": "front",
-     "params": {
-      "color": "#fbbf24",
-      "count": 46,
-      "spread": 210,
-      "confetti": true
-     }
-    }
-   },
-   {
-    "text": "Big strong barks",
-    "emoji": "📣",
-    "value": 4,
-    "category": "temperament",
-    "effect": {
-     "type": "ripple",
-     "layer": "back",
-     "params": {
-      "color": "#93c5fd",
-      "rings": 4,
-      "speed": 1.2,
-      "maxRadius": 200
-     }
-    }
-   },
-   {
-    "text": "Steals from shops",
-    "emoji": "🛒",
+    "text": "Vet says he's fine. He is not fine.",
+    "emoji": "🩺",
     "value": -3,
-    "category": "habit",
+    "category": "health",
     "effect": {
-     "type": "glitch",
-     "layer": "front",
+     "type": "chromatic",
+     "layer": "subject",
      "params": {
-      "color": "#fbbf24",
-      "intensity": 0.3,
-      "scanlines": false
+      "offset": 2
      }
     }
    }
   ],
-  "score": 6,
-  "qualityLabel": "Above Average",
-  "qualityColor": "#a3e635",
-  "qualityEmoji": "🙂"
+  "score": -4,
+  "qualityLabel": "Below Average",
+  "qualityColor": "#fbbf24",
+  "qualityEmoji": "🙃"
  },
  {
   "date": "2026-03-08",
@@ -366,137 +376,159 @@
   "rarityColor": "#38bdf8",
   "rarityGlow": "0 0 22px rgba(56,189,248,.75)",
   "background": {
-   "key": "kitchen",
-   "emoji": "🍽️",
-   "name": "The Kitchen Floor",
+   "key": "couch",
+   "emoji": "🛋️",
+   "name": "The Couch",
    "rarity": "common",
    "rarityLabel": "Common",
-   "value": 0,
+   "value": 1,
    "sky": [
-    "#d6d3d1",
-    "#a8a29e"
+    "#7c2d12",
+    "#b45309"
    ],
-   "ground": "#e7e5e4",
+   "ground": "#57534e",
    "props": [
     {
      "shape": "rect",
      "x": 0.5,
-     "y": 0.2,
-     "w": 1.2,
-     "h": 0.24,
-     "color": "#a8a29e"
+     "y": 0.42,
+     "w": 1.1,
+     "h": 0.3,
+     "color": "#7f1d1d"
     },
     {
-     "shape": "rect",
-     "x": 0.2,
-     "y": 0.44,
-     "w": 0.22,
-     "h": 0.26,
-     "color": "#78716c"
-    },
-    {
-     "shape": "rect",
-     "x": 0.78,
-     "y": 0.44,
+     "shape": "ellipse",
+     "x": 0.16,
+     "y": 0.5,
      "w": 0.3,
-     "h": 0.26,
-     "color": "#78716c"
+     "h": 0.34,
+     "color": "#991b1b"
+    },
+    {
+     "shape": "ellipse",
+     "x": 0.84,
+     "y": 0.5,
+     "w": 0.3,
+     "h": 0.34,
+     "color": "#991b1b"
     }
    ],
    "effect": {
     "type": "fall",
     "layer": "front",
     "params": {
-     "color": "#b45309",
-     "shape": "square",
-     "count": 24,
-     "speed": 0.6,
-     "sway": 0.5,
-     "size": 4
+     "color": "#fde68a",
+     "shape": "dot",
+     "count": 26,
+     "speed": 0.12,
+     "sway": 3,
+     "size": 3
     }
    }
   },
   "modifiers": [
    {
-    "text": "Has a better bed than you",
-    "emoji": "🛏️",
-    "value": 2,
-    "category": "circumstance",
-    "effect": null
-   },
-   {
-    "text": "Appears in a stranger's wedding photos",
-    "emoji": "💒",
-    "value": 3,
-    "category": "circumstance",
+    "text": "Deaf, but coping",
+    "emoji": "👂",
+    "value": -1,
+    "category": "health",
     "effect": {
-     "type": "burst",
-     "layer": "front",
+     "type": "blur",
+     "layer": "subject",
      "params": {
-      "color": "#fbcfe8",
-      "count": 26,
-      "spread": 140
+      "amount": 1
      }
     }
    },
    {
-    "text": "Unemployed",
-    "emoji": "🛌",
-    "value": -2,
-    "category": "circumstance",
-    "effect": null
+    "text": "No reflection",
+    "emoji": "🪞",
+    "value": -5,
+    "category": "condition",
+    "effect": {
+     "type": "ghost",
+     "layer": "subject",
+     "params": {
+      "opacity": 0.4,
+      "blur": 0.5
+     }
+    }
    },
    {
-    "text": "Statistically the luckiest dog alive",
-    "emoji": "🍀",
+    "text": "Screams instead of barking",
+    "emoji": "😱",
+    "value": 0,
+    "category": "habit",
+    "effect": {
+     "type": "ripple",
+     "layer": "back",
+     "params": {
+      "color": "#fca5a5",
+      "rings": 4,
+      "speed": 1.4,
+      "maxRadius": 170
+     }
+    }
+   },
+   {
+    "text": "Groomed this morning",
+    "emoji": "💈",
+    "value": 3,
+    "category": "condition",
+    "effect": {
+     "type": "halo",
+     "layer": "subject",
+     "params": {
+      "color": "#ffffff",
+      "size": 10,
+      "brightness": 1.15
+     }
+    }
+   },
+   {
+    "text": "Experimental test subject",
+    "emoji": "🧪",
+    "value": -5,
+    "category": "health",
+    "effect": {
+     "type": "chromatic",
+     "layer": "subject",
+     "params": {
+      "offset": 3
+     }
+    }
+   },
+   {
+    "text": "Afraid of the floor",
+    "emoji": "🧊",
+    "value": -2,
+    "category": "temperament",
+    "effect": {
+     "type": "bounce",
+     "layer": "subject",
+     "params": {
+      "period": 1200
+     }
+    }
+   },
+   {
+    "text": "Appears in two places at once",
+    "emoji": "🌀",
     "value": 5,
     "category": "condition",
     "effect": {
-     "type": "burst",
-     "layer": "front",
+     "type": "chromatic",
+     "layer": "subject",
      "params": {
-      "color": "#4ade80",
-      "count": 44,
-      "spread": 200,
-      "confetti": true
+      "offset": 6
      }
     }
-   },
-   {
-    "text": "Cone of shame",
-    "emoji": "🔺",
-    "value": -2,
-    "category": "condition",
-    "effect": {
-     "type": "fog",
-     "layer": "front",
-     "params": {
-      "color": "#94a3b8",
-      "bands": 2,
-      "opacity": 0.3,
-      "speed": 0.5
-     }
-    }
-   },
-   {
-    "text": "Hip dysplasia",
-    "emoji": "🦴",
-    "value": -3,
-    "category": "health",
-    "effect": null
-   },
-   {
-    "text": "Eternal hunger",
-    "emoji": "🍖",
-    "value": -5,
-    "category": "health",
-    "effect": null
    }
   ],
-  "score": -2,
-  "qualityLabel": "Perfectly Average",
-  "qualityColor": "#facc15",
-  "qualityEmoji": "😐"
+  "score": -4,
+  "qualityLabel": "Below Average",
+  "qualityColor": "#fbbf24",
+  "qualityEmoji": "🙃"
  },
  {
   "date": "2026-06-15",
@@ -508,109 +540,142 @@
   "rarityColor": "#a78bfa",
   "rarityGlow": "0 0 28px rgba(167,139,250,.85)",
   "background": {
-   "key": "aurora",
-   "emoji": "🌌",
-   "name": "Under the Northern Lights",
+   "key": "fallout",
+   "emoji": "☢️",
+   "name": "An Exclusion Zone",
    "rarity": "epic",
    "rarityLabel": "Epic",
-   "value": 8,
+   "value": -7,
    "sky": [
-    "#0f172a",
-    "#134e4a"
+    "#365314",
+    "#a3a3a3"
    ],
-   "ground": "#e2e8f0",
-   "props": [],
+   "ground": "#3f3f46",
+   "props": [
+    {
+     "shape": "rect",
+     "x": 0.16,
+     "y": 0.2,
+     "w": 0.16,
+     "h": 0.5,
+     "color": "#3f3f46"
+    },
+    {
+     "shape": "rect",
+     "x": 0.84,
+     "y": 0.28,
+     "w": 0.2,
+     "h": 0.42,
+     "color": "#27272a"
+    },
+    {
+     "shape": "rect",
+     "x": 0.5,
+     "y": 0.36,
+     "w": 0.1,
+     "h": 0.34,
+     "color": "#52525b"
+    }
+   ],
    "effect": {
-    "type": "aurora",
-    "layer": "back",
+    "type": "glitch",
+    "layer": "front",
     "params": {
-     "colors": [
-      "#34d399",
-      "#22d3ee",
-      "#a78bfa"
-     ],
-     "bands": 3,
-     "speed": 0.22
+     "color": "#a3e635",
+     "intensity": 0.45,
+     "scanlines": true
     }
    }
   },
   "modifiers": [
    {
-    "text": "Fetch regional champion",
-    "emoji": "🥈",
-    "value": 5,
-    "category": "temperament",
+    "text": "Smells, and everyone knows",
+    "emoji": "🤢",
+    "value": -2,
+    "category": "condition",
     "effect": {
-     "type": "burst",
+     "type": "rise",
      "layer": "front",
      "params": {
-      "color": "#cbd5e1",
-      "count": 28,
-      "spread": 150
+      "color": "#84cc16",
+      "count": 20,
+      "speed": 0.4,
+      "sway": 2.6,
+      "size": 4,
+      "glow": true
      }
     }
    },
    {
-    "text": "Believes he is a person",
-    "emoji": "🧍",
-    "value": 1,
-    "category": "temperament",
+    "text": "Hip dysplasia",
+    "emoji": "🦴",
+    "value": -3,
+    "category": "health",
     "effect": null
    },
    {
-    "text": "Always drunk",
-    "emoji": "🍺",
-    "value": -2,
-    "category": "habit",
+    "text": "Rick and Morty superfan",
+    "emoji": "🛸",
+    "value": -3,
+    "category": "circumstance",
     "effect": {
-     "type": "wobble",
-     "layer": "subject",
-     "params": {
-      "period": 1400
-     }
-    }
-   },
-   {
-    "text": "Does math for treats",
-    "emoji": "🧮",
-    "value": 4,
-    "category": "temperament",
-    "effect": {
-     "type": "halo",
-     "layer": "subject",
-     "params": {
-      "color": "#38bdf8",
-      "size": 12
-     }
-    }
-   },
-   {
-    "text": "Certified therapy dog",
-    "emoji": "🪪",
-    "value": 5,
-    "category": "temperament",
-    "effect": {
-     "type": "pulse",
-     "layer": "back",
+     "type": "glitch",
+     "layer": "front",
      "params": {
       "color": "#4ade80",
-      "period": 2600,
-      "radius": 190
+      "intensity": 0.5,
+      "scanlines": true
      }
     }
    },
    {
-    "text": "Fine with cats",
-    "emoji": "🐈",
-    "value": 2,
+    "text": "Technically deceased",
+    "emoji": "⚰️",
+    "value": -6,
+    "category": "condition",
+    "effect": {
+     "type": "ghost",
+     "layer": "subject",
+     "params": {
+      "opacity": 0.45,
+      "blur": 1.2
+     }
+    }
+   },
+   {
+    "text": "Ate something at the park. Unclear what.",
+    "emoji": "❓",
+    "value": -2,
+    "category": "health",
+    "effect": {
+     "type": "tint",
+     "layer": "subject",
+     "params": {
+      "sepia": 0.5,
+      "hue": 90,
+      "saturate": 0.9
+     }
+    }
+   },
+   {
+    "text": "Barks at nothing for forty minutes",
+    "emoji": "📢",
+    "value": -2,
     "category": "temperament",
-    "effect": null
+    "effect": {
+     "type": "shake",
+     "layer": "front",
+     "params": {
+      "intensity": 3,
+      "period": 900
+     }
+    }
    }
   ],
-  "score": 23,
-  "qualityLabel": "Exceptional Animal",
-  "qualityColor": "#22d3ee",
-  "qualityEmoji": "🌟"
+  "score": -25,
+  "qualityLabel": "Should Not Have Happened",
+  "qualityColor": "#dc2626",
+  "qualityEmoji": "💀"
  },
  {
   "date": "2026-06-15",
@@ -622,42 +687,43 @@
   "rarityColor": "#34d399",
   "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
   "background": {
-   "key": "void",
-   "emoji": "🕳️",
-   "name": "Nowhere",
+   "key": "dream",
+   "emoji": "💭",
+   "name": "Someone Else's Dream",
    "rarity": "legendary",
    "rarityLabel": "Legendary",
-   "value": -8,
+   "value": 6,
    "sky": [
-    "#000000",
-    "#1c1917"
+    "#7e22ce",
+    "#f0abfc"
    ],
-   "ground": "#000000",
+   "ground": "#c026d3",
    "props": [],
    "effect": {
-    "type": "glitch",
-    "layer": "front",
+    "type": "ripple",
+    "layer": "back",
     "params": {
-     "color": "#dc2626",
-     "intensity": 0.9,
-     "scanlines": true,
-     "tear": true
+     "color": "#f5d0fe",
+     "rings": 5,
+     "speed": 0.9,
+     "maxRadius": 220,
+     "warp": true
     }
    }
   },
   "modifiers": [
    {
-    "text": "Is the reason for the no-dogs rule",
-    "emoji": "🚷",
-    "value": -3,
+    "text": "Named in a lawsuit",
+    "emoji": "⚖️",
+    "value": -5,
     "category": "circumstance",
     "effect": {
      "type": "glitch",
      "layer": "front",
      "params": {
-      "color": "#fb923c",
-      "intensity": 0.4,
-      "scanlines": false
+      "color": "#f87171",
+      "intensity": 0.35,
+      "scanlines": true
      }
     }
    },
@@ -693,23 +759,25 @@
     }
    },
    {
-    "text": "Always drunk",
-    "emoji": "🍺",
-    "value": -2,
-    "category": "habit",
+    "text": "Rick and Morty superfan",
+    "emoji": "🛸",
+    "value": -3,
+    "category": "circumstance",
     "effect": {
-     "type": "wobble",
-     "layer": "subject",
+     "type": "glitch",
+     "layer": "front",
      "params": {
-      "period": 1400
+      "color": "#4ade80",
+      "intensity": 0.5,
+      "scanlines": true
      }
     }
    }
   ],
-  "score": -18,
-  "qualityLabel": "Genuinely Concerning",
-  "qualityColor": "#f87171",
-  "qualityEmoji": "🚨"
+  "score": -7,
+  "qualityLabel": "Below Average",
+  "qualityColor": "#fbbf24",
+  "qualityEmoji": "🙃"
  },
  {
   "date": "2026-09-22",
@@ -721,69 +789,121 @@
   "rarityColor": "#38bdf8",
   "rarityGlow": "0 0 22px rgba(56,189,248,.75)",
   "background": {
-   "key": "kitchen",
-   "emoji": "🍽️",
-   "name": "The Kitchen Floor",
+   "key": "couch",
+   "emoji": "🛋️",
+   "name": "The Couch",
    "rarity": "common",
    "rarityLabel": "Common",
-   "value": 0,
+   "value": 1,
    "sky": [
-    "#d6d3d1",
-    "#a8a29e"
+    "#7c2d12",
+    "#b45309"
    ],
-   "ground": "#e7e5e4",
+   "ground": "#57534e",
    "props": [
     {
      "shape": "rect",
      "x": 0.5,
-     "y": 0.2,
-     "w": 1.2,
-     "h": 0.24,
-     "color": "#a8a29e"
+     "y": 0.42,
+     "w": 1.1,
+     "h": 0.3,
+     "color": "#7f1d1d"
     },
     {
-     "shape": "rect",
-     "x": 0.2,
-     "y": 0.44,
-     "w": 0.22,
-     "h": 0.26,
-     "color": "#78716c"
-    },
-    {
-     "shape": "rect",
-     "x": 0.78,
-     "y": 0.44,
+     "shape": "ellipse",
+     "x": 0.16,
+     "y": 0.5,
      "w": 0.3,
-     "h": 0.26,
-     "color": "#78716c"
+     "h": 0.34,
+     "color": "#991b1b"
+    },
+    {
+     "shape": "ellipse",
+     "x": 0.84,
+     "y": 0.5,
+     "w": 0.3,
+     "h": 0.34,
+     "color": "#991b1b"
     }
    ],
    "effect": {
     "type": "fall",
     "layer": "front",
     "params": {
-     "color": "#b45309",
-     "shape": "square",
-     "count": 24,
-     "speed": 0.6,
-     "sway": 0.5,
-     "size": 4
+     "color": "#fde68a",
+     "shape": "dot",
+     "count": 26,
+     "speed": 0.12,
+     "sway": 3,
+     "size": 3
     }
    }
   },
   "modifiers": [
    {
-    "text": "Ate something at the park. Unclear what.",
-    "emoji": "❓",
+    "text": "Named after the owner's ex",
+    "emoji": "✏️",
+    "value": -1,
+    "category": "circumstance",
+    "effect": null
+   },
+   {
+    "text": "Afraid of the floor",
+    "emoji": "🧊",
     "value": -2,
-    "category": "health",
+    "category": "temperament",
     "effect": {
-     "type": "tint",
+     "type": "bounce",
      "layer": "subject",
      "params": {
-      "sepia": 0.5,
-      "hue": 90,
-      "saturate": 0.9
+      "period": 1200
+     }
+    }
+   },
+   {
+    "text": "Statistically the luckiest dog alive",
+    "emoji": "🍀",
+    "value": 5,
+    "category": "condition",
+    "effect": {
+     "type": "burst",
+     "layer": "front",
+     "params": {
+      "color": "#4ade80",
+      "count": 44,
+      "spread": 200,
+      "confetti": true
+     }
+    }
+   },
+   {
+    "text": "Slightly out of focus, always",
+    "emoji": "🌫️",
+    "value": -2,
+    "category": "condition",
+    "effect": {
+     "type": "blur",
+     "layer": "subject",
+     "params": {
+      "amount": 2.2
+     }
+    }
+   },
+   {
+    "text": "Survived something from space",
+    "emoji": "☄️",
+    "value": 7,
+    "category": "circumstance",
+    "effect": {
+     "type": "rise",
+     "layer": "front",
+     "params": {
+      "color": "#fb923c",
+      "count": 30,
+      "speed": 1.3,
+      "sway": 2,
+      "size": 4,
+      "glow": true
      }
     }
    },
@@ -793,18 +913,237 @@
     "value": -3,
     "category": "health",
     "effect": null
+   }
+  ],
+  "score": 5,
+  "qualityLabel": "Above Average",
+  "qualityColor": "#a3e635",
+  "qualityEmoji": "🙂"
+ },
+ {
+  "date": "2026-09-22",
+  "name": "Cinnamon",
+  "breed": "Lhasa Apso",
+  "breedSlug": "lhasa",
+  "rarity": "uncommon",
+  "rarityLabel": "Uncommon",
+  "rarityColor": "#34d399",
+  "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "background": {
+   "key": "summit",
+   "emoji": "🏔️",
+   "name": "A Mountain Summit",
+   "rarity": "rare",
+   "rarityLabel": "Rare",
+   "value": 5,
+   "sky": [
+    "#1e293b",
+    "#7dd3fc"
+   ],
+   "ground": "#e2e8f0",
+   "props": [
+    {
+     "shape": "tri",
+     "x": 0.22,
+     "y": 0.2,
+     "w": 0.5,
+     "h": 0.5,
+     "color": "#475569"
+    },
+    {
+     "shape": "tri",
+     "x": 0.74,
+     "y": 0.12,
+     "w": 0.62,
+     "h": 0.58,
+     "color": "#334155"
+    },
+    {
+     "shape": "tri",
+     "x": 0.74,
+     "y": 0.12,
+     "w": 0.24,
+     "h": 0.16,
+     "color": "#f1f5f9"
+    }
+   ],
+   "effect": {
+    "type": "rays",
+    "layer": "back",
+    "params": {
+     "color": "#fef08a",
+     "beams": 10,
+     "opacity": 0.32,
+     "speed": 0.08
+    }
+   }
+  },
+  "modifiers": [
+   {
+    "text": "Smells like a hospital",
+    "emoji": "🏥",
+    "value": -2,
+    "category": "condition",
+    "effect": {
+     "type": "fog",
+     "layer": "front",
+     "params": {
+      "color": "#e0f2fe",
+      "bands": 3,
+      "opacity": 0.24,
+      "speed": 0.35
+     }
+    }
    },
    {
-    "text": "Dogdle developer",
-    "emoji": "👨‍💻",
-    "value": 5,
-    "category": "circumstance",
+    "text": "Big strong barks",
+    "emoji": "📣",
+    "value": 4,
+    "category": "temperament",
+    "effect": {
+     "type": "ripple",
+     "layer": "back",
+     "params": {
+      "color": "#93c5fd",
+      "rings": 4,
+      "speed": 1.2,
+      "maxRadius": 200
+     }
+    }
+   },
+   {
+    "text": "Does math for treats",
+    "emoji": "🧮",
+    "value": 4,
+    "category": "temperament",
     "effect": {
      "type": "halo",
      "layer": "subject",
      "params": {
-      "color": "#22d3ee",
-      "size": 14
+      "color": "#38bdf8",
+      "size": 12
+     }
+    }
+   },
+   {
+    "text": "Supreme Court Justice",
+    "emoji": "⚖️",
+    "value": 7,
+    "category": "circumstance",
+    "effect": {
+     "type": "spotlight",
+     "layer": "front",
+     "params": {
+      "color": "#fef3c7",
+      "radius": 140,
+      "speed": 0.3
+     }
+    }
+   },
+   {
+    "text": "Ate a bee",
+    "emoji": "🐝",
+    "value": -1,
+    "category": "health",
+    "effect": {
+     "type": "squish",
+     "layer": "subject",
+     "params": {
+      "period": 1100
+     }
+    }
+   },
+   {
+    "text": "Chases his tail for hours",
+    "emoji": "🌀",
+    "value": -2,
+    "category": "habit",
+    "effect": {
+     "type": "spin",
+     "layer": "subject",
+     "params": {
+      "period": 3500
+     }
+    }
+   }
+  ],
+  "score": 15,
+  "qualityLabel": "Good Dog",
+  "qualityColor": "#4ade80",
+  "qualityEmoji": "🦴"
+ },
+ {
+  "date": "2026-11-01",
+  "name": "Tofu",
+  "breed": "Italian Greyhound",
+  "breedSlug": "greyhound/italian",
+  "rarity": "uncommon",
+  "rarityLabel": "Uncommon",
+  "rarityColor": "#34d399",
+  "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "background": {
+   "key": "jet",
+   "emoji": "✈️",
+   "name": "Someone's Private Jet",
+   "rarity": "epic",
+   "rarityLabel": "Epic",
+   "value": 9,
+   "sky": [
+    "#78350f",
+    "#fcd34d"
+   ],
+   "ground": "#451a03",
+   "props": [
+    {
+     "shape": "ellipse",
+     "x": 0.16,
+     "y": 0.3,
+     "w": 0.2,
+     "h": 0.26,
+     "color": "#fde68a",
+     "alpha": 0.85
+    },
+    {
+     "shape": "ellipse",
+     "x": 0.84,
+     "y": 0.3,
+     "w": 0.2,
+     "h": 0.26,
+     "color": "#fde68a",
+     "alpha": 0.85
+    },
+    {
+     "shape": "rect",
+     "x": 0.5,
+     "y": 0.72,
+     "w": 1.2,
+     "h": 0.06,
+     "color": "#292524"
+    }
+   ],
+   "effect": {
+    "type": "spotlight",
+    "layer": "front",
+    "params": {
+     "color": "#fef3c7",
+     "radius": 140,
+     "speed": 0.3
+    }
+   }
+  },
+  "modifiers": [
+   {
+    "text": "Rolls in dead things",
+    "emoji": "🦨",
+    "value": -2,
+    "category": "habit",
+    "effect": {
+     "type": "tint",
+     "layer": "subject",
+     "params": {
+      "sepia": 0.6,
+      "hue": 60,
+      "saturate": 0.7
      }
     }
    },
@@ -823,123 +1162,156 @@
     }
    },
    {
-    "text": "Great at dog magic",
-    "emoji": "✨",
-    "value": 7,
-    "category": "condition",
-    "effect": {
-     "type": "halo",
-     "layer": "subject",
-     "params": {
-      "color": "#c084fc",
-      "size": 20,
-      "brightness": 1.15
-     }
-    }
-   },
-   {
-    "text": "Believes he is a person",
-    "emoji": "🧍",
-    "value": 1,
-    "category": "temperament",
-    "effect": null
-   }
-  ],
-  "score": 6,
-  "qualityLabel": "Above Average",
-  "qualityColor": "#a3e635",
-  "qualityEmoji": "🙂"
- },
- {
-  "date": "2026-09-22",
-  "name": "Cinnamon",
-  "breed": "Lhasa Apso",
-  "breedSlug": "lhasa",
-  "rarity": "uncommon",
-  "rarityLabel": "Uncommon",
-  "rarityColor": "#34d399",
-  "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
-  "background": {
-   "key": "well",
-   "emoji": "🪣",
-   "name": "The Bottom of a Well",
-   "rarity": "rare",
-   "rarityLabel": "Rare",
-   "value": -5,
-   "sky": [
-    "#0c0a09",
-    "#292524"
-   ],
-   "ground": "#0c0a09",
-   "props": [
-    {
-     "shape": "ellipse",
-     "x": 0.5,
-     "y": 0.1,
-     "w": 0.42,
-     "h": 0.16,
-     "color": "#1c1917"
-    },
-    {
-     "shape": "ellipse",
-     "x": 0.5,
-     "y": 0.11,
-     "w": 0.32,
-     "h": 0.11,
-     "color": "#78716c",
-     "alpha": 0.5
-    }
-   ],
-   "effect": {
-    "type": "vignette",
-    "layer": "front",
-    "params": {
-     "color": "#000000",
-     "opacity": 0.72
-    }
-   }
-  },
-  "modifiers": [
-   {
-    "text": "Fetch world champion",
-    "emoji": "🥇",
-    "value": 8,
+    "text": "Amateur fetch player",
+    "emoji": "🎾",
+    "value": 2,
     "category": "temperament",
     "effect": {
      "type": "burst",
      "layer": "front",
      "params": {
+      "color": "#bef264",
+      "count": 14,
+      "spread": 100
+     }
+    }
+   },
+   {
+    "text": "Megacorporation CEO",
+    "emoji": "💼",
+    "value": 6,
+    "category": "circumstance",
+    "effect": {
+     "type": "rays",
+     "layer": "back",
+     "params": {
+      "color": "#fcd34d",
+      "beams": 8,
+      "opacity": 0.3,
+      "speed": 0.08
+     }
+    }
+   },
+   {
+    "text": "Owner is getting divorced",
+    "emoji": "💔",
+    "value": -3,
+    "category": "circumstance",
+    "effect": {
+     "type": "drain",
+     "layer": "subject",
+     "params": {
+      "amount": 0.5
+     }
+    }
+   },
+   {
+    "text": "Gambling addiction",
+    "emoji": "🎰",
+    "value": -3,
+    "category": "habit",
+    "effect": {
+     "type": "burst",
+     "layer": "front",
+     "params": {
       "color": "#fbbf24",
-      "count": 46,
-      "spread": 210,
+      "count": 30,
+      "spread": 150,
       "confetti": true
      }
     }
    },
    {
-    "text": "Barks at nothing for forty minutes",
-    "emoji": "📢",
-    "value": -2,
+    "text": "Fetch regional champion",
+    "emoji": "🥈",
+    "value": 5,
     "category": "temperament",
     "effect": {
-     "type": "shake",
+     "type": "burst",
      "layer": "front",
      "params": {
-      "intensity": 3,
-      "period": 900
+      "color": "#cbd5e1",
+      "count": 28,
+      "spread": 150
      }
     }
-   },
+   }
+  ],
+  "score": 12,
+  "qualityLabel": "Good Dog",
+  "qualityColor": "#4ade80",
+  "qualityEmoji": "🦴"
+ },
+ {
+  "date": "2026-11-01",
+  "name": "Maple",
+  "breed": "Bichon Frise",
+  "breedSlug": "frise/bichon",
+  "rarity": "uncommon",
+  "rarityLabel": "Uncommon",
+  "rarityColor": "#34d399",
+  "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "background": {
+   "key": "fireflies",
+   "emoji": "✨",
+   "name": "A Field of Fireflies",
+   "rarity": "rare",
+   "rarityLabel": "Rare",
+   "value": 5,
+   "sky": [
+    "#052e16",
+    "#166534"
+   ],
+   "ground": "#14532d",
+   "props": [
+    {
+     "shape": "tri",
+     "x": 0.1,
+     "y": 0.22,
+     "w": 0.24,
+     "h": 0.5,
+     "color": "#022c22"
+    },
+    {
+     "shape": "tri",
+     "x": 0.9,
+     "y": 0.3,
+     "w": 0.22,
+     "h": 0.42,
+     "color": "#022c22"
+    },
+    {
+     "shape": "hills",
+     "y": 0.68,
+     "h": 0.03,
+     "waves": 3,
+     "color": "#064e3b"
+    }
+   ],
+   "effect": {
+    "type": "rise",
+    "layer": "front",
+    "params": {
+     "color": "#fde047",
+     "count": 40,
+     "speed": 0.35,
+     "sway": 2.4,
+     "size": 4,
+     "glow": true
+    }
+   }
+  },
+  "modifiers": [
    {
-    "text": "Zoomies at 3am",
-    "emoji": "💨",
-    "value": -1,
-    "category": "habit",
+    "text": "Raised in a puppy mill",
+    "emoji": "🏭",
+    "value": -6,
+    "category": "circumstance",
     "effect": {
-     "type": "wobble",
+     "type": "drain",
      "layer": "subject",
      "params": {
-      "period": 280
+      "amount": 0.75
      }
     }
    },
@@ -961,159 +1333,11 @@
     }
    },
    {
-    "text": "Perfect bloodwork",
-    "emoji": "🩸",
-    "value": 4,
-    "category": "health",
-    "effect": {
-     "type": "halo",
-     "layer": "subject",
-     "params": {
-      "color": "#4ade80",
-      "size": 12
-     }
-    }
-   },
-   {
-    "text": "Afraid of men in hats",
-    "emoji": "🎩",
-    "value": -2,
-    "category": "temperament",
-    "effect": null
-   }
-  ],
-  "score": 8,
-  "qualityLabel": "Above Average",
-  "qualityColor": "#a3e635",
-  "qualityEmoji": "🙂"
- },
- {
-  "date": "2026-11-01",
-  "name": "Tofu",
-  "breed": "Italian Greyhound",
-  "breedSlug": "greyhound/italian",
-  "rarity": "uncommon",
-  "rarityLabel": "Uncommon",
-  "rarityColor": "#34d399",
-  "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
-  "background": {
-   "key": "reef",
-   "emoji": "🐠",
-   "name": "The Great Barrier Reef",
-   "rarity": "epic",
-   "rarityLabel": "Epic",
-   "value": 7,
-   "sky": [
-    "#0e7490",
-    "#22d3ee"
-   ],
-   "ground": "#155e75",
-   "props": [
-    {
-     "shape": "ellipse",
-     "x": 0.18,
-     "y": 0.66,
-     "w": 0.26,
-     "h": 0.3,
-     "color": "#f472b6",
-     "alpha": 0.6
-    },
-    {
-     "shape": "ellipse",
-     "x": 0.84,
-     "y": 0.68,
-     "w": 0.3,
-     "h": 0.26,
-     "color": "#fb923c",
-     "alpha": 0.55
-    },
-    {
-     "shape": "ellipse",
-     "x": 0.5,
-     "y": 0.82,
-     "w": 0.5,
-     "h": 0.2,
-     "color": "#a78bfa",
-     "alpha": 0.45
-    }
-   ],
-   "effect": {
-    "type": "rise",
-    "layer": "front",
-    "params": {
-     "color": "#a5f3fc",
-     "count": 50,
-     "speed": 0.55,
-     "sway": 1.8,
-     "size": 5,
-     "hollow": true
-    }
-   }
-  },
-  "modifiers": [
-   {
-    "text": "Rick and Morty superfan",
-    "emoji": "🛸",
-    "value": -3,
-    "category": "circumstance",
-    "effect": {
-     "type": "glitch",
-     "layer": "front",
-     "params": {
-      "color": "#4ade80",
-      "intensity": 0.5,
-      "scanlines": true
-     }
-    }
-   },
-   {
-    "text": "Sleeps in an upsetting position",
-    "emoji": "🛌",
-    "value": 0,
-    "category": "habit",
-    "effect": {
-     "type": "squish",
-     "layer": "subject",
-     "params": {
-      "period": 1600
-     }
-    }
-   },
-   {
     "text": "Ate a sock. Surgically removed.",
     "emoji": "🧦",
     "value": -3,
     "category": "health",
     "effect": null
-   },
-   {
-    "text": "Has a scar with a story",
-    "emoji": "🪡",
-    "value": 2,
-    "category": "condition",
-    "effect": null
-   },
-   {
-    "text": "Respects the UPS driver, hates the mailman",
-    "emoji": "📦",
-    "value": 0,
-    "category": "temperament",
-    "effect": null
-   },
-   {
-    "text": "Photographs badly",
-    "emoji": "📷",
-    "value": -1,
-    "category": "condition",
-    "effect": {
-     "type": "tint",
-     "layer": "subject",
-     "params": {
-      "sepia": 0.7,
-      "hue": 10,
-      "saturate": 1.8
-     }
-    }
    },
    {
     "text": "Covered in mud",
@@ -1132,71 +1356,21 @@
       "size": 4.5
      }
     }
-   }
-  ],
-  "score": 0,
-  "qualityLabel": "Perfectly Average",
-  "qualityColor": "#facc15",
-  "qualityEmoji": "😐"
- },
- {
-  "date": "2026-11-01",
-  "name": "Maple",
-  "breed": "Bichon Frise",
-  "breedSlug": "frise/bichon",
-  "rarity": "uncommon",
-  "rarityLabel": "Uncommon",
-  "rarityColor": "#34d399",
-  "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
-  "background": {
-   "key": "news",
-   "emoji": "📺",
-   "name": "Local News, 6pm",
-   "rarity": "rare",
-   "rarityLabel": "Rare",
-   "value": 4,
-   "sky": [
-    "#1e40af",
-    "#3b82f6"
-   ],
-   "ground": "#1e3a8a",
-   "props": [
-    {
-     "shape": "rect",
-     "x": 0.5,
-     "y": 0.08,
-     "w": 1.2,
-     "h": 0.1,
-     "color": "#1e3a8a"
-    },
-    {
-     "shape": "rect",
-     "x": 0.5,
-     "y": 0.76,
-     "w": 1.2,
-     "h": 0.1,
-     "color": "#dc2626"
-    },
-    {
-     "shape": "rect",
-     "x": 0.2,
-     "y": 0.78,
-     "w": 0.3,
-     "h": 0.04,
-     "color": "#fef3c7"
+   },
+   {
+    "text": "Stares at the wall for long periods",
+    "emoji": "🧱",
+    "value": -2,
+    "category": "habit",
+    "effect": {
+     "type": "vignette",
+     "layer": "front",
+     "params": {
+      "color": "#1c1917",
+      "opacity": 0.5
+     }
     }
-   ],
-   "effect": {
-    "type": "glitch",
-    "layer": "front",
-    "params": {
-     "color": "#bfdbfe",
-     "intensity": 0.3,
-     "scanlines": true
-    }
-   }
-  },
-  "modifiers": [
+   },
    {
     "text": "Megacorporation CEO",
     "emoji": "💼",
@@ -1214,24 +1388,105 @@
     }
    },
    {
-    "text": "Named after the owner's ex",
-    "emoji": "✏️",
-    "value": -1,
+    "text": "Rehomed twice",
+    "emoji": "📦",
+    "value": -2,
     "category": "circumstance",
     "effect": null
-   },
+   }
+  ],
+  "score": 2,
+  "qualityLabel": "Perfectly Average",
+  "qualityColor": "#facc15",
+  "qualityEmoji": "😐"
+ },
+ {
+  "date": "2026-12-31",
+  "name": "Duke",
+  "breed": "Patterdale Terrier",
+  "breedSlug": "terrier/patterdale",
+  "rarity": "epic",
+  "rarityLabel": "Epic",
+  "rarityColor": "#a78bfa",
+  "rarityGlow": "0 0 28px rgba(167,139,250,.85)",
+  "background": {
+   "key": "forest",
+   "emoji": "🌲",
+   "name": "A Forest Trail",
+   "rarity": "uncommon",
+   "rarityLabel": "Uncommon",
+   "value": 2,
+   "sky": [
+    "#14532d",
+    "#4ade80"
+   ],
+   "ground": "#166534",
+   "props": [
+    {
+     "shape": "tri",
+     "x": 0.1,
+     "y": 0.06,
+     "w": 0.26,
+     "h": 0.66,
+     "color": "#052e16"
+    },
+    {
+     "shape": "tri",
+     "x": 0.34,
+     "y": 0.2,
+     "w": 0.2,
+     "h": 0.52,
+     "color": "#064e3b"
+    },
+    {
+     "shape": "tri",
+     "x": 0.9,
+     "y": 0.1,
+     "w": 0.28,
+     "h": 0.62,
+     "color": "#052e16"
+    },
+    {
+     "shape": "tri",
+     "x": 0.68,
+     "y": 0.24,
+     "w": 0.18,
+     "h": 0.48,
+     "color": "#064e3b"
+    }
+   ],
+   "effect": {
+    "type": "rays",
+    "layer": "back",
+    "params": {
+     "color": "#bbf7d0",
+     "beams": 6,
+     "opacity": 0.26,
+     "speed": 0.12
+    }
+   }
+  },
+  "modifiers": [
    {
-    "text": "Vet says he's fine. He is not fine.",
-    "emoji": "🩺",
-    "value": -3,
-    "category": "health",
+    "text": "Does math for treats",
+    "emoji": "🧮",
+    "value": 4,
+    "category": "temperament",
     "effect": {
-     "type": "chromatic",
+     "type": "halo",
      "layer": "subject",
      "params": {
-      "offset": 2
+      "color": "#38bdf8",
+      "size": 12
      }
     }
+   },
+   {
+    "text": "Insured, thankfully",
+    "emoji": "📋",
+    "value": 3,
+    "category": "health",
+    "effect": null
    },
    {
     "text": "Was on the news once",
@@ -1249,55 +1504,304 @@
     }
    },
    {
-    "text": "Raised in a puppy mill",
-    "emoji": "🏭",
-    "value": -6,
+    "text": "Four owners deep",
+    "emoji": "🔁",
+    "value": -2,
     "category": "circumstance",
     "effect": {
-     "type": "drain",
+     "type": "ghost",
      "layer": "subject",
      "params": {
-      "amount": 0.75
-     }
-    }
-   },
-   {
-    "text": "Has a scar with a story",
-    "emoji": "🪡",
-    "value": 2,
-    "category": "condition",
-    "effect": null
-   },
-   {
-    "text": "Supreme Court Justice",
-    "emoji": "⚖️",
-    "value": 7,
-    "category": "circumstance",
-    "effect": {
-     "type": "spotlight",
-     "layer": "front",
-     "params": {
-      "color": "#fef3c7",
-      "radius": 140,
-      "speed": 0.3
+      "opacity": 0.7
      }
     }
    }
   ],
-  "score": 12,
+  "score": 10,
   "qualityLabel": "Good Dog",
   "qualityColor": "#4ade80",
   "qualityEmoji": "🦴"
  },
  {
   "date": "2026-12-31",
-  "name": "Duke",
-  "breed": "Patterdale Terrier",
-  "breedSlug": "terrier/patterdale",
+  "name": "Waffles",
+  "breed": "Appenzeller Sennenhund",
+  "breedSlug": "appenzeller",
   "rarity": "epic",
   "rarityLabel": "Epic",
   "rarityColor": "#a78bfa",
   "rarityGlow": "0 0 28px rgba(167,139,250,.85)",
+  "background": {
+   "key": "sidewalk",
+   "emoji": "🚶",
+   "name": "A Sidewalk",
+   "rarity": "common",
+   "rarityLabel": "Common",
+   "value": -1,
+   "sky": [
+    "#94a3b8",
+    "#cbd5e1"
+   ],
+   "ground": "#64748b",
+   "props": [
+    {
+     "shape": "rect",
+     "x": 0.14,
+     "y": 0.12,
+     "w": 0.24,
+     "h": 0.58,
+     "color": "#475569"
+    },
+    {
+     "shape": "rect",
+     "x": 0.86,
+     "y": 0.2,
+     "w": 0.3,
+     "h": 0.5,
+     "color": "#334155"
+    },
+    {
+     "shape": "rect",
+     "x": 0.5,
+     "y": 0.72,
+     "w": 1.2,
+     "h": 0.015,
+     "color": "#94a3b8"
+    }
+   ],
+   "effect": {
+    "type": "fog",
+    "layer": "front",
+    "params": {
+     "color": "#cbd5e1",
+     "bands": 2,
+     "opacity": 0.2,
+     "speed": 0.25
+    }
+   }
+  },
+  "modifiers": [
+   {
+    "text": "Smells like a hospital",
+    "emoji": "🏥",
+    "value": -2,
+    "category": "condition",
+    "effect": {
+     "type": "fog",
+     "layer": "front",
+     "params": {
+      "color": "#e0f2fe",
+      "bands": 3,
+      "opacity": 0.24,
+      "speed": 0.35
+     }
+    }
+   },
+   {
+    "text": "Respects the UPS driver, hates the mailman",
+    "emoji": "📦",
+    "value": 0,
+    "category": "temperament",
+    "effect": null
+   },
+   {
+    "text": "Worms",
+    "emoji": "🪱",
+    "value": -3,
+    "category": "health",
+    "effect": {
+     "type": "tint",
+     "layer": "subject",
+     "params": {
+      "sepia": 0.4,
+      "hue": 40,
+      "saturate": 0.8
+     }
+    }
+   },
+   {
+    "text": "Dreams violently",
+    "emoji": "💤",
+    "value": -1,
+    "category": "habit",
+    "effect": {
+     "type": "wobble",
+     "layer": "subject",
+     "params": {
+      "period": 420
+     }
+    }
+   }
+  ],
+  "score": -7,
+  "qualityLabel": "Below Average",
+  "qualityColor": "#fbbf24",
+  "qualityEmoji": "🙃"
+ },
+ {
+  "date": "2026-09-22",
+  "name": "Sadie",
+  "breed": "Miniature Schnauzer",
+  "breedSlug": "schnauzer/miniature",
+  "rarity": "uncommon",
+  "rarityLabel": "Uncommon",
+  "rarityColor": "#34d399",
+  "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
+  "background": {
+   "key": "sidewalk",
+   "emoji": "🚶",
+   "name": "A Sidewalk",
+   "rarity": "common",
+   "rarityLabel": "Common",
+   "value": -1,
+   "sky": [
+    "#94a3b8",
+    "#cbd5e1"
+   ],
+   "ground": "#64748b",
+   "props": [
+    {
+     "shape": "rect",
+     "x": 0.14,
+     "y": 0.12,
+     "w": 0.24,
+     "h": 0.58,
+     "color": "#475569"
+    },
+    {
+     "shape": "rect",
+     "x": 0.86,
+     "y": 0.2,
+     "w": 0.3,
+     "h": 0.5,
+     "color": "#334155"
+    },
+    {
+     "shape": "rect",
+     "x": 0.5,
+     "y": 0.72,
+     "w": 1.2,
+     "h": 0.015,
+     "color": "#94a3b8"
+    }
+   ],
+   "effect": {
+    "type": "fog",
+    "layer": "front",
+    "params": {
+     "color": "#cbd5e1",
+     "bands": 2,
+     "opacity": 0.2,
+     "speed": 0.25
+    }
+   }
+  },
+  "modifiers": [
+   {
+    "text": "Practicing therapist",
+    "emoji": "🛋️",
+    "value": 5,
+    "category": "temperament",
+    "effect": {
+     "type": "pulse",
+     "layer": "back",
+     "params": {
+      "color": "#4ade80",
+      "period": 2800,
+      "radius": 190
+     }
+    }
+   },
+   {
+    "text": "Vet says he's fine. He is not fine.",
+    "emoji": "🩺",
+    "value": -3,
+    "category": "health",
+    "effect": {
+     "type": "chromatic",
+     "layer": "subject",
+     "params": {
+      "offset": 2
+     }
+    }
+   },
+   {
+    "text": "Somehow smells of cigarettes",
+    "emoji": "🚬",
+    "value": -2,
+    "category": "condition",
+    "effect": {
+     "type": "fog",
+     "layer": "front",
+     "params": {
+      "color": "#d6d3d1",
+      "bands": 3,
+      "opacity": 0.26,
+      "speed": 0.3
+     }
+    }
+   },
+   {
+    "text": "Smells, and everyone knows",
+    "emoji": "🤢",
+    "value": -2,
+    "category": "condition",
+    "effect": {
+     "type": "rise",
+     "layer": "front",
+     "params": {
+      "color": "#84cc16",
+      "count": 20,
+      "speed": 0.4,
+      "sway": 2.6,
+      "size": 4,
+      "glow": true
+     }
+    }
+   },
+   {
+    "text": "Allergic to other dogs",
+    "emoji": "🤧",
+    "value": -3,
+    "category": "health",
+    "effect": {
+     "type": "tint",
+     "layer": "subject",
+     "params": {
+      "sepia": 0.3,
+      "hue": 320,
+      "saturate": 1.3
+     }
+    }
+   },
+   {
+    "text": "Ate a bee",
+    "emoji": "🐝",
+    "value": -1,
+    "category": "health",
+    "effect": {
+     "type": "squish",
+     "layer": "subject",
+     "params": {
+      "period": 1100
+     }
+    }
+   }
+  ],
+  "score": -7,
+  "qualityLabel": "Below Average",
+  "qualityColor": "#fbbf24",
+  "qualityEmoji": "🙃"
+ },
+ {
+  "date": "2026-09-22",
+  "name": "Mochi",
+  "breed": "German Shepherd",
+  "breedSlug": "germanshepherd",
+  "rarity": "common",
+  "rarityLabel": "Common",
+  "rarityColor": "#9ca3af",
+  "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
   "background": {
    "key": "beach",
    "emoji": "🏖️",
@@ -1342,462 +1846,52 @@
   },
   "modifiers": [
    {
-    "text": "Zoomies at 3am",
-    "emoji": "💨",
-    "value": -1,
-    "category": "habit",
-    "effect": {
-     "type": "wobble",
-     "layer": "subject",
-     "params": {
-      "period": 280
-     }
-    }
-   },
-   {
-    "text": "Cannot be photographed properly",
-    "emoji": "📵",
-    "value": -2,
+    "text": "One with nature",
+    "emoji": "🍃",
+    "value": 5,
     "category": "condition",
-    "effect": {
-     "type": "ghost",
-     "layer": "subject",
-     "params": {
-      "opacity": 0.6,
-      "blur": 1.4
-     }
-    }
-   },
-   {
-    "text": "Local celebrity",
-    "emoji": "👑",
-    "value": 6,
-    "category": "circumstance",
-    "effect": {
-     "type": "spotlight",
-     "layer": "front",
-     "params": {
-      "color": "#fde047",
-      "radius": 135,
-      "speed": 0.45
-     }
-    }
-   },
-   {
-    "text": "Surrounded by bees",
-    "emoji": "🐝",
-    "value": -3,
-    "category": "condition",
-    "effect": null
-   }
-  ],
-  "score": 3,
-  "qualityLabel": "Above Average",
-  "qualityColor": "#a3e635",
-  "qualityEmoji": "🙂"
- },
- {
-  "date": "2026-12-31",
-  "name": "Waffles",
-  "breed": "Appenzeller Sennenhund",
-  "breedSlug": "appenzeller",
-  "rarity": "epic",
-  "rarityLabel": "Epic",
-  "rarityColor": "#a78bfa",
-  "rarityGlow": "0 0 28px rgba(167,139,250,.85)",
-  "background": {
-   "key": "backseat",
-   "emoji": "🚗",
-   "name": "The Back Seat of a Car",
-   "rarity": "common",
-   "rarityLabel": "Common",
-   "value": 1,
-   "sky": [
-    "#1e3a5f",
-    "#3b82f6"
-   ],
-   "ground": "#334155",
-   "props": [
-    {
-     "shape": "rect",
-     "x": 0.5,
-     "y": 0.1,
-     "w": 1.2,
-     "h": 0.12,
-     "color": "#1e293b"
-    },
-    {
-     "shape": "rect",
-     "x": 0.08,
-     "y": 0.2,
-     "w": 0.14,
-     "h": 0.6,
-     "color": "#0f172a"
-    },
-    {
-     "shape": "rect",
-     "x": 0.92,
-     "y": 0.2,
-     "w": 0.14,
-     "h": 0.6,
-     "color": "#0f172a"
-    }
-   ],
-   "effect": {
-    "type": "fall",
-    "layer": "front",
-    "params": {
-     "color": "#93c5fd",
-     "shape": "line",
-     "count": 40,
-     "speed": 2.8,
-     "sway": 0,
-     "size": 12,
-     "angle": 0.3
-    }
-   }
-  },
-  "modifiers": [
-   {
-    "text": "Fetch world champion",
-    "emoji": "🥇",
-    "value": 8,
-    "category": "temperament",
-    "effect": {
-     "type": "burst",
-     "layer": "front",
-     "params": {
-      "color": "#fbbf24",
-      "count": 46,
-      "spread": 210,
-      "confetti": true
-     }
-    }
-   },
-   {
-    "text": "Frog Wars veteran",
-    "emoji": "🐸",
-    "value": 2,
-    "category": "circumstance",
-    "effect": {
-     "type": "fall",
-     "layer": "front",
-     "params": {
-      "color": "#4ade80",
-      "shape": "dot",
-      "count": 22,
-      "speed": 0.8,
-      "sway": 2.4,
-      "size": 5
-     }
-    }
-   },
-   {
-    "text": "Survived something from space",
-    "emoji": "☄️",
-    "value": 7,
-    "category": "circumstance",
     "effect": {
      "type": "rise",
      "layer": "front",
      "params": {
-      "color": "#fb923c",
-      "count": 30,
-      "speed": 1.3,
-      "sway": 2,
-      "size": 4,
-      "glow": true
+      "color": "#86efac",
+      "count": 24,
+      "speed": 0.4,
+      "sway": 3,
+      "size": 6,
+      "shape": "leaf"
      }
     }
    },
    {
-    "text": "Rolls in dead things",
-    "emoji": "🦨",
-    "value": -2,
-    "category": "habit",
-    "effect": {
-     "type": "tint",
-     "layer": "subject",
-     "params": {
-      "sepia": 0.6,
-      "hue": 60,
-      "saturate": 0.7
-     }
-    }
-   }
-  ],
-  "score": 16,
-  "qualityLabel": "Exceptional Animal",
-  "qualityColor": "#22d3ee",
-  "qualityEmoji": "🌟"
- },
- {
-  "date": "2026-09-22",
-  "name": "Sadie",
-  "breed": "Miniature Schnauzer",
-  "breedSlug": "schnauzer/miniature",
-  "rarity": "uncommon",
-  "rarityLabel": "Uncommon",
-  "rarityColor": "#34d399",
-  "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
-  "background": {
-   "key": "backseat",
-   "emoji": "🚗",
-   "name": "The Back Seat of a Car",
-   "rarity": "common",
-   "rarityLabel": "Common",
-   "value": 1,
-   "sky": [
-    "#1e3a5f",
-    "#3b82f6"
-   ],
-   "ground": "#334155",
-   "props": [
-    {
-     "shape": "rect",
-     "x": 0.5,
-     "y": 0.1,
-     "w": 1.2,
-     "h": 0.12,
-     "color": "#1e293b"
-    },
-    {
-     "shape": "rect",
-     "x": 0.08,
-     "y": 0.2,
-     "w": 0.14,
-     "h": 0.6,
-     "color": "#0f172a"
-    },
-    {
-     "shape": "rect",
-     "x": 0.92,
-     "y": 0.2,
-     "w": 0.14,
-     "h": 0.6,
-     "color": "#0f172a"
-    }
-   ],
-   "effect": {
-    "type": "fall",
-    "layer": "front",
-    "params": {
-     "color": "#93c5fd",
-     "shape": "line",
-     "count": 40,
-     "speed": 2.8,
-     "sway": 0,
-     "size": 12,
-     "angle": 0.3
-    }
-   }
-  },
-  "modifiers": [
-   {
-    "text": "First time homeowner",
-    "emoji": "🏡",
-    "value": 3,
-    "category": "circumstance",
-    "effect": {
-     "type": "vignette",
-     "layer": "front",
-     "params": {
-      "color": "#78350f",
-      "opacity": 0.35
-     }
-    }
-   },
-   {
-    "text": "Steals from shops",
-    "emoji": "🛒",
-    "value": -3,
-    "category": "habit",
-    "effect": {
-     "type": "glitch",
-     "layer": "front",
-     "params": {
-      "color": "#fbbf24",
-      "intensity": 0.3,
-      "scanlines": false
-     }
-    }
-   },
-   {
-    "text": "Forgot to eat lunch",
-    "emoji": "🥪",
-    "value": -1,
-    "category": "habit",
+    "text": "Has a scar with a story",
+    "emoji": "🪡",
+    "value": 2,
+    "category": "condition",
     "effect": null
    },
    {
-    "text": "Fetch regional champion",
-    "emoji": "🥈",
-    "value": 5,
-    "category": "temperament",
-    "effect": {
-     "type": "burst",
-     "layer": "front",
-     "params": {
-      "color": "#cbd5e1",
-      "count": 28,
-      "spread": 150
-     }
-    }
-   },
-   {
-    "text": "Blind in one eye",
-    "emoji": "👁️",
-    "value": -2,
-    "category": "health",
-    "effect": {
-     "type": "vignette",
-     "layer": "front",
-     "params": {
-      "color": "#000000",
-      "opacity": 0.55
-     }
-    }
-   },
-   {
-    "text": "Perfect bloodwork",
-    "emoji": "🩸",
+    "text": "Has been to Paris",
+    "emoji": "🗼",
     "value": 4,
-    "category": "health",
-    "effect": {
-     "type": "halo",
-     "layer": "subject",
-     "params": {
-      "color": "#4ade80",
-      "size": 12
-     }
-    }
-   }
-  ],
-  "score": 7,
-  "qualityLabel": "Above Average",
-  "qualityColor": "#a3e635",
-  "qualityEmoji": "🙂"
- },
- {
-  "date": "2026-09-22",
-  "name": "Mochi",
-  "breed": "German Shepherd",
-  "breedSlug": "germanshepherd",
-  "rarity": "common",
-  "rarityLabel": "Common",
-  "rarityColor": "#9ca3af",
-  "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
-  "background": {
-   "key": "petstore",
-   "emoji": "🛒",
-   "name": "Aisle 4 of a Pet Store",
-   "rarity": "uncommon",
-   "rarityLabel": "Uncommon",
-   "value": 0,
-   "sky": [
-    "#fef3c7",
-    "#fde68a"
-   ],
-   "ground": "#a16207",
-   "props": [
-    {
-     "shape": "rect",
-     "x": 0.12,
-     "y": 0.1,
-     "w": 0.26,
-     "h": 0.62,
-     "color": "#78350f"
-    },
-    {
-     "shape": "rect",
-     "x": 0.88,
-     "y": 0.1,
-     "w": 0.26,
-     "h": 0.62,
-     "color": "#78350f"
-    },
-    {
-     "shape": "rect",
-     "x": 0.12,
-     "y": 0.34,
-     "w": 0.26,
-     "h": 0.04,
-     "color": "#fbbf24"
-    },
-    {
-     "shape": "rect",
-     "x": 0.88,
-     "y": 0.34,
-     "w": 0.26,
-     "h": 0.04,
-     "color": "#fbbf24"
-    }
-   ],
-   "effect": {
-    "type": "spotlight",
-    "layer": "front",
-    "params": {
-     "color": "#ffffff",
-     "radius": 150,
-     "speed": 0.5
-    }
-   }
-  },
-  "modifiers": [
-   {
-    "text": "Under investigation",
-    "emoji": "🔍",
-    "value": -5,
     "category": "circumstance",
     "effect": {
-     "type": "spotlight",
-     "layer": "front",
+     "type": "rays",
+     "layer": "back",
      "params": {
-      "color": "#e5e7eb",
-      "radius": 110,
-      "speed": 0.9
+      "color": "#fcd34d",
+      "beams": 8,
+      "opacity": 0.26,
+      "speed": 0.09
      }
     }
    },
    {
-    "text": "Ate a bee",
-    "emoji": "🐝",
-    "value": -1,
+    "text": "Insured, thankfully",
+    "emoji": "📋",
+    "value": 3,
     "category": "health",
-    "effect": {
-     "type": "squish",
-     "layer": "subject",
-     "params": {
-      "period": 1100
-     }
-    }
-   },
-   {
-    "text": "Ate a bee. Again.",
-    "emoji": "🐝",
-    "value": -2,
-    "category": "health",
-    "effect": {
-     "type": "squish",
-     "layer": "subject",
-     "params": {
-      "period": 800
-     }
-    }
-   },
-   {
-    "text": "Cannot be photographed properly",
-    "emoji": "📵",
-    "value": -2,
-    "category": "condition",
-    "effect": {
-     "type": "ghost",
-     "layer": "subject",
-     "params": {
-      "opacity": 0.6,
-      "blur": 1.4
-     }
-    }
+    "effect": null
    },
    {
     "text": "Shits itself sometimes",
@@ -1818,42 +1912,39 @@
     }
    },
    {
-    "text": "Does math for treats",
-    "emoji": "🧮",
-    "value": 4,
-    "category": "temperament",
+    "text": "Technically deceased",
+    "emoji": "⚰️",
+    "value": -6,
+    "category": "condition",
     "effect": {
-     "type": "halo",
+     "type": "ghost",
      "layer": "subject",
      "params": {
-      "color": "#38bdf8",
-      "size": 12
+      "opacity": 0.45,
+      "blur": 1.2
      }
     }
    },
    {
-    "text": "Survived something from space",
-    "emoji": "☄️",
-    "value": 7,
-    "category": "circumstance",
+    "text": "Worms",
+    "emoji": "🪱",
+    "value": -3,
+    "category": "health",
     "effect": {
-     "type": "rise",
-     "layer": "front",
+     "type": "tint",
+     "layer": "subject",
      "params": {
-      "color": "#fb923c",
-      "count": 30,
-      "speed": 1.3,
-      "sway": 2,
-      "size": 4,
-      "glow": true
+      "sepia": 0.4,
+      "hue": 40,
+      "saturate": 0.8
      }
     }
    }
   ],
-  "score": -2,
-  "qualityLabel": "Perfectly Average",
-  "qualityColor": "#facc15",
-  "qualityEmoji": "😐"
+  "score": 5,
+  "qualityLabel": "Above Average",
+  "qualityColor": "#a3e635",
+  "qualityEmoji": "🙂"
  },
  {
   "date": "2026-07-04",
@@ -1865,130 +1956,127 @@
   "rarityColor": "#34d399",
   "rarityGlow": "0 0 18px rgba(52,211,153,.65)",
   "background": {
-   "key": "renaissance",
-   "emoji": "🖼️",
-   "name": "A Renaissance Painting",
+   "key": "graveyard",
+   "emoji": "🪦",
+   "name": "A Graveyard",
    "rarity": "epic",
    "rarityLabel": "Epic",
-   "value": 7,
+   "value": -5,
    "sky": [
-    "#78350f",
-    "#a16207"
+    "#111827",
+    "#4c1d95"
    ],
-   "ground": "#451a03",
+   "ground": "#1f2937",
    "props": [
     {
      "shape": "rect",
-     "x": 0.5,
-     "y": 0,
-     "w": 1.2,
-     "h": 0.06,
-     "color": "#facc15"
-    },
-    {
-     "shape": "rect",
-     "x": 0.5,
-     "y": 0.76,
-     "w": 1.2,
-     "h": 0.06,
-     "color": "#facc15"
-    },
-    {
-     "shape": "rect",
-     "x": 0.04,
-     "y": 0,
+     "x": 0.14,
+     "y": 0.5,
      "w": 0.08,
-     "h": 0.9,
-     "color": "#facc15"
+     "h": 0.22,
+     "color": "#475569"
+    },
+    {
+     "shape": "ellipse",
+     "x": 0.14,
+     "y": 0.5,
+     "w": 0.08,
+     "h": 0.08,
+     "color": "#475569"
     },
     {
      "shape": "rect",
-     "x": 0.96,
-     "y": 0,
-     "w": 0.08,
-     "h": 0.9,
-     "color": "#facc15"
+     "x": 0.84,
+     "y": 0.54,
+     "w": 0.07,
+     "h": 0.18,
+     "color": "#334155"
+    },
+    {
+     "shape": "tri",
+     "x": 0.5,
+     "y": 0.3,
+     "w": 0.3,
+     "h": 0.3,
+     "color": "#0f172a",
+     "alpha": 0.6
     }
    ],
    "effect": {
-    "type": "rays",
-    "layer": "back",
+    "type": "fog",
+    "layer": "front",
     "params": {
-     "color": "#fcd34d",
-     "beams": 7,
-     "opacity": 0.3,
-     "speed": 0.05
+     "color": "#c4b5fd",
+     "bands": 4,
+     "opacity": 0.28,
+     "speed": 0.4
     }
    }
   },
   "modifiers": [
    {
-    "text": "Unemployed",
-    "emoji": "🛌",
+    "text": "Screams instead of barking",
+    "emoji": "😱",
+    "value": 0,
+    "category": "habit",
+    "effect": {
+     "type": "ripple",
+     "layer": "back",
+     "params": {
+      "color": "#fca5a5",
+      "rings": 4,
+      "speed": 1.4,
+      "maxRadius": 170
+     }
+    }
+   },
+   {
+    "text": "Three legs",
+    "emoji": "🦿",
+    "value": -2,
+    "category": "health",
+    "effect": {
+     "type": "wobble",
+     "layer": "subject",
+     "params": {
+      "period": 900
+     }
+    }
+   },
+   {
+    "text": "Rehomed twice",
+    "emoji": "📦",
     "value": -2,
     "category": "circumstance",
     "effect": null
    },
    {
-    "text": "Escapes any enclosure",
-    "emoji": "🪄",
-    "value": -2,
-    "category": "habit",
-    "effect": {
-     "type": "ghost",
-     "layer": "subject",
-     "params": {
-      "opacity": 0.8
-     }
-    }
+    "text": "Has a scar with a story",
+    "emoji": "🪡",
+    "value": 2,
+    "category": "condition",
+    "effect": null
    },
    {
-    "text": "Supreme Court Justice",
-    "emoji": "⚖️",
-    "value": 7,
-    "category": "circumstance",
-    "effect": {
-     "type": "spotlight",
-     "layer": "front",
-     "params": {
-      "color": "#fef3c7",
-      "radius": 140,
-      "speed": 0.3
-     }
-    }
-   },
-   {
-    "text": "Ate a bee",
-    "emoji": "🐝",
-    "value": -1,
-    "category": "health",
-    "effect": {
-     "type": "squish",
-     "layer": "subject",
-     "params": {
-      "period": 1100
-     }
-    }
-   },
-   {
-    "text": "Comes when called, every time",
-    "emoji": "📣",
-    "value": 4,
+    "text": "Banned from the dog park",
+    "emoji": "🚫",
+    "value": -5,
     "category": "temperament",
     "effect": {
-     "type": "halo",
-     "layer": "subject",
+     "type": "glitch",
+     "layer": "front",
      "params": {
-      "color": "#38bdf8",
-      "size": 10
+      "color": "#ef4444",
+      "intensity": 0.6,
+      "scanlines": false
      }
     }
    }
   ],
-  "score": 13,
-  "qualityLabel": "Good Dog",
-  "qualityColor": "#4ade80",
-  "qualityEmoji": "🦴"
+  "score": -12,
+  "qualityLabel": "Rough",
+  "qualityColor": "#fb923c",
+  "qualityEmoji": "😬"
  },
  {
   "date": "2026-07-04",
@@ -2000,133 +2088,145 @@
   "rarityColor": "#9ca3af",
   "rarityGlow": "0 0 12px rgba(156,163,175,.55)",
   "background": {
-   "key": "void",
-   "emoji": "🕳️",
-   "name": "Nowhere",
+   "key": "dream",
+   "emoji": "💭",
+   "name": "Someone Else's Dream",
    "rarity": "legendary",
    "rarityLabel": "Legendary",
-   "value": -8,
+   "value": 6,
    "sky": [
-    "#000000",
-    "#1c1917"
+    "#7e22ce",
+    "#f0abfc"
    ],
-   "ground": "#000000",
+   "ground": "#c026d3",
    "props": [],
    "effect": {
-    "type": "glitch",
-    "layer": "front",
+    "type": "ripple",
+    "layer": "back",
     "params": {
-     "color": "#dc2626",
-     "intensity": 0.9,
-     "scanlines": true,
-     "tear": true
+     "color": "#f5d0fe",
+     "rings": 5,
+     "speed": 0.9,
+     "maxRadius": 220,
+     "warp": true
     }
    }
   },
   "modifiers": [
    {
-    "text": "Stares at the wall for long periods",
-    "emoji": "🧱",
-    "value": -2,
-    "category": "habit",
-    "effect": {
-     "type": "vignette",
-     "layer": "front",
-     "params": {
-      "color": "#1c1917",
-      "opacity": 0.5
-     }
-    }
+    "text": "Kleptomania",
+    "emoji": "💍",
+    "value": -3,
+    "category": "temperament",
+    "effect": null
    },
    {
-    "text": "Does math for treats",
-    "emoji": "🧮",
-    "value": 4,
-    "category": "temperament",
+    "text": "Technically deceased",
+    "emoji": "⚰️",
+    "value": -6,
+    "category": "condition",
     "effect": {
-     "type": "halo",
+     "type": "ghost",
      "layer": "subject",
      "params": {
-      "color": "#38bdf8",
-      "size": 12
+      "opacity": 0.45,
+      "blur": 1.2
      }
     }
    },
    {
-    "text": "Fetch regional champion",
-    "emoji": "🥈",
-    "value": 5,
-    "category": "temperament",
+    "text": "Smells, and everyone knows",
+    "emoji": "🤢",
+    "value": -2,
+    "category": "condition",
     "effect": {
-     "type": "burst",
+     "type": "rise",
      "layer": "front",
      "params": {
-      "color": "#cbd5e1",
-      "count": 28,
-      "spread": 150
+      "color": "#84cc16",
+      "count": 20,
+      "speed": 0.4,
+      "sway": 2.6,
+      "size": 4,
+      "glow": true
      }
     }
    },
    {
-    "text": "Respects the UPS driver, hates the mailman",
-    "emoji": "📦",
-    "value": 0,
-    "category": "temperament",
-    "effect": null
+    "text": "Owner is getting divorced",
+    "emoji": "💔",
+    "value": -3,
+    "category": "circumstance",
+    "effect": {
+     "type": "drain",
+     "layer": "subject",
+     "params": {
+      "amount": 0.5
+     }
+    }
    },
    {
-    "text": "Blind in one eye",
-    "emoji": "👁️",
-    "value": -2,
+    "text": "Allergic to other dogs",
+    "emoji": "🤧",
+    "value": -3,
     "category": "health",
     "effect": {
-     "type": "vignette",
-     "layer": "front",
+     "type": "tint",
+     "layer": "subject",
      "params": {
-      "color": "#000000",
-      "opacity": 0.55
+      "sepia": 0.3,
+      "hue": 320,
+      "saturate": 1.3
      }
     }
    },
    {
-    "text": "Has a better bed than you",
-    "emoji": "🛏️",
-    "value": 2,
-    "category": "circumstance",
-    "effect": null
+    "text": "Deaf, but coping",
+    "emoji": "👂",
+    "value": -1,
+    "category": "health",
+    "effect": {
+     "type": "blur",
+     "layer": "subject",
+     "params": {
+      "amount": 1
+     }
+    }
    },
    {
-    "text": "Expensive tastes",
-    "emoji": "💸",
-    "value": -2,
-    "category": "habit",
+    "text": "Unusually large brain",
+    "emoji": "🧠",
+    "value": 5,
+    "category": "health",
     "effect": {
-     "type": "burst",
+     "type": "pulse",
+     "layer": "back",
+     "params": {
+      "color": "#c084fc",
+      "period": 2200,
+      "radius": 175
+     }
+    }
+   },
+   {
+    "text": "Rick and Morty superfan",
+    "emoji": "🛸",
+    "value": -3,
+    "category": "circumstance",
+    "effect": {
+     "type": "glitch",
      "layer": "front",
      "params": {
       "color": "#4ade80",
-      "count": 22,
-      "spread": 130
-     }
-    }
-   },
-   {
-    "text": "Always drunk",
-    "emoji": "🍺",
-    "value": -2,
-    "category": "habit",
-    "effect": {
-     "type": "wobble",
-     "layer": "subject",
-     "params": {
-      "period": 1400
+      "intensity": 0.5,
+      "scanlines": true
      }
     }
    }
   ],
-  "score": -5,
-  "qualityLabel": "Below Average",
-  "qualityColor": "#fbbf24",
-  "qualityEmoji": "🙃"
+  "score": -10,
+  "qualityLabel": "Rough",
+  "qualityColor": "#fb923c",
+  "qualityEmoji": "😬"
  }
 ]

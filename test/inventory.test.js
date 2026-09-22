@@ -14,7 +14,7 @@ import { readFileSync } from "node:fs";
 import {
   NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS,
   MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS,
-} from "../src/content.js";
+} from "../src/content/index.js";
 
 const was = JSON.parse(readFileSync(new URL("./content-inventory.json", import.meta.url)));
 const by = (key) => (a, b) => String(a[key]).localeCompare(String(b[key]));

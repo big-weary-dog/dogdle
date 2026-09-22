@@ -2,7 +2,7 @@
 // refreshing can't reroll, but two friends on the same day get independent pulls.
 
 import { BREEDS, RARITIES, RARITY_ORDER, breedsByRarity } from "./breeds.js";
-import { NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS } from "./content.js";
+import { NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS } from "./content/index.js";
 
 function mulberry32(seed) {
   return function () {

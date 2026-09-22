@@ -5,7 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, NAMES, QUALITY_TIERS } from "../src/content.js";
+import { BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, NAMES, QUALITY_TIERS } from "../src/content/index.js";
 import { BREEDS, RARITIES, RARITY_ORDER } from "../src/breeds.js";
 
 const spawnable = MODIFIERS.filter((m) => !m.obsolete);

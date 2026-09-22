@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 
 import { rollDailyDog } from "../src/roll.js";
 import { renderCardGif, composeCard, CARD } from "../src/card.js";
-import { BACKGROUNDS, MODIFIERS } from "../src/content.js";
+import { BACKGROUNDS, MODIFIERS } from "../src/content/index.js";
 import ATLAS from "../src/generated/atlas.js";
 
 const GIF89A = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61];
