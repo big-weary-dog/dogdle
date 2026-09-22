@@ -3,8 +3,13 @@
 //
 // Three registers, deliberately mixed: names a dog would actually have, food, and the
 // name of a man who does your taxes.
+//
+// Sorted on export, like the traits and the scenes: a name is picked by index, so without
+// this the order they happen to sit in below decides which dog is called what, and adding
+// one in the middle re-deals every future name. Grouped here for reading, not for the
+// generator.
 
-export const NAMES = [
+const POOL = [
   "Bailey", "Maple", "Kevin", "Biscuit", "Pickle", "Waffles", "Moose", "Nugget",
   "Olive", "Bruno", "Daisy", "Tank", "Pepper", "Gus", "Luna", "Bean",
   "Rufus", "Mochi", "Cooper", "Noodle", "Winston", "Sadie", "Bagel", "Hazel",
@@ -31,3 +36,5 @@ export const NAMES = [
   "Janet", "Barry", "Cheryl", "Dennis", "Sandra", "Gerald", "Pauline", "Trevor",
   "Denise", "Roger", "Sheila", "Norman", "Lorraine", "Keith", "Yvonne", "Craig",
 ];
+
+export const NAMES = [...POOL].sort((a, b) => a.localeCompare(b));
