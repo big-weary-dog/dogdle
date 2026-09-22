@@ -1,9 +1,10 @@
 import { rollDailyDog, today } from "./roll.js";
 import { renderCardGif } from "./card.js";
-import { BREEDS, photoEndpoint } from "./breeds.js";
+import { BREEDS } from "./breeds.js";
+import { handleBot } from "./bot.js";
+import { fetchBreedPhoto, fetchPhotoBytes, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
+import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, cleanName, boardRow } from "./keys.js";
 
-const PLAYER_ID_RE = /^[a-zA-Z0-9-]{8,64}$/;
-const PHOTO_TIMEOUT_MS = 4000;
 const MAX_CARD_BYTES = 8_000_000; // animated cards are far heavier than a still
 const CARD_TTL_SECONDS = 60 * 60 * 24 * 30;
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
@@ -17,51 +18,18 @@ function sniffImageType(buf) {
   return null;
 }
 
-const cardKey = (player, date) => `card:${player}:${date}`;
-// A player's own roll, and the per-day index the leaderboard lists over.
-const rollKey = (player, date) => `roll:${player}:${date}`;
-const dayKey = (date, player) => `day:${date}:${player}`;
-
-const cleanName = (raw) =>
-  String(raw || "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 20);
-
 const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
   );
 
-// Dog CEO gives a random photo per call; we want the same photo all day for a given dog,
-// so the result is cached in KV-less fashion via the Cloudflare cache keyed by breed+date.
-async function fetchBreedPhoto(slug, dateStr) {
-  const cacheKey = new Request(`https://dogdle.internal/photo/${slug}/${dateStr}`);
-  const cache = caches.default;
-
-  const hit = await cache.match(cacheKey);
-  if (hit) return (await hit.json()).url;
-
-  try {
-    const res = await fetch(photoEndpoint(slug), {
-      signal: AbortSignal.timeout(PHOTO_TIMEOUT_MS),
-    });
-    if (!res.ok) return null;
-    const body = await res.json();
-    if (body.status !== "success" || typeof body.message !== "string") return null;
-
-    await cache.put(
-      cacheKey,
-      new Response(JSON.stringify({ url: body.message }), {
-        headers: { "content-type": "application/json", "cache-control": "max-age=86400" },
-      })
-    );
-    return body.message;
-  } catch {
-    return null; // frontend falls back to a rendered scene without a photo
-  }
-}
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (url.pathname.startsWith("/api/bot/")) {
+      return handleBot(request, url, env);
+    }
 
     if (url.pathname === "/api/roll") {
       const player = url.searchParams.get("player") || "";
@@ -92,16 +60,7 @@ export default {
         metadata: { date, score: dog.score, breed: dog.breed, name: dog.name },
       });
       // The leaderboard reads entirely from list metadata, so it never fetches values.
-      await env.STORE.put(dayKey(date, player), "", {
-        metadata: {
-          player: name,
-          dog: dog.name,
-          breed: dog.breed,
-          score: dog.score,
-          quality: dog.qualityLabel,
-          emoji: dog.background.emoji,
-        },
-      });
+      await env.STORE.put(dayKey(date, player), "", { metadata: boardRow(name, dog) });
 
       return Response.json(dog, { headers: { "cache-control": "no-store" } });
     }
@@ -118,22 +77,13 @@ export default {
       const saved = await env.STORE.get(rollKey(player, date), "json");
       if (!saved) return Response.json({ ok: false });
 
-      await env.STORE.put(dayKey(date, player), "", {
-        metadata: {
-          player: name,
-          dog: saved.name,
-          breed: saved.breed,
-          score: saved.score,
-          quality: saved.qualityLabel,
-          emoji: saved.background.emoji,
-        },
-      });
+      await env.STORE.put(dayKey(date, player), "", { metadata: boardRow(name, saved) });
       return Response.json({ ok: true });
     }
 
     // Today's scores across everyone who has rolled.
     if (url.pathname === "/api/leaderboard") {
-      const date = /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get("date") || "")
+      const date = DATE_RE.test(url.searchParams.get("date") || "")
         ? url.searchParams.get("date")
         : today();
 
@@ -184,7 +134,7 @@ export default {
       } catch {
         return new Response("bad url", { status: 400 });
       }
-      if (parsed.protocol !== "https:" || parsed.hostname !== "images.dog.ceo") {
+      if (parsed.protocol !== "https:" || parsed.hostname !== PHOTO_HOST) {
         return new Response("forbidden host", { status: 403 });
       }
 
@@ -205,7 +155,7 @@ export default {
     if (url.pathname === "/api/card" && request.method === "PUT") {
       const player = url.searchParams.get("player") || "";
       const date = url.searchParams.get("date") || "";
-      if (!PLAYER_ID_RE.test(player) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      if (!PLAYER_ID_RE.test(player) || !DATE_RE.test(date)) {
         return Response.json({ error: "bad params" }, { status: 400 });
       }
 
@@ -229,7 +179,7 @@ export default {
     if (url.pathname.startsWith("/i/")) {
       const [, , player, file] = url.pathname.split("/");
       const date = (file || "").replace(/\.(png|gif)$/, "");
-      if (!PLAYER_ID_RE.test(player || "") || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      if (!PLAYER_ID_RE.test(player || "") || !DATE_RE.test(date)) {
         return new Response("not found", { status: 404 });
       }
 
@@ -244,11 +194,13 @@ export default {
       });
     }
 
-    // Server-rendered card, for the Discord bot (and handy for eyeballing the renderer).
+    // Renders a throwaway card on demand, for eyeballing the renderer the bot uses. The
+    // bot's own cards come from /api/bot/roll, which stores them; this one is never kept.
     if (url.pathname === "/api/render-card") {
       const seed = url.searchParams.get("seed") || crypto.randomUUID();
       const dog = rollDailyDog(`dev-${seed}`, today());
-      const gif = renderCardGif(dog);
+      dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
+      const gif = renderCardGif(dog, { photo: await fetchPhotoBytes(dog.photo) });
       return new Response(gif, {
         headers: { "content-type": "image/gif", "cache-control": "no-store" },
       });
@@ -283,7 +235,7 @@ Resetting…
     // card with the real breed photo. No storage, nothing to expire.
     if (url.pathname.startsWith("/s/")) {
       const [, , player, date] = url.pathname.split("/");
-      if (!PLAYER_ID_RE.test(player || "") || !/^\d{4}-\d{2}-\d{2}$/.test(date || "")) {
+      if (!PLAYER_ID_RE.test(player || "") || !DATE_RE.test(date || "")) {
         return new Response("not found", { status: 404 });
       }
 

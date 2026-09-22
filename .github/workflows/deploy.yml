@@ -24,3 +24,16 @@ jobs:
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      # The Discord bot API answers 503 until this is set, so a missing secret is safe --
+      # it leaves the endpoints closed rather than open.
+      - name: Sync the bot token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          BOT_TOKEN: ${{ secrets.DOGDLE_BOT_TOKEN }}
+        run: |
+          if [ -z "$BOT_TOKEN" ]; then
+            echo "DOGDLE_BOT_TOKEN is not set; leaving /api/bot/* closed"
+            exit 0
+          fi
+          printf '%s' "$BOT_TOKEN" | npx wrangler secret put BOT_TOKEN

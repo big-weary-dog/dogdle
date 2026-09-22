@@ -111,16 +111,26 @@ A single Cloudflare Worker serves both the API and the static assets.
 ```
 src/
   worker.js    routes: roll, leaderboard, history, card upload/serve, image proxy, share page
+  bot.js       the Discord bot API (/api/bot/*)
   roll.js      the deterministic generator and the Eastern day boundary
   content.js   backgrounds, traits, names, tier thresholds
   breeds.js    breed table and rarity weights
+  keys.js      the KV key layout, shared by the web routes and the bot
+  photo.js     Dog CEO lookup and photo bytes
+  card.js      the headless card renderer — scene, dog, trait sidebar, GIF
+  raster.js    a pixel-buffer implementation of the slice of Canvas 2D effects.js uses
+  draw.js      text, emoji and photo blitting over that buffer
+  generated/   atlas.js — baked glyphs and emoji (built, committed, not edited)
+  vendor/      jpeg-decoder.js, vendored (Workers have no image decoder)
 public/
   index.html   the game
   app.js       roll, render, capture the GIF, leaderboard
   dev.js/html  /dev — unlimited rerolls for playtesting
   effects.js   the canvas renderer: effect types, layers, props, subject CSS
   vendor/      gifenc, vendored (see package.json devDependencies for the source)
-test/          node:test suites — content, roll, effects
+scripts/
+  build-atlas.mjs   bakes the glyph/emoji atlas with a headless browser
+test/          node:test suites — content, roll, effects, card, bot
 ```
 
 ### Storage
@@ -131,6 +141,7 @@ One KV namespace, separated by key prefix:
 |---|---|
 | `roll:<player>:<date>` | The full dog, written once and replayed forever after |
 | `day:<date>:<player>` | Leaderboard entry — summary lives in **list metadata**, so the board is one `list` call and never fetches values |
+| `guild:<guild>:<date>:<player>` | The same row, scoped to one Discord server |
 | `card:<player>:<date>` | The rendered share GIF, 30-day TTL |
 
 **Rolls are immutable.** The first roll of a day is stored; every later load replays it.
@@ -159,12 +170,75 @@ more, but links shared before the format changed are live, so it stays.
 
 ---
 
+## Discord bot API
+
+A bot owns its own schedule: it calls `POST /api/bot/roll` when someone asks for their
+dog, and the Worker deals one, renders the card and hands back an image URL. Nothing here
+is a cron — the Worker never wakes on its own.
+
+**Discord users are their own players.** A snowflake maps to `discord-<id>`, which can't
+collide with the web game's UUIDs, so rolling in Discord doesn't consume the roll on the
+website and vice versa. Scores from both land on the same global board; a guild-scoped
+index is written as well, so a server can show only its own people.
+
+Every route needs `Authorization: Bearer $BOT_TOKEN` (a Worker secret). An open roll
+endpoint would let anyone burn someone else's day. With no secret set the API answers
+`503` — a missing token must never mean "no auth required".
+
+| Route | Does |
+|---|---|
+| `POST /api/bot/roll` | `{ discordId, guildId?, displayName? }` → deals today's dog, or replays it. Idempotent. |
+| `GET /api/bot/dog?discordId=&date=` | Today's dog **without** dealing one — `{ pending: true }` if they haven't rolled. |
+| `GET /api/bot/leaderboard?guildId=&date=` | Scores for a date. No `guildId` gives the global board. |
+| `GET /api/bot/history?discordId=` | Every dog that player has been dealt, newest first. |
+
+A roll answers with the pieces of a message, not a formatted one:
+
+```json
+{
+  "name": "Jellybean", "breed": "Bluetick Coonhound",
+  "rarity": "Common", "score": 1, "quality": "Perfectly Average",
+  "background": { "name": "A Parking Lot at Night", "emoji": "🎫", "value": -1 },
+  "traits": [{ "text": "Local celebrity", "emoji": "👑", "value": 6 }],
+  "image": "https://dogdle.swampkat.com/i/discord-1234.../2026-09-22.gif",
+  "text": "Jellybean the Bluetick Coonhound — Perfectly Average (+1)",
+  "replayed": false
+}
+```
+
+`image` is a plain GIF URL, so posting it bare unfurls as an image with no card chrome.
+The traits are already drawn into the card's sidebar, which is the point: the message can
+be mostly the GIF.
+
+### Rendering a card without a canvas
+
+Workers have no canvas, no DOM and no image decoder, so the card is rendered onto a plain
+pixel buffer:
+
+- `src/raster.js` implements the 25 members of Canvas 2D that `public/effects.js` actually
+  calls (shadows and filters are accepted and ignored). The point is that **effects.js runs
+  unchanged** — the alternative was a second implementation of every effect, which would
+  drift the first time anyone added one.
+- Glyphs and emoji can't be rasterised at runtime, so `scripts/build-atlas.mjs` bakes them
+  with a headless browser into `src/generated/atlas.js` — text as alpha coverage (so it can
+  be tinted), emoji as RGBA. **Add an emoji to the content tables and you must re-run it**;
+  `npm test` fails if the atlas is missing one.
+- Breed photos are JPEG, decoded by a vendored pure-JS decoder.
+
+The world and the sidebar are static, so both are painted once and copied per frame —
+profiling showed `paintWorld` was 509ms of a 629ms render before that. A 560×320, 12-frame
+card is roughly 300ms and 250KB, and is cached in KV so a re-ask is a read.
+
+`GET /api/render-card?seed=…` renders a throwaway card on demand, for eyeballing.
+
+---
+
 ## Development
 
 ```bash
 npm install
 npm run dev      # wrangler dev, with local KV
-npm test         # 31 checks over the generator and content tables
+npm test         # 44 checks over the generator, content tables, renderer and bot API
 npm run deploy   # or just push — CI deploys on every push to the branch
 ```
 
@@ -184,15 +258,23 @@ balance, DST handling), and the contract between them: **every effect type the c
 references must exist in the engine**, since an unknown type is skipped silently and just
 looks like a trait with no visual.
 
+It also renders a card through **every effect in the content tables**, parses the result as
+a GIF, and runs the bot API against an in-memory KV — that a second roll never deals a
+second dog, that the endpoints are shut without the token, and that junk ids are rejected
+before anything is written.
+
 The suite is mutation-checked: a bogus effect type, letting retired traits spawn, and
 shifting every trait by one each fail with a specific message.
 
 ### Deployment
 
 Pushes to `claude/swampkat-online-game-wuc3kt` run `.github/workflows/deploy.yml`, which
-runs the tests and then deploys. `kv-peek.yml` is a manual, read-only workflow that dumps
-live leaderboard state — useful because the Cloudflare API is not reachable from every
-development environment.
+runs the tests, deploys, and syncs `BOT_TOKEN` from the `DOGDLE_BOT_TOKEN` repository
+secret. Generate one with `openssl rand -hex 32`; until it is set, `/api/bot/*` answers
+`503`. For local work put `BOT_TOKEN=anything` in `.dev.vars`, which is gitignored.
+
+`kv-peek.yml` is a manual, read-only workflow that dumps live leaderboard state — useful
+because the Cloudflare API is not reachable from every development environment.
 
 ---
 
