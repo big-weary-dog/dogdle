@@ -15,8 +15,26 @@ jobs:
     env:
       TOKEN: ${{ secrets.DOGDLE_BOT_TOKEN }}
     steps:
-      - name: Write the formatters
+      - name: Write the helpers
         run: |
+          # Anything that isn't a 2xx JSON body gets dumped in full: a failure here is as
+          # likely to be Cloudflare in front of the Worker as the Worker itself, and a
+          # JSON parse error tells you nothing about which.
+          cat > /tmp/call.sh <<'SH'
+          #!/usr/bin/env bash
+          set -uo pipefail
+          out=$1; shift
+          code=$(curl -sS -o "$out" -D /tmp/headers.txt -w '%{http_code}' "$@")
+          if [ "$code" != "200" ]; then
+            echo "--- HTTP $code ---"
+            cat /tmp/headers.txt
+            echo "--- body (first 1500 bytes) ---"
+            head -c 1500 "$out"; echo
+            exit 22
+          fi
+          SH
+          chmod +x /tmp/call.sh
+
           cat > /tmp/roll.py <<'PY'
           import json, sys
           d = json.load(sys.stdin)
@@ -55,14 +73,16 @@ jobs:
           set -euo pipefail
           if [ -z "$TOKEN" ]; then echo "DOGDLE_BOT_TOKEN is not set on this repo"; exit 1; fi
 
+          echo "=== GET / (is the Worker reachable at all?) ==="
+          curl -sS -o /dev/null -w '  http %{http_code} in %{time_total}s\n' "$BASE/"
+
           for pair in 900000000000000001:mock-alpha 900000000000000002:mock-bravo 900000000000000003:mock-charlie; do
             id=${pair%%:*}; name=${pair##*:}
             echo "=== POST /api/bot/roll  ($name) ==="
-            curl -sS -X POST "$BASE/api/bot/roll" \
+            /tmp/call.sh "/tmp/$name.json" -X POST "$BASE/api/bot/roll" \
               -H "Authorization: Bearer $TOKEN" \
               -H 'content-type: application/json' \
-              -d "{\"discordId\":\"$id\",\"guildId\":\"$GUILD\",\"displayName\":\"$name\",\"test\":true}" \
-              -o "/tmp/$name.json" -w '[http %{http_code} in %{time_total}s]\n'
+              -d "{\"discordId\":\"$id\",\"guildId\":\"$GUILD\",\"displayName\":\"$name\",\"test\":true}"
             python3 /tmp/roll.py < "/tmp/$name.json"
             echo
           done
