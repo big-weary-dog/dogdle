@@ -22,7 +22,7 @@ Every dog is four independent rolls, combined:
 | **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
 | **Background** | `src/content/backgrounds.js` | 46 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
 | **Name** | `src/content/names.js` | Flat pick from 150. |
-| **Traits** | `src/content/traits/` | 138 of them; 4–8 per dog, averaging 6, drawn without replacement. Some belong to a **group** — see below. |
+| **Traits** | `src/content/traits/` | 158 of them; 4–8 per dog, averaging 6, drawn without replacement. 65 belong to a **group** — see below. |
 
 **Score** = the breed's value + the background's value + every trait's value. The content
 is balanced so the average dog scores **0** — see [Balance](#balance).
@@ -97,9 +97,16 @@ smells of one thing. A trait carrying a `group` blocks every other trait in that
 { text: "Starved", emoji: "🍽️", value: -5, category: "condition", group: "build", ... },
 ```
 
-`build` (8), `smell` (4), `money` (3), `fame` (3), `loyalty` (3), `mind` (2). A blocked
-trait is dropped rather than retried, so the dog still gets its full four to eight — the
-pool is far larger than the number drawn.
+Twelve groups, 65 traits: `build` (10), `job` (8), `fame` (6), `smell` (6), `fetch` (5),
+`homes` (5), `loyalty` (5), `mind` (5), `money` (5), `camera` (4), `training` (4),
+`cats` (2). A blocked trait is dropped rather than retried, so the dog still gets its full
+four to eight — the pool is 152 deep and six are drawn.
+
+The bar for a group is that its members are **inherently exclusive** — not merely on a
+theme. A dog holds one rank in `fetch`, has one `job`, is one shape. Traits that merely
+rhyme stay ungrouped: being under investigation and being named in a lawsuit are both
+perfectly possible, so there is no `legal` group. And "Ate a bee" / "Ate a bee. Again."
+must never be grouped, because stacking them is the joke.
 
 `group` is orthogonal to `category`: the category decides which file a trait lives in, the
 group decides what it excludes. A group of one excludes nothing, and `npm test` fails on
@@ -115,9 +122,16 @@ Two of the three parts pull upward: a rarity-weighted breed mean of **+0.92** an
 background mean of **+1.04**. With six traits per dog, the trait pool has to average
 about **−0.34** for the whole thing to centre on zero.
 
-**Groups push the mean up too**, which is easy to miss: most of them are largely negative,
-and excluding their duplicates removes the worst stacks. Adding the six groups moved the
-mean from +0.004 to +0.280 on its own, before a single new trait was counted.
+**Groups move the mean**, which is easy to miss, and not always upward. The first six
+were largely negative, so excluding their duplicates removed the worst stacks and pushed
+the mean from +0.004 to +0.280 before a single new trait counted. The second batch leaned
+the other way — `job` alone capped a dog that could previously hold Supreme Court Justice,
+Megacorporation CEO, Dogdle developer and Practicing therapist at once for +23 — so the
+correction that round was *upward*. Either way the fix is the same rule, applied in
+whichever direction: one point at a time, across distinct ungrouped traits.
+
+That `job` cap is deliberate. A dog with four careers is noise rather than a jackpot, and
+the Platonic Ideal tier is meant to be hard.
 
 When a change pushes it off, the correction is spread **one point at a time across
 distinct traits** in the −4…−2 band, across all five categories. Concentrating it on the
@@ -127,8 +141,8 @@ drama out of an extreme roll.
 Breeds and backgrounds are deliberately left lopsided (Heaven +12, Hell −7). They are the
 jackpots.
 
-Measured over 80k rolls: mean **−0.011**, median 0, tiers landing at roughly
-0.5 / 5.3 / 14.2 / 20.8 / **19.3** / 20.0 / 13.6 / 5.3 / 0.9.
+Measured over 80k rolls: mean **+0.066**, median 0, tiers landing at roughly
+0.4 / 4.6 / 13.7 / 21.2 / **20.4** / 20.6 / 13.2 / 5.1 / 0.6.
 
 `npm test` fails if the mean drifts past ±0.5.
 

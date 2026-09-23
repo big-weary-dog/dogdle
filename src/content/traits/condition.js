@@ -12,6 +12,15 @@
 // Never delete a trait. Mark it `obsolete: true` -- stored dogs still reference theirs.
 
 export const CONDITION = [
+  { text: "Unwashed", emoji: "🧼", value: -3, category: "condition", group: "smell",
+    effect: { type: "tint", layer: "subject", params: { sepia: 0.3, hue: 20, saturate: 0.85 } } },
+  { text: "Smells of the sea", emoji: "🐚", value: 1, category: "condition", group: "smell", effect: null },
+  { text: "Deceptively heavy", emoji: "⚖️", value: 0, category: "condition", group: "build", effect: null },
+  { text: "Built like a brick", emoji: "🏗️", value: 1, category: "condition", group: "build",
+    effect: { type: "squish", layer: "subject", params: { period: 1900 } } },
+  { text: "Photogenic, annoyingly", emoji: "📸", value: 3, category: "condition", group: "camera",
+    effect: { type: "burst", layer: "front", params: { color: "#e5e7eb", count: 16, spread: 110 } } },
+
   // ----- build: a dog is one shape, so only one of these can land -----
   { text: "Morbidly obese", emoji: "🍔", value: -4, category: "condition", group: "build",
     effect: { type: "squish", layer: "subject", params: { period: 1400 } } },
@@ -34,7 +43,7 @@ export const CONDITION = [
     effect: { type: "rise", layer: "front", params: { color: "#fcd34d", count: 14, speed: 0.5, sway: 2, size: 3 } } },
 
   { text: "Wearing a small hat", emoji: "🎩", value: 3, category: "condition", effect: null },
-  { text: "Cone of shame", emoji: "🔺", value: -2, category: "condition",
+  { text: "Cone of shame", emoji: "🔺", value: -1, category: "condition",
     effect: { type: "fog", layer: "front", params: { color: "#94a3b8", bands: 2, opacity: 0.3, speed: 0.5 } } },
   { text: "Covered in mud", emoji: "🟤", value: -2, category: "condition",
     effect: { type: "fall", layer: "front", params: { color: "#78350f", shape: "dot", count: 40, speed: 1.4, sway: 1, size: 4.5 } } },
@@ -47,9 +56,9 @@ export const CONDITION = [
   { text: "Soaking wet", emoji: "💧", value: -1, category: "condition",
     effect: { type: "fall", layer: "front", params: { color: "#93c5fd", shape: "line", count: 34, speed: 2.4, sway: 0, size: 10 } } },
   { text: "Surrounded by bees", emoji: "🐝", value: -4, category: "condition", effect: null },
-  { text: "Slightly out of focus, always", emoji: "🌫️", value: -2, category: "condition",
+  { text: "Slightly out of focus, always", emoji: "🌫️", value: -2, category: "condition", group: "camera",
     effect: { type: "blur", layer: "subject", params: { amount: 2.2 } } },
-  { text: "Photographs badly", emoji: "📷", value: -1, category: "condition",
+  { text: "Photographs badly", emoji: "📷", value: -1, category: "condition", group: "camera",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.7, hue: 10, saturate: 1.8 } } },
   { text: "Glows faintly. Unexplained.", emoji: "🔮", value: 4, category: "condition",
     effect: { type: "halo", layer: "subject", params: { color: "#22d3ee", size: 18, brightness: 1.2 } } },
@@ -57,7 +66,7 @@ export const CONDITION = [
     effect: { type: "ghost", layer: "subject", params: { opacity: 0.45, blur: 1.2 } } },
   { text: "Statistically the luckiest dog alive", emoji: "🍀", value: 5, category: "condition",
     effect: { type: "burst", layer: "front", params: { color: "#4ade80", count: 44, spread: 200, confetti: true } } },
-  { text: "Cannot be photographed properly", emoji: "📵", value: -2, category: "condition",
+  { text: "Cannot be photographed properly", emoji: "📵", value: -2, category: "condition", group: "camera",
     effect: { type: "ghost", layer: "subject", params: { opacity: 0.6, blur: 1.4 } } },
   { text: "Smells like a hospital", emoji: "🏥", value: -2, category: "condition", group: "smell",
     effect: { type: "fog", layer: "front", params: { color: "#e0f2fe", bands: 3, opacity: 0.24, speed: 0.35 } } },

@@ -18,7 +18,7 @@ export const HABIT = [
   { text: "Zoomies at 3am", emoji: "💨", value: -1, category: "habit",
     effect: { type: "wobble", layer: "subject", params: { period: 280 } } },
   { text: "Steals food off the counter", emoji: "🥩", value: -2, category: "habit", effect: null },
-  { text: "Digs holes in the yard", emoji: "🕳️", value: -2, category: "habit",
+  { text: "Digs holes in the yard", emoji: "🕳️", value: -1, category: "habit",
     effect: { type: "fall", layer: "front", params: { color: "#92400e", shape: "square", count: 30, speed: 1.3, sway: 0.6, size: 5 } } },
   { text: "Rolls in dead things", emoji: "🦨", value: -3, category: "habit",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.6, hue: 60, saturate: 0.7 } } },

@@ -42,6 +42,6 @@ export const HEALTH = [
     effect: { type: "chromatic", layer: "subject", params: { offset: 3 } } },
   { text: "Shits itself sometimes", emoji: "💩", value: -4, category: "health",
     effect: { type: "fall", layer: "front", params: { color: "#78350f", shape: "dot", count: 16, speed: 1.6, sway: 0.8, size: 6 } } },
-  { text: "Unusually large brain", emoji: "🧠", value: 5, category: "health",
+  { text: "Unusually large brain", emoji: "🧠", value: 5, category: "health", group: "mind",
     effect: { type: "pulse", layer: "back", params: { color: "#c084fc", period: 2200, radius: 175 } } },
 ];
