@@ -64,10 +64,26 @@ test("subject styles compose into usable CSS", () => {
 });
 
 test("background props use shapes the renderer draws", () => {
-  const SHAPES = new Set(["rect", "ellipse", "tri", "hills"]);
+  const SHAPES = new Set(["rect", "ellipse", "tri", "hills", "poly"]);
   for (const b of BACKGROUNDS) {
     for (const p of b.props ?? []) {
       assert.ok(SHAPES.has(p.shape), `unknown prop shape "${p.shape}" in ${b.key}`);
+
+      // A polygon is placed by its outline, not by x/y, so it's checked on its own terms.
+      if (p.shape === "poly") {
+        assert.ok(Array.isArray(p.points) && p.points.length >= 3, `poly in ${b.key} needs 3+ points`);
+        for (const pt of p.points) {
+          assert.ok(
+            Array.isArray(pt) && pt.length === 2 && pt.every((n) => typeof n === "number"),
+            `bad poly point in ${b.key}: ${JSON.stringify(pt)}`
+          );
+          // Relative coordinates; a little overhang is how a hull runs off the edge, but
+          // a point at 5 almost always means someone wrote pixels.
+          assert.ok(pt.every((n) => n >= -0.25 && n <= 1.25), `poly point off-canvas in ${b.key}: ${pt}`);
+        }
+        continue;
+      }
+
       if (p.shape !== "hills") {
         assert.equal(typeof p.x, "number", `prop missing x in ${b.key}`);
       }

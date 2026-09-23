@@ -16,14 +16,14 @@ export const CIRCUMSTANCE = [
   { text: "Has strong opinions about the bin collection", emoji: "🗑️", value: 1, category: "circumstance", effect: null },
   { text: "Attended one protest. Unclear which side.", emoji: "📣", value: 0, category: "circumstance", effect: null },
   { text: "Served on a jury", emoji: "👨‍⚖️", value: 2, category: "circumstance", effect: null },
-  { text: "Banned from the community group chat", emoji: "💬", value: -2, category: "circumstance", effect: null },
+  { text: "Banned from the community group chat", emoji: "💬", value: -1, category: "circumstance", effect: null },
 
   // ----- the machine -----
   { text: "In an AI training set", emoji: "🤖", value: 2, category: "circumstance",
     effect: { type: "glitch", layer: "front", params: { color: "#38bdf8", intensity: 0.25, scanlines: true } } },
   { text: "Wearing a GPS collar he has defeated", emoji: "📡", value: -1, category: "circumstance", effect: null },
   { text: "Smart collar reports him to you", emoji: "🔔", value: -1, category: "circumstance", effect: null },
-  { text: "Has been mistaken for a robot", emoji: "⚙️", value: -2, category: "circumstance",
+  { text: "Has been mistaken for a robot", emoji: "⚙️", value: -1, category: "circumstance",
     effect: { type: "chromatic", layer: "subject", params: { offset: 2 } } },
 
   { text: "Owns nothing", emoji: "🫙", value: -1, category: "circumstance", group: "money", effect: null },

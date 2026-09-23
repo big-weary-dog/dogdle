@@ -90,13 +90,19 @@ const EFFECTS = {
         ctx.globalAlpha = p.opacity ?? 0.85;
         for (const part of parts) {
           part.y += ((p.speed ?? 0.5) * dt) / 900;
-          if (part.y > 1.1) { part.y = -0.1; part.x = Math.random(); }
+          // Wrap by the overshoot rather than resetting to a fixed line. A reset put every
+          // particle that crossed the bottom in the same step onto the same row, and at
+          // the GIF's 120ms step that was most of them: snow fell in visible bands.
+          if (part.y > 1.1) { part.y -= 1.2; part.x = Math.random(); }
           part.rot += part.spin * dt * 0.06;
 
           const sway = Math.sin(t / 900 + part.phase) * (p.sway ?? 0) * 0.02;
           const angle = p.angle ?? 0;
           const x = (part.x + sway + part.y * angle) * w;
-          drawShape(ctx, p.shape ?? "dot", x % w, part.y * h, (p.size ?? 4) * part.s, part.rot);
+          // Rain streaks point along their fall, all of them. A random rotation is right
+          // for a leaf and made rain read as scattered ticks.
+          const rot = p.shape === "line" ? -Math.atan(angle) : part.rot;
+          drawShape(ctx, p.shape ?? "dot", x % w, part.y * h, (p.size ?? 4) * part.s, rot);
         }
         ctx.globalAlpha = 1;
       },
@@ -120,7 +126,7 @@ const EFFECTS = {
 
         for (const part of parts) {
           part.y -= ((p.speed ?? 0.5) * dt) / 900;
-          if (part.y < -0.1) { part.y = 1.1; part.x = Math.random(); }
+          if (part.y < -0.1) { part.y += 1.2; part.x = Math.random(); }
 
           const sway = Math.sin(t / 700 + part.phase) * (p.sway ?? 0) * 0.02;
           const x = ((part.x + sway) * w + w) % w;
@@ -321,17 +327,24 @@ const EFFECTS = {
           if (puff.x > 1.3) puff.x = -0.3;
           if (puff.x < -0.3) puff.x = 1.3;
 
-          const cx = puff.x * w;
+          // Three soft circles in a row rather than one circular gradient filled into a
+          // half-height ellipse. The ellipse cut the gradient off top and bottom while it
+          // was still half opaque, so every puff had hard edges and fog read as a stack
+          // of lozenges. Circles fade to nothing on every side, in both renderers.
           const cy = puff.y * h;
-          const r = puff.r * w;
-          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-          grad.addColorStop(0, rgba(p.color, (p.opacity ?? 0.25) * 0.9));
-          grad.addColorStop(0.6, rgba(p.color, (p.opacity ?? 0.25) * 0.35));
-          grad.addColorStop(1, rgba(p.color, 0));
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.ellipse(cx, cy, r, r * 0.5, 0, 0, TAU);
-          ctx.fill();
+          const rr = puff.r * w * 0.5;
+          const op = (p.opacity ?? 0.25) * 0.7;
+          for (const k of [-1, 0, 1]) {
+            const cx = puff.x * w + k * rr * 0.9;
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rr);
+            grad.addColorStop(0, rgba(p.color, op));
+            grad.addColorStop(0.55, rgba(p.color, op * 0.45));
+            grad.addColorStop(1, rgba(p.color, 0));
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, rr, 0, TAU);
+            ctx.fill();
+          }
         }
       },
     };
@@ -498,6 +511,17 @@ function drawProps(ctx, w, h, props) {
           ctx.lineTo(px + pw / 2, py + ph);
           ctx.closePath();
           break;
+        // Any outline, in the same relative coordinates as everything else. Rects,
+        // ellipses and triangles can't lean, which is why the listing ship never listed.
+        case "poly": {
+          const pts = prop.points ?? [];
+          pts.forEach(([ax, ay], i) => {
+            const X = (ax - prop.x) * w + px, Y = ay * h;
+            if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+          });
+          ctx.closePath();
+          break;
+        }
         case "hills": {
           ctx.moveTo(0, h);
           for (let i = 0; i <= w; i += 6) {

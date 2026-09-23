@@ -40,7 +40,7 @@ export const HEALTH = [
   { text: "Hip dysplasia", emoji: "🦴", value: -4, category: "health", effect: null },
   { text: "Blind in one eye", emoji: "👁️", value: -3, category: "health",
     effect: { type: "vignette", layer: "front", params: { color: "#000000", opacity: 0.55 } } },
-  { text: "Three legs", emoji: "🦿", value: -2, category: "health",
+  { text: "Three legs", emoji: "🦿", value: -1, category: "health",
     effect: { type: "wobble", layer: "subject", params: { period: 900 } } },
   { text: "Ate a sock. Surgically removed.", emoji: "🧦", value: -4, category: "health", effect: null },
   { text: "$400 a month in medication", emoji: "💊", value: -5, category: "health", effect: null },

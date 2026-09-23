@@ -20,7 +20,7 @@ Every dog is four independent rolls, combined:
 | Part | Source | Notes |
 |---|---|---|
 | **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
-| **Background** | `src/content/backgrounds.js` | 46 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
+| **Background** | `src/content/backgrounds.js` | 60 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
 | **Name** | `src/content/names.js` | Flat pick from 150. |
 | **Traits** | `src/content/traits/` | 192 of them; 4–8 per dog, averaging 6, drawn without replacement. 92 belong to a **group** — see below. |
 
@@ -64,10 +64,28 @@ Each background and trait declares its visual as data — `{ type, layer, params
 The stage is two canvases with the photo sandwiched between them, so front-layer effects
 genuinely pass in front of the animal.
 
-Backgrounds can also declare **props** — a few silhouettes in relative coordinates
-(`rect`, `ellipse`, `tri`, `hills`) drawn behind the dog. Without them every scene was a
+Backgrounds can also declare **props** — silhouettes in relative coordinates (`rect`,
+`ellipse`, `tri`, `hills`, `poly`) drawn behind the dog. Without them every scene was a
 sky gradient over a flat band, and 46 different places looked like one place in different
-colours.
+colours. `poly` takes an outline, `points: [[x, y], ...]`, and exists because the other four
+can't lean: the listing cruise ship never listed until it could.
+
+**The dog covers the middle** — roughly x 0.2–0.8, y 0.15–0.77 — so a scene is seen at its
+edges, along the top, and on the ground in front. The backgrounds that work all frame the
+dog: curtains at both sides, trees at the corners, an eclipse in the top corner. One big
+prop in the centre is simply never seen.
+
+To look at them, render a contact sheet through the real pipeline rather than trusting the
+data. Three bugs in the shared effects were invisible until someone did, all of them in
+the web page as well as the cards:
+
+- **Rain fell as scattered ticks.** Every falling particle got a random rotation, which is
+  right for a leaf and wrong for rain. Line particles now point along their fall.
+- **Snow fell in rows.** A particle leaving the bottom reset to a fixed line at the top, so
+  at the GIF's 120ms step everything that wrapped in the same frame landed on the same row.
+  Particles now wrap by their overshoot and stay desynchronised.
+- **Fog had hard edges.** Each puff was a circular gradient filled into an ellipse half as
+  tall, which cut the fade off while it was still half opaque. Puffs are now soft circles.
 
 Trait emoji appear in a fixed rail down the right edge of the stage. They used to orbit
 the dog, which read as scattered clip art; a fixed rail reads as designed.
@@ -120,8 +138,13 @@ one.
 The average dog scores 0 by construction, not by moving the goalposts.
 
 Two of the three parts pull upward: a rarity-weighted breed mean of **+0.92** and a
-background mean of **+1.04**. With six traits per dog, the trait pool has to average
-about **−0.34** for the whole thing to centre on zero.
+background mean of **+0.84**. With six traits per dog, the trait pool has to average
+about **−0.30** for the whole thing to centre on zero.
+
+The background mean was +1.04 until the 14 added in the background pass. Their values were
+set by what each place deserves, not by what the mean needed — a Timeshare Presentation is
+worse than Hell and says so — and the traits absorbed the difference. That is the intended
+division of labour: backgrounds are the lopsided jackpots, traits are the balancer.
 
 **Groups move the mean**, which is easy to miss, and not always upward. The first six
 were largely negative, so excluding their duplicates removed the worst stacks and pushed
@@ -142,8 +165,16 @@ drama out of an extreme roll.
 Breeds and backgrounds are deliberately left lopsided (Heaven +12, Hell −7). They are the
 jackpots.
 
-Measured over 80k rolls: mean **−0.054**, median 0, tiers landing at roughly
-0.4 / 4.2 / 13.6 / 21.9 / **21.3** / 20.8 / 13.0 / 4.3 / 0.5.
+Measured over 80k rolls: mean **−0.021**, median 0, tiers landing at roughly
+0.3 / 4.2 / 13.6 / 21.7 / **21.1** / 21.1 / 13.0 / 4.4 / 0.5.
+
+### The correction band is running dry
+
+Every rebalance so far has moved ungrouped traits in the −4…−2 band by a point, spread so
+no trait takes two. After this many passes only a handful remain untouched. The next
+correction will have to either touch a trait for a second time or use the positive band
+— both fine, as long as it is still one point at a time across many traits. Concentrating
+a correction is what flattens the tails.
 
 ### The outer tiers are compressing
 
