@@ -12,6 +12,27 @@
 // Never delete a trait. Mark it `obsolete: true` -- stored dogs still reference theirs.
 
 export const CONDITION = [
+  // ----- build: a dog is one shape, so only one of these can land -----
+  { text: "Morbidly obese", emoji: "🍔", value: -4, category: "condition", group: "build",
+    effect: { type: "squish", layer: "subject", params: { period: 1400 } } },
+  { text: "Anorexic", emoji: "🪶", value: -5, category: "condition", group: "build",
+    effect: { type: "ghost", layer: "subject", params: { opacity: 0.75 } } },
+  { text: "Starved", emoji: "🍽️", value: -5, category: "condition", group: "build",
+    effect: { type: "drain", layer: "subject", params: { amount: 0.6 } } },
+  { text: "Thick boy", emoji: "🧈", value: 2, category: "condition", group: "build",
+    effect: { type: "bounce", layer: "subject", params: { period: 1200 } } },
+  { text: "Grotesque figure", emoji: "👹", value: -4, category: "condition", group: "build",
+    effect: { type: "chromatic", layer: "subject", params: { offset: 4 } } },
+  { text: "Alarmingly long", emoji: "📏", value: -1, category: "condition", group: "build",
+    effect: { type: "squish", layer: "subject", params: { period: 2600 } } },
+  { text: "Concerningly small", emoji: "🔬", value: -2, category: "condition", group: "build", effect: null },
+  { text: "Perfectly proportioned", emoji: "📐", value: 4, category: "condition", group: "build",
+    effect: { type: "halo", layer: "subject", params: { color: "#ffffff", size: 10, brightness: 1.15 } } },
+
+  // ----- smell: likewise, a dog smells of one thing -----
+  { text: "Smells faintly of bread", emoji: "🍞", value: 2, category: "condition", group: "smell",
+    effect: { type: "rise", layer: "front", params: { color: "#fcd34d", count: 14, speed: 0.5, sway: 2, size: 3 } } },
+
   { text: "Wearing a small hat", emoji: "🎩", value: 3, category: "condition", effect: null },
   { text: "Cone of shame", emoji: "🔺", value: -2, category: "condition",
     effect: { type: "fog", layer: "front", params: { color: "#94a3b8", bands: 2, opacity: 0.3, speed: 0.5 } } },
@@ -19,7 +40,7 @@ export const CONDITION = [
     effect: { type: "fall", layer: "front", params: { color: "#78350f", shape: "dot", count: 40, speed: 1.4, sway: 1, size: 4.5 } } },
   { text: "Groomed this morning", emoji: "💈", value: 3, category: "condition",
     effect: { type: "halo", layer: "subject", params: { color: "#ffffff", size: 10, brightness: 1.15 } } },
-  { text: "Smells, and everyone knows", emoji: "🤢", value: -3, category: "condition",
+  { text: "Smells, and everyone knows", emoji: "🤢", value: -3, category: "condition", group: "smell",
     effect: { type: "rise", layer: "front", params: { color: "#84cc16", count: 20, speed: 0.4, sway: 2.6, size: 4, glow: true } } },
   { text: "Wearing a sweater someone knitted", emoji: "🧶", value: 3, category: "condition",
     effect: { type: "fall", layer: "front", params: { color: "#fda4af", shape: "dot", count: 22, speed: 0.3, sway: 2, size: 4 } } },
@@ -38,7 +59,7 @@ export const CONDITION = [
     effect: { type: "burst", layer: "front", params: { color: "#4ade80", count: 44, spread: 200, confetti: true } } },
   { text: "Cannot be photographed properly", emoji: "📵", value: -2, category: "condition",
     effect: { type: "ghost", layer: "subject", params: { opacity: 0.6, blur: 1.4 } } },
-  { text: "Smells like a hospital", emoji: "🏥", value: -2, category: "condition",
+  { text: "Smells like a hospital", emoji: "🏥", value: -2, category: "condition", group: "smell",
     effect: { type: "fog", layer: "front", params: { color: "#e0f2fe", bands: 3, opacity: 0.24, speed: 0.35 } } },
   { text: "Has a scar with a story", emoji: "🪡", value: 2, category: "condition", effect: null },
   { text: "One with nature", emoji: "🍃", value: 5, category: "condition",
@@ -47,7 +68,7 @@ export const CONDITION = [
     effect: { type: "rays", layer: "back", params: { color: "#fde68a", beams: 12, opacity: 0.34, speed: 0.06, holy: true } } },
   { text: "Great at dog magic", emoji: "✨", value: 7, category: "condition",
     effect: { type: "halo", layer: "subject", params: { color: "#c084fc", size: 20, brightness: 1.15 } } },
-  { text: "Somehow smells of cigarettes", emoji: "🚬", value: -3, category: "condition",
+  { text: "Somehow smells of cigarettes", emoji: "🚬", value: -3, category: "condition", group: "smell",
     effect: { type: "fog", layer: "front", params: { color: "#d6d3d1", bands: 3, opacity: 0.26, speed: 0.3 } } },
   { text: "Appears in two places at once", emoji: "🌀", value: 5, category: "condition",
     effect: { type: "chromatic", layer: "subject", params: { offset: 6 } } },

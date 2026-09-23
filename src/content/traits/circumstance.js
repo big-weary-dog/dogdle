@@ -11,6 +11,26 @@
 // Never delete a trait. Mark it `obsolete: true` -- stored dogs still reference theirs.
 
 export const CIRCUMSTANCE = [
+  // ----- money: one financial situation per dog -----
+  { text: "Trust fund", emoji: "💰", value: 5, category: "circumstance", group: "money",
+    effect: { type: "fall", layer: "front", params: { color: "#fbbf24", shape: "dot", count: 20, speed: 1.1, sway: 1.2, size: 4 } } },
+  { text: "In debt", emoji: "📉", value: -3, category: "circumstance", group: "money",
+    effect: { type: "vignette", layer: "front", params: { color: "#1c1917", opacity: 0.5 } } },
+  { text: "Has a pension, somehow", emoji: "🏦", value: 4, category: "circumstance", group: "money", effect: null },
+
+  // ----- fame: one kind of being known -----
+  { text: "Briefly famous online", emoji: "📱", value: 2, category: "circumstance", group: "fame",
+    effect: { type: "burst", layer: "front", params: { color: "#bef264", count: 18, spread: 120 } } },
+  { text: "Has a Wikipedia page", emoji: "📖", value: 5, category: "circumstance", group: "fame",
+    effect: { type: "rays", layer: "back", params: { color: "#fef08a", beams: 10, opacity: 0.3, speed: 0.07 } } },
+  { text: "Known to police", emoji: "🚓", value: -4, category: "circumstance", group: "fame",
+    effect: { type: "lightning", layer: "front", params: { color: "#93c5fd", frequency: 0.012 } } },
+
+  { text: "Owns the house. Legally.", emoji: "🏠", value: 6, category: "circumstance",
+    effect: { type: "spotlight", layer: "front", params: { color: "#fef3c7", radius: 140, speed: 0.3 } } },
+  { text: "Has a restraining order", emoji: "⛔", value: -4, category: "circumstance",
+    effect: { type: "vignette", layer: "front", params: { color: "#450a0a", opacity: 0.55 } } },
+
   { text: "Owner is getting divorced", emoji: "💔", value: -4, category: "circumstance",
     effect: { type: "drain", layer: "subject", params: { amount: 0.5 } } },
   { text: "Rehomed twice", emoji: "📦", value: -2, category: "circumstance", effect: null },
@@ -28,7 +48,7 @@ export const CIRCUMSTANCE = [
     effect: { type: "glitch", layer: "front", params: { color: "#f87171", intensity: 0.35, scanlines: true } } },
   { text: "Won something in 2019", emoji: "🏆", value: 3, category: "circumstance",
     effect: { type: "burst", layer: "front", params: { color: "#fbbf24", count: 30, spread: 150, confetti: true } } },
-  { text: "Has never seen grass", emoji: "🏢", value: -3, category: "circumstance",
+  { text: "Has never seen grass", emoji: "🏢", value: -4, category: "circumstance",
     effect: { type: "drain", layer: "subject", params: { amount: 0.6 } } },
   { text: "Has a nemesis", emoji: "😾", value: -2, category: "circumstance", effect: null },
   { text: "Has been to Paris", emoji: "🗼", value: 4, category: "circumstance",
@@ -49,7 +69,7 @@ export const CIRCUMSTANCE = [
     effect: { type: "spotlight", layer: "front", params: { color: "#fef3c7", radius: 140, speed: 0.3 } } },
   { text: "Frog Wars veteran", emoji: "🐸", value: 2, category: "circumstance",
     effect: { type: "fall", layer: "front", params: { color: "#4ade80", shape: "dot", count: 22, speed: 0.8, sway: 2.4, size: 5 } } },
-  { text: "Rick and Morty superfan", emoji: "🛸", value: -3, category: "circumstance",
+  { text: "Rick and Morty superfan", emoji: "🛸", value: -4, category: "circumstance",
     effect: { type: "glitch", layer: "front", params: { color: "#4ade80", intensity: 0.5, scanlines: true } } },
   { text: "Unemployed", emoji: "🛌", value: -2, category: "circumstance", effect: null },
   { text: "Raised in a puppy mill", emoji: "🏭", value: -6, category: "circumstance",

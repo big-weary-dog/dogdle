@@ -57,6 +57,36 @@ test("a breed is worth points only once it's uncommon, and one is worth less tha
   }
 });
 
+test("a dog never carries two traits from the same group", () => {
+  for (const dog of sample(3000)) {
+    const groups = dog.modifiers.map((m) => m.group).filter(Boolean);
+    assert.equal(
+      new Set(groups).size,
+      groups.length,
+      `${dog.name} got two from the same group: ${groups.join(", ")}`
+    );
+  }
+});
+
+test("a dog still gets its full complement of traits despite the groups", () => {
+  for (const dog of sample(1000)) {
+    assert.ok(
+      dog.modifiers.length >= MODIFIER_COUNT_MIN && dog.modifiers.length <= MODIFIER_COUNT_MAX,
+      `${dog.name} got ${dog.modifiers.length} traits`
+    );
+  }
+});
+
+test("every group is a real choice, not a lone trait", () => {
+  const counts = {};
+  for (const m of MODIFIERS) if (m.group) counts[m.group] = (counts[m.group] || 0) + 1;
+
+  assert.ok(Object.keys(counts).length, "no groups defined at all");
+  for (const [group, n] of Object.entries(counts)) {
+    assert.ok(n >= 2, `group "${group}" has only ${n} trait, so it excludes nothing`);
+  }
+});
+
 test("the quality label matches the score's tier", () => {
   for (const dog of sample(500)) {
     const tier = QUALITY_TIERS.find((t) => dog.score <= t.max);

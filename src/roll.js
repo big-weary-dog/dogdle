@@ -43,11 +43,24 @@ const BREED_WEIGHTS = Object.fromEntries(RARITY_ORDER.map((k) => [k, RARITIES[k]
 // text, emoji and effect; they just never land on a new dog.
 const SPAWNABLE_MODIFIERS = MODIFIERS.filter((m) => !m.obsolete);
 
+// Some traits sit on the same axis: a dog has one build, one smell, one relationship to
+// you. A trait carrying a `group` blocks every other trait in that group, so nothing can
+// be Starved and Morbidly obese at once, and the three smells stop stacking into nonsense.
+//
+// A blocked trait is dropped rather than retried, so the dog still gets its full count --
+// the pool is far larger than the number drawn.
 function sampleDistinct(rng, arr, count) {
   const pool = arr.slice();
   const out = [];
-  for (let i = 0; i < count && pool.length; i++) {
-    out.push(...pool.splice(Math.floor(rng() * pool.length), 1));
+  const groupsTaken = new Set();
+
+  while (out.length < count && pool.length) {
+    const [candidate] = pool.splice(Math.floor(rng() * pool.length), 1);
+    if (candidate.group) {
+      if (groupsTaken.has(candidate.group)) continue;
+      groupsTaken.add(candidate.group);
+    }
+    out.push(candidate);
   }
   return out;
 }
@@ -115,6 +128,8 @@ export function rollDailyDog(playerId, dateStr = today()) {
       emoji: m.emoji,
       value: m.value,
       category: m.category,
+      // Only when it has one, so a stored dog doesn't carry a field full of nulls.
+      ...(m.group ? { group: m.group } : {}),
       effect: m.effect,
     })),
     score,

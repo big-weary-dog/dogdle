@@ -11,6 +11,19 @@
 // Never delete a trait. Mark it `obsolete: true` -- stored dogs still reference theirs.
 
 export const TEMPERAMENT = [
+  // ----- mind: one assessment of what is going on in there -----
+  { text: "Genuinely stupid", emoji: "🪨", value: -3, category: "temperament", group: "mind",
+    effect: { type: "blur", layer: "subject", params: { amount: 1 } } },
+  { text: "Alarmingly clever", emoji: "🧠", value: 4, category: "temperament", group: "mind",
+    effect: { type: "halo", layer: "subject", params: { color: "#38bdf8", size: 12 } } },
+
+  // ----- loyalty: a dog is devoted to exactly one thing, or nothing -----
+  { text: "Would die for you", emoji: "🛡️", value: 6, category: "temperament", group: "loyalty",
+    effect: { type: "halo", layer: "subject", params: { color: "#4ade80", size: 12 } } },
+  { text: "Would not die for you", emoji: "🏃", value: -2, category: "temperament", group: "loyalty", effect: null },
+  { text: "Loyal to someone else", emoji: "💔", value: -3, category: "temperament", group: "loyalty",
+    effect: { type: "drain", layer: "subject", params: { amount: 0.5 } } },
+
   { text: "Certified therapy dog", emoji: "🪪", value: 5, category: "temperament",
     effect: { type: "pulse", layer: "back", params: { color: "#4ade80", period: 2600, radius: 190 } } },
   { text: "Likes everyone immediately", emoji: "🥰", value: 4, category: "temperament",
@@ -40,7 +53,7 @@ export const TEMPERAMENT = [
   { text: "Respects the UPS driver, hates the mailman", emoji: "📦", value: 0, category: "temperament", effect: null },
   { text: "Big strong barks", emoji: "📣", value: 4, category: "temperament",
     effect: { type: "ripple", layer: "back", params: { color: "#93c5fd", rings: 4, speed: 1.2, maxRadius: 200 } } },
-  { text: "Existential crisis", emoji: "🕳️", value: -2, category: "temperament",
+  { text: "Existential crisis", emoji: "🕳️", value: -3, category: "temperament",
     effect: { type: "ghost", layer: "subject", params: { opacity: 0.6, blur: 0.8 } } },
   { text: "Fetch world champion", emoji: "🥇", value: 8, category: "temperament",
     effect: { type: "burst", layer: "front", params: { color: "#fbbf24", count: 46, spread: 210, confetti: true } } },

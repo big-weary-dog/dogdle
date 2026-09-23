@@ -22,7 +22,7 @@ Every dog is four independent rolls, combined:
 | **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
 | **Background** | `src/content/backgrounds.js` | 46 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
 | **Name** | `src/content/names.js` | Flat pick from 150. |
-| **Traits** | `src/content/traits/` | 4–8 of them, averaging 6, drawn without replacement. |
+| **Traits** | `src/content/traits/` | 138 of them; 4–8 per dog, averaging 6, drawn without replacement. Some belong to a **group** — see below. |
 
 **Score** = the breed's value + the background's value + every trait's value. The content
 is balanced so the average dog scores **0** — see [Balance](#balance).
@@ -88,6 +88,23 @@ you if the effect type doesn't exist or the layer is wrong, and whether the bala
 their traits by value, so a deleted one would break every dog already carrying it. An
 obsolete trait stays resolvable but never spawns again.
 
+### Groups
+
+Some traits sit on the same axis, and stacking them reads as a bug. A dog is one shape; it
+smells of one thing. A trait carrying a `group` blocks every other trait in that group:
+
+```js
+{ text: "Starved", emoji: "🍽️", value: -5, category: "condition", group: "build", ... },
+```
+
+`build` (8), `smell` (4), `money` (3), `fame` (3), `loyalty` (3), `mind` (2). A blocked
+trait is dropped rather than retried, so the dog still gets its full four to eight — the
+pool is far larger than the number drawn.
+
+`group` is orthogonal to `category`: the category decides which file a trait lives in, the
+group decides what it excludes. A group of one excludes nothing, and `npm test` fails on
+one.
+
 ---
 
 ## Balance
@@ -95,8 +112,12 @@ obsolete trait stays resolvable but never spawns again.
 The average dog scores 0 by construction, not by moving the goalposts.
 
 Two of the three parts pull upward: a rarity-weighted breed mean of **+0.92** and a
-background mean of **+1.04**. With six traits per dog, the trait pool therefore has to
-average **−0.327** for the whole thing to centre on zero.
+background mean of **+1.04**. With six traits per dog, the trait pool has to average
+about **−0.34** for the whole thing to centre on zero.
+
+**Groups push the mean up too**, which is easy to miss: most of them are largely negative,
+and excluding their duplicates removes the worst stacks. Adding the six groups moved the
+mean from +0.004 to +0.280 on its own, before a single new trait was counted.
 
 When a change pushes it off, the correction is spread **one point at a time across
 distinct traits** in the −4…−2 band, across all five categories. Concentrating it on the
@@ -106,8 +127,8 @@ drama out of an extreme roll.
 Breeds and backgrounds are deliberately left lopsided (Heaven +12, Hell −7). They are the
 jackpots.
 
-Measured over 60k rolls: mean **+0.004**, median 0, tiers landing at roughly
-0.5 / 5.0 / 14.0 / 21.1 / **19.9** / 20.1 / 13.4 / 5.2 / 0.8.
+Measured over 80k rolls: mean **−0.011**, median 0, tiers landing at roughly
+0.5 / 5.3 / 14.2 / 20.8 / **19.3** / 20.0 / 13.6 / 5.3 / 0.9.
 
 `npm test` fails if the mean drifts past ±0.5.
 

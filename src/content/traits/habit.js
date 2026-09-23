@@ -11,6 +11,10 @@
 // Never delete a trait. Mark it `obsolete: true` -- stored dogs still reference theirs.
 
 export const HABIT = [
+  { text: "Eats drywall", emoji: "🧱", value: -3, category: "habit",
+    effect: { type: "fall", layer: "front", params: { color: "#e5e7eb", shape: "dot", count: 26, speed: 1.2, sway: 0.8, size: 3 } } },
+  { text: "Has learned to open doors", emoji: "🚪", value: -1, category: "habit", effect: null },
+
   { text: "Zoomies at 3am", emoji: "💨", value: -1, category: "habit",
     effect: { type: "wobble", layer: "subject", params: { period: 280 } } },
   { text: "Steals food off the counter", emoji: "🥩", value: -2, category: "habit", effect: null },
@@ -43,6 +47,6 @@ export const HABIT = [
     effect: { type: "burst", layer: "front", params: { color: "#4ade80", count: 22, spread: 130 } } },
   { text: "Steals from shops", emoji: "🛒", value: -4, category: "habit",
     effect: { type: "glitch", layer: "front", params: { color: "#fbbf24", intensity: 0.3, scanlines: false } } },
-  { text: "Doesn\'t return the shopping cart", emoji: "🛒", value: -3, category: "habit",
+  { text: "Doesn\'t return the shopping cart", emoji: "🛒", value: -4, category: "habit",
     effect: { type: "spotlight", layer: "front", params: { color: "#e5e7eb", radius: 105, speed: 0.75 } } },
 ];
