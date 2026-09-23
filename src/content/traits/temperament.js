@@ -11,6 +11,23 @@
 // Never delete a trait. Mark it `obsolete: true` -- stored dogs still reference theirs.
 
 export const TEMPERAMENT = [
+  // ----- voice: a dog makes one noise -----
+  { text: "Silent. Entirely.", emoji: "🤐", value: -2, category: "temperament", group: "voice", effect: null },
+  { text: "One bark, saved for emergencies", emoji: "📢", value: 3, category: "temperament", group: "voice", effect: null },
+  { text: "Barks in a different accent", emoji: "🗣️", value: 2, category: "temperament", group: "voice", effect: null },
+  { text: "Voice cracks", emoji: "🎤", value: -1, category: "temperament", group: "voice", effect: null },
+
+  // ----- weather: every dog has exactly one opinion about the sky -----
+  { text: "Built for snow", emoji: "❄️", value: 2, category: "temperament", group: "weather",
+    effect: { type: "fall", layer: "front", params: { color: "#ffffff", shape: "dot", count: 34, speed: 0.7, sway: 2.2, size: 3 } } },
+  { text: "Refuses to go out in rain", emoji: "🌧️", value: -2, category: "temperament", group: "weather",
+    effect: { type: "fall", layer: "front", params: { color: "#93c5fd", shape: "line", count: 40, speed: 2.4, sway: 0.3, size: 7 } } },
+  { text: "Overheats immediately", emoji: "🥵", value: -2, category: "temperament", group: "weather",
+    effect: { type: "tint", layer: "subject", params: { sepia: 0.2, hue: 350, saturate: 1.3 } } },
+  { text: "Terrified of fireworks", emoji: "🎆", value: -3, category: "temperament", group: "weather",
+    effect: { type: "burst", layer: "front", params: { color: "#fbcfe8", count: 26, spread: 140 } } },
+  { text: "Unbothered by anything the sky does", emoji: "🌤️", value: 3, category: "temperament", group: "weather", effect: null },
+
   { text: "Average intelligence. Truly average.", emoji: "📊", value: 0, category: "temperament", group: "mind", effect: null },
   { text: "Cunning", emoji: "🦊", value: 3, category: "temperament", group: "mind",
     effect: { type: "chromatic", layer: "subject", params: { offset: 2 } } },
@@ -46,7 +63,7 @@ export const TEMPERAMENT = [
     effect: { type: "burst", layer: "front", params: { color: "#fbbf24", count: 26, spread: 130 } } },
   { text: "Fine with cats", emoji: "🐈", value: 2, category: "temperament", group: "cats", effect: null },
   { text: "Ignores you completely outdoors", emoji: "🙉", value: -2, category: "temperament", group: "training", effect: null },
-  { text: "Barks at nothing for forty minutes", emoji: "📢", value: -2, category: "temperament",
+  { text: "Barks at nothing for forty minutes", emoji: "📢", value: -3, category: "temperament",
     effect: { type: "shake", layer: "front", params: { intensity: 3, period: 900 } } },
   { text: "Banned from the dog park", emoji: "🚫", value: -5, category: "temperament",
     effect: { type: "glitch", layer: "front", params: { color: "#ef4444", intensity: 0.6, scanlines: false } } },
@@ -56,13 +73,13 @@ export const TEMPERAMENT = [
     effect: { type: "invert", layer: "subject", params: { amount: 0.8 } } },
   { text: "Kleptomania", emoji: "💍", value: -4, category: "temperament", effect: null },
   { text: "Afraid of men in hats", emoji: "🎩", value: -1, category: "temperament", effect: null },
-  { text: "Afraid of the floor", emoji: "🧊", value: -2, category: "temperament",
+  { text: "Afraid of the floor", emoji: "🧊", value: -3, category: "temperament",
     effect: { type: "bounce", layer: "subject", params: { period: 1200 } } },
   { text: "Believes he is a person", emoji: "🧍", value: 1, category: "temperament", effect: null },
   { text: "Knows when you're sad", emoji: "🫂", value: 5, category: "temperament",
     effect: { type: "pulse", layer: "back", params: { color: "#f472b6", period: 2400, radius: 180 } } },
   { text: "Respects the UPS driver, hates the mailman", emoji: "📦", value: 0, category: "temperament", effect: null },
-  { text: "Big strong barks", emoji: "📣", value: 4, category: "temperament",
+  { text: "Big strong barks", emoji: "📣", value: 4, category: "temperament", group: "voice",
     effect: { type: "ripple", layer: "back", params: { color: "#93c5fd", rings: 4, speed: 1.2, maxRadius: 200 } } },
   { text: "Existential crisis", emoji: "🕳️", value: -3, category: "temperament",
     effect: { type: "ghost", layer: "subject", params: { opacity: 0.6, blur: 0.8 } } },

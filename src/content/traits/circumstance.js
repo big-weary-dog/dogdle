@@ -11,6 +11,21 @@
 // Never delete a trait. Mark it `obsolete: true` -- stored dogs still reference theirs.
 
 export const CIRCUMSTANCE = [
+  // ----- civic life -----
+  { text: "Votes", emoji: "🗳️", value: 1, category: "circumstance", effect: null },
+  { text: "Has strong opinions about the bin collection", emoji: "🗑️", value: 1, category: "circumstance", effect: null },
+  { text: "Attended one protest. Unclear which side.", emoji: "📣", value: 0, category: "circumstance", effect: null },
+  { text: "Served on a jury", emoji: "👨‍⚖️", value: 2, category: "circumstance", effect: null },
+  { text: "Banned from the community group chat", emoji: "💬", value: -2, category: "circumstance", effect: null },
+
+  // ----- the machine -----
+  { text: "In an AI training set", emoji: "🤖", value: 2, category: "circumstance",
+    effect: { type: "glitch", layer: "front", params: { color: "#38bdf8", intensity: 0.25, scanlines: true } } },
+  { text: "Wearing a GPS collar he has defeated", emoji: "📡", value: -1, category: "circumstance", effect: null },
+  { text: "Smart collar reports him to you", emoji: "🔔", value: -1, category: "circumstance", effect: null },
+  { text: "Has been mistaken for a robot", emoji: "⚙️", value: -2, category: "circumstance",
+    effect: { type: "chromatic", layer: "subject", params: { offset: 2 } } },
+
   { text: "Owns nothing", emoji: "🫙", value: -1, category: "circumstance", group: "money", effect: null },
   { text: "Paying off a mortgage", emoji: "🏚️", value: -2, category: "circumstance", group: "money", effect: null },
   { text: "Ignored by everyone", emoji: "🫥", value: -1, category: "circumstance", group: "fame",
@@ -61,7 +76,7 @@ export const CIRCUMSTANCE = [
     effect: { type: "burst", layer: "front", params: { color: "#fbbf24", count: 30, spread: 150, confetti: true } } },
   { text: "Has never seen grass", emoji: "🏢", value: -4, category: "circumstance",
     effect: { type: "drain", layer: "subject", params: { amount: 0.6 } } },
-  { text: "Has a nemesis", emoji: "😾", value: -2, category: "circumstance", effect: null },
+  { text: "Has a nemesis", emoji: "😾", value: -3, category: "circumstance", effect: null },
   { text: "Has been to Paris", emoji: "🗼", value: 4, category: "circumstance",
     effect: { type: "rays", layer: "back", params: { color: "#fcd34d", beams: 8, opacity: 0.26, speed: 0.09 } } },
   { text: "Is the reason for the no-dogs rule", emoji: "🚷", value: -4, category: "circumstance",

@@ -12,6 +12,16 @@
 // Never delete a trait. Mark it `obsolete: true` -- stored dogs still reference theirs.
 
 export const CONDITION = [
+  // ----- coat: the fur itself, which the table had never once mentioned -----
+  { text: "Sheds catastrophically", emoji: "🧹", value: -3, category: "condition", group: "coat",
+    effect: { type: "rise", layer: "front", params: { color: "#e5e7eb", count: 26, speed: 0.6, sway: 3, size: 3 } } },
+  { text: "Hypoallergenic, allegedly", emoji: "🤧", value: 1, category: "condition", group: "coat", effect: null },
+  { text: "Permanently matted", emoji: "🪢", value: -3, category: "condition", group: "coat",
+    effect: { type: "blur", layer: "subject", params: { amount: 1 } } },
+  { text: "A colour not found in the breed standard", emoji: "🎨", value: 1, category: "condition", group: "coat",
+    effect: { type: "tint", layer: "subject", params: { sepia: 0.3, hue: 200, saturate: 1.4 } } },
+  { text: "Coat changes in winter", emoji: "🧥", value: 1, category: "condition", group: "coat", effect: null },
+
   { text: "Unwashed", emoji: "🧼", value: -3, category: "condition", group: "smell",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.3, hue: 20, saturate: 0.85 } } },
   { text: "Smells of the sea", emoji: "🐚", value: 1, category: "condition", group: "smell", effect: null },
@@ -45,7 +55,7 @@ export const CONDITION = [
   { text: "Wearing a small hat", emoji: "🎩", value: 3, category: "condition", effect: null },
   { text: "Cone of shame", emoji: "🔺", value: -1, category: "condition",
     effect: { type: "fog", layer: "front", params: { color: "#94a3b8", bands: 2, opacity: 0.3, speed: 0.5 } } },
-  { text: "Covered in mud", emoji: "🟤", value: -2, category: "condition",
+  { text: "Covered in mud", emoji: "🟤", value: -3, category: "condition",
     effect: { type: "fall", layer: "front", params: { color: "#78350f", shape: "dot", count: 40, speed: 1.4, sway: 1, size: 4.5 } } },
   { text: "Groomed this morning", emoji: "💈", value: 3, category: "condition",
     effect: { type: "halo", layer: "subject", params: { color: "#ffffff", size: 10, brightness: 1.15 } } },

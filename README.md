@@ -22,7 +22,7 @@ Every dog is four independent rolls, combined:
 | **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
 | **Background** | `src/content/backgrounds.js` | 46 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
 | **Name** | `src/content/names.js` | Flat pick from 150. |
-| **Traits** | `src/content/traits/` | 158 of them; 4–8 per dog, averaging 6, drawn without replacement. 65 belong to a **group** — see below. |
+| **Traits** | `src/content/traits/` | 192 of them; 4–8 per dog, averaging 6, drawn without replacement. 92 belong to a **group** — see below. |
 
 **Score** = the breed's value + the background's value + every trait's value. The content
 is balanced so the average dog scores **0** — see [Balance](#balance).
@@ -97,10 +97,11 @@ smells of one thing. A trait carrying a `group` blocks every other trait in that
 { text: "Starved", emoji: "🍽️", value: -5, category: "condition", group: "build", ... },
 ```
 
-Twelve groups, 65 traits: `build` (10), `job` (8), `fame` (6), `smell` (6), `fetch` (5),
-`homes` (5), `loyalty` (5), `mind` (5), `money` (5), `camera` (4), `training` (4),
-`cats` (2). A blocked trait is dropped rather than retried, so the dog still gets its full
-four to eight — the pool is 152 deep and six are drawn.
+Seventeen groups, 92 traits: `build` (10), `job` (8), `fame` (6), `nose` (6), `smell` (6),
+`voice` (6), `coat` (5), `fetch` (5), `homes` (5), `loyalty` (5), `mind` (5), `money` (5),
+`speed` (5), `weather` (5), `camera` (4), `training` (4), `cats` (2). A blocked trait is
+dropped rather than retried, so the dog still gets its full four to eight — the pool is
+186 deep and six are drawn.
 
 The bar for a group is that its members are **inherently exclusive** — not merely on a
 theme. A dog holds one rank in `fetch`, has one `job`, is one shape. Traits that merely
@@ -141,8 +142,21 @@ drama out of an extreme roll.
 Breeds and backgrounds are deliberately left lopsided (Heaven +12, Hell −7). They are the
 jackpots.
 
-Measured over 80k rolls: mean **+0.066**, median 0, tiers landing at roughly
-0.4 / 4.6 / 13.7 / 21.2 / **20.4** / 20.6 / 13.2 / 5.1 / 0.6.
+Measured over 80k rolls: mean **−0.054**, median 0, tiers landing at roughly
+0.4 / 4.2 / 13.6 / 21.9 / **21.3** / 20.8 / 13.0 / 4.3 / 0.5.
+
+### The outer tiers are compressing
+
+Worth watching rather than fixing yet. Every group narrows the extremes, because an
+extreme score needs a stack of same-direction traits and groups are exactly what stop one.
+Platonic Ideal has gone 0.8% → 0.9% → 0.6% → 0.5% across the last three content passes,
+with Should Not Have Happened tracking it down on the other side.
+
+Both ends are moving together, so the ladder is still symmetric — it is getting *narrower*,
+not lopsided. If it ever needs correcting, the lever is the thresholds, not the groups:
+against the current distribution, `±24` would have to become **+23 / −22** to put about
+0.8% back in each outer tier. Changing a threshold re-labels dogs that are already stored,
+so it is a deliberate act rather than a tuning knob.
 
 `npm test` fails if the mean drifts past ±0.5.
 
