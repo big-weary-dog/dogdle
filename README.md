@@ -407,9 +407,21 @@ not reachable from every development environment. Each is a workflow:
 | Workflow | Does |
 |---|---|
 | `bot-smoke.yml` | Manual. Exercises the live bot API with test users (see [Test rolls](#test-rolls)). |
+| `card-audit.yml` | Manual, read-only. Checks recent Discord cards the way Discord fetches them, re-renders each from its stored dog, and reports the Worker's error counts. |
 | `kv-peek.yml` | Manual, read-only. Dumps live leaderboard state. |
 | `photo-audit.yml` | Manual. Finds stored rolls with no photo; `repair: true` re-requests them. |
 | `verify-breeds.yml` | Weekly. Checks every breed slug against the live Dog CEO API. |
+
+### Logs
+
+Workers Logs is on (`[observability]` in `wrangler.toml`): open the Worker in the
+Cloudflare dashboard, then **Logs**. Every line is a JSON object from `src/log.js`, so
+filter on `event`. Handled failures log at `warn` -- a photo that didn't load
+(`photo.lookup_failed`, `photo.bytes_failed`, `photo.decode_failed`), a card drawn late
+(`card.rendered_on_read`) or not found (`card.missing`, with the `colo` that missed) -- and
+anything unhandled at `error` as `request.failed`. That request's 500 carries its `ray`
+id, which matches the log line. Each Discord roll leaves one `bot.roll` line saying
+whether its card was `rendered`, `cached` or `failed`.
 
 ---
 

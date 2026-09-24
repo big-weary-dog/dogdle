@@ -16,6 +16,7 @@ import { rollDailyDog, today } from "./roll.js";
 import { renderCardGif } from "./card.js";
 import { fetchBreedPhoto, fetchPhotoBytes, backfillPhoto } from "./photo.js";
 import { cardKey, rollKey, dayKey, guildKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
+import { log } from "./log.js";
 
 const SNOWFLAKE_RE = /^\d{5,24}$/;
 const CARD_TTL_SECONDS = 60 * 60 * 24 * 30;
@@ -76,16 +77,58 @@ function present(dog, imageUrl, origin) {
   };
 }
 
-// Renders the card once per dog and keeps it in KV, so a re-ask is a KV read rather than
-// another few hundred milliseconds of CPU.
-async function ensureCard(env, player, dog, ttl) {
-  const key = cardKey(player, dog.date);
-  if ((await env.STORE.get(key, "stream")) !== null) return;
+export const cardTtl = (dog) => (dog.test ? TEST_TTL_SECONDS : CARD_TTL_SECONDS);
 
+// Draws a dog's card and stores it. Never throws: the card is decoration on a roll that
+// has already been dealt and saved, so a failure here must not turn into a failed roll.
+// Returns the bytes, or null if even a photo-less card couldn't be drawn.
+export async function renderCard(env, player, dog) {
+  const started = Date.now();
   const photo = await fetchPhotoBytes(dog.photo);
-  const gif = renderCardGif(dog, { photo });
 
-  await env.STORE.put(key, gif, { expirationTtl: ttl, metadata: { date: dog.date } });
+  let gif;
+  try {
+    gif = renderCardGif(dog, { photo });
+  } catch (err) {
+    // A photo the decoder chokes on shouldn't cost the player their whole card.
+    log.error("card.render_failed", { player, date: dog.date, withPhoto: Boolean(photo), err });
+    if (!photo) return null;
+    try {
+      gif = renderCardGif(dog);
+    } catch (again) {
+      log.error("card.render_failed", { player, date: dog.date, withPhoto: false, err: again });
+      return null;
+    }
+  }
+
+  try {
+    await env.STORE.put(cardKey(player, dog.date), gif, {
+      expirationTtl: cardTtl(dog),
+      metadata: { date: dog.date },
+    });
+  } catch (err) {
+    // The image route draws a missing card on demand, so this heals on first view.
+    log.error("card.store_failed", { player, date: dog.date, err });
+  }
+
+  log.info("card.rendered", {
+    player,
+    date: dog.date,
+    photo: Boolean(photo),
+    bytes: gif.byteLength,
+    ms: Date.now() - started,
+  });
+  return gif;
+}
+
+// Leaderboard rows are rewritten on every call, and KV refuses a second write to one key
+// inside a second -- a retry or a double-click would otherwise fail a roll that worked.
+async function writeIndex(env, key, value, opts) {
+  try {
+    await env.STORE.put(key, value, opts);
+  } catch (err) {
+    log.warn("board.write_failed", { key, err });
+  }
 }
 
 export async function handleBot(request, url, env) {
@@ -115,7 +158,6 @@ export async function handleBot(request, url, env) {
     // it's hidden from every board and everything it writes expires in two days, so
     // smoke-testing the live Worker leaves nothing for anyone to clean up.
     const isTest = body?.test === true;
-    const ttl = isTest ? TEST_TTL_SECONDS : CARD_TTL_SECONDS;
     const expiry = isTest ? { expirationTtl: TEST_TTL_SECONDS } : {};
 
     // One dog per person per day. A stored roll is replayed verbatim, so editing the
@@ -123,10 +165,8 @@ export async function handleBot(request, url, env) {
     const saved = await env.STORE.get(rollKey(player, date), "json");
     const dog = saved ?? rollDailyDog(player, date);
     // Same repair as the web route: a photo that never resolved is filled in on read.
-    // The card was rendered without it and cached for a month, so that has to go too.
-    if (saved && (await backfillPhoto(env, rollKey(player, date), dog))) {
-      await env.STORE.delete(cardKey(player, date));
-    }
+    // The card was rendered without it and cached for a month, so it's drawn again.
+    const repaired = Boolean(saved) && (await backfillPhoto(env, rollKey(player, date), dog));
     if (!saved) {
       dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
       dog.player = name;
@@ -141,12 +181,24 @@ export async function handleBot(request, url, env) {
     // discordId rides along so a digest can @mention the player and find their card
     // without a second lookup. The public web board strips it.
     const row = { ...boardRow(name || saved?.player || "anon", dog), discordId };
-    await env.STORE.put(dayKey(date, player), "", { ...expiry, metadata: row });
+    await writeIndex(env, dayKey(date, player), "", { ...expiry, metadata: row });
     // Written on every call, not just the first: someone who rolled in one server and
     // asked again in another should appear on both boards.
-    if (guildId) await env.STORE.put(guildKey(guildId, date, player), "", { ...expiry, metadata: row });
+    if (guildId) await writeIndex(env, guildKey(guildId, date, player), "", { ...expiry, metadata: row });
 
-    await ensureCard(env, player, dog, ttl);
+    // A fresh roll can't have a card yet, so it isn't looked up first. Asking KV for a key
+    // that doesn't exist caches the miss, and other locations can keep answering "not
+    // found" for up to a minute after the write -- which is when Discord fetches it.
+    let card = "cached";
+    if (!saved || repaired) {
+      card = (await renderCard(env, player, dog)) ? "rendered" : "failed";
+    } else {
+      const existing = await env.STORE.get(cardKey(player, date), "stream");
+      if (existing) await existing.cancel();
+      else card = (await renderCard(env, player, dog)) ? "rendered" : "failed";
+    }
+
+    log.info("bot.roll", { player, date, guildId: guildId || null, replayed: Boolean(saved), repaired, card, test: isTest });
 
     return json({
       ...present(dog, cardUrl(url.origin, player, date), url.origin),

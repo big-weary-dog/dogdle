@@ -9,6 +9,7 @@ import { handleBot, botPlayerId } from "../src/bot.js";
 import { PLAYER_ID_RE } from "../src/keys.js";
 import { today } from "../src/roll.js";
 import { BREEDS } from "../src/breeds.js";
+import { setLogSink } from "../src/log.js";
 
 const TOKEN = "test-token-please-ignore";
 const USER = "123456789012345678";
@@ -21,14 +22,25 @@ globalThis.fetch = async () => {
   throw new Error("offline");
 };
 
+// Everything offline fails loudly into the log by design; collect it instead of printing.
+let logged = [];
+setLogSink((level, entry) => logged.push(entry));
+const events = (name) => logged.filter((e) => e.event === name);
+
 function makeKV() {
   const store = new Map();
   return {
     store,
+    reads: [],
     async get(key, type) {
+      this.reads.push(key);
       const entry = store.get(key);
       if (!entry) return null;
-      return type === "json" ? JSON.parse(entry.value) : entry.value;
+      if (type === "json") return JSON.parse(entry.value);
+      // Real KV hands back a stream that has to be read or cancelled.
+      if (type === "stream") return new Blob([entry.value]).stream();
+      if (type === "arrayBuffer") return new Blob([entry.value]).arrayBuffer();
+      return entry.value;
     },
     async put(key, value, opts = {}) {
       store.set(key, { value, metadata: opts.metadata ?? null, ttl: opts.expirationTtl ?? 0 });
@@ -269,4 +281,88 @@ test("junk ids are rejected before anything is written", async () => {
     assert.equal(res.status, 400, path);
   }
   assert.equal(e.STORE.store.size, 0);
+});
+
+// The blank-embed report: every card was in KV afterwards and nothing had errored, so the
+// failures were in the window between the write and Discord's first fetch, or in a card
+// that never got written. These pin down both halves.
+
+const cardOf = (e, user = USER) => e.STORE.store.get(`card:${botPlayerId(user)}:${today()}`);
+const imageRequest = (e, user = USER) =>
+  import("../src/worker.js").then(({ default: worker }) =>
+    worker.fetch(new Request(`https://dogdle.swampkat.com/i/${botPlayerId(user)}/${today()}.gif`), e)
+  );
+
+test("a fresh roll never looks its card up before writing it", async () => {
+  // A lookup of a key that doesn't exist yet is cached as a miss, and other locations can
+  // go on answering 404 after the write -- exactly when Discord fetches the image.
+  const e = env();
+  await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER } });
+  assert.ok(cardOf(e), "no card stored");
+  assert.ok(!e.STORE.reads.some((k) => k.startsWith("card:")), `looked up: ${e.STORE.reads}`);
+});
+
+test("a card that can't be stored doesn't fail the roll", async () => {
+  const e = env();
+  const put = e.STORE.put.bind(e.STORE);
+  e.STORE.put = async (key, ...rest) => {
+    if (key.startsWith("card:")) throw new Error("KV PUT failed: 500");
+    return put(key, ...rest);
+  };
+  logged = [];
+
+  const res = await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER } });
+  assert.equal(res.status, 200);
+  assert.ok((await res.json()).image);
+  assert.equal(events("card.store_failed").length, 1);
+});
+
+test("a board write refused for rate limiting doesn't fail the roll", async () => {
+  // KV allows one write a second per key, and every call rewrites the board rows.
+  const e = env();
+  const put = e.STORE.put.bind(e.STORE);
+  e.STORE.put = async (key, ...rest) => {
+    if (key.startsWith("day:") || key.startsWith("guild:")) throw new Error("KV PUT failed: 429 Too Many Requests");
+    return put(key, ...rest);
+  };
+  logged = [];
+
+  const res = await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER, guildId: GUILD } });
+  assert.equal(res.status, 200);
+  assert.equal(events("board.write_failed").length, 2);
+});
+
+test("every roll leaves one log line saying what happened to its card", async () => {
+  const e = env();
+  logged = [];
+  await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER } });
+  await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER } });
+
+  const rolls = events("bot.roll");
+  assert.deepEqual(rolls.map((r) => [r.replayed, r.card]), [[false, "rendered"], [true, "cached"]]);
+  assert.equal(rolls[0].player, botPlayerId(USER));
+});
+
+test("a Discord card missing from KV is drawn from the roll instead of a 404", async () => {
+  const e = env();
+  await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER } });
+  e.STORE.store.delete(`card:${botPlayerId(USER)}:${today()}`);
+  logged = [];
+
+  const res = await imageRequest(e);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("content-type"), "image/gif");
+  assert.deepEqual([...new Uint8Array(await res.arrayBuffer()).slice(0, 4)], [0x47, 0x49, 0x46, 0x38]);
+  assert.ok(cardOf(e), "the drawn card should be stored for next time");
+  assert.equal(events("card.rendered_on_read").length, 1);
+});
+
+test("an image with no roll behind it is a 404 no proxy may keep", async () => {
+  const e = env();
+  logged = [];
+  const res = await imageRequest(e);
+  assert.equal(res.status, 404);
+  assert.equal(res.headers.get("cache-control"), "no-store");
+  assert.equal(events("card.missing").length, 1);
+  assert.equal(e.STORE.store.size, 0, "a miss must not write anything");
 });

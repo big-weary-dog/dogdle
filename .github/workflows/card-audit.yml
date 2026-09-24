@@ -12,14 +12,10 @@ on:
         description: How many Eastern days back to look, today included
         default: "3"
         required: false
-  # TEMPORARY: a workflow_dispatch can't reach a file that isn't on the default branch yet.
-  push:
-    branches: [claude/sweet-davinci-u263bz]
-    paths: [.github/workflows/card-audit.yml, scripts/audit-cards.mjs]
 
 env:
   NS: 4c634ff1e5fd4d3ca547c5a2f1119806
-  DAYS: ${{ inputs.days || '4' }}
+  DAYS: ${{ inputs.days || '3' }}
 
 jobs:
   audit:

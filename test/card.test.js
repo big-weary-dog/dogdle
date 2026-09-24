@@ -9,6 +9,8 @@ import { rollDailyDog } from "../src/roll.js";
 import { renderCardGif, composeCard, CARD } from "../src/card.js";
 import { BACKGROUNDS, MODIFIERS } from "../src/content/index.js";
 import ATLAS from "../src/generated/atlas.js";
+import { decodePhoto } from "../src/draw.js";
+import { setLogSink } from "../src/log.js";
 
 const GIF89A = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61];
 
@@ -95,4 +97,26 @@ test("the atlas covers every emoji the card draws", () => {
   ]);
   const missing = [...used].filter((e) => ATLAS.emoji.index[e] === undefined);
   assert.deepEqual(missing, [], "run scripts/build-atlas.mjs after adding emoji");
+});
+
+test("a photo too big for a Worker is refused, not decoded", () => {
+  // Just a frame header claiming 10000x10000: the decoder's own 512MB default would try
+  // to allocate for it and take the isolate down, where the cap throws and is caught.
+  const huge = new Uint8Array([
+    0xff, 0xd8,
+    0xff, 0xc0, 0x00, 0x11, 0x08, 0x27, 0x10, 0x27, 0x10, 0x03,
+    0x01, 0x22, 0x00, 0x02, 0x11, 0x01, 0x03, 0x11, 0x01,
+    0xff, 0xd9,
+  ]);
+  const seen = [];
+  const previous = setLogSink((level, entry) => seen.push(entry));
+  try {
+    assert.equal(decodePhoto(huge), null);
+    assert.equal(decodePhoto(new Uint8Array([0x89, 0x50, 0x4e, 0x47])), null, "a PNG is not a JPEG");
+  } finally {
+    setLogSink(previous);
+  }
+  assert.deepEqual(seen.map((e) => e.event), ["photo.decode_failed", "photo.decode_failed"]);
+  assert.match(seen[0].err.message, /maxResolutionInMP/);
+  assert.equal(seen[1].head, "89504e47");
 });
