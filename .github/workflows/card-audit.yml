@@ -1,0 +1,188 @@
+name: Audit Discord cards
+
+# Read-only. For every recent Discord roll: is its card in KV, does the image URL load the
+# way Discord's image proxy fetches it (on both hostnames), is what comes back a sound GIF,
+# and does the card re-render cleanly from the stored dog with its real photo. Then the
+# Worker's own invocation outcomes from Cloudflare analytics -- crashes and resource-limit
+# kills never reach KV, so this is the only place they show up.
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: How many Eastern days back to look, today included
+        default: "3"
+        required: false
+
+env:
+  NS: 4c634ff1e5fd4d3ca547c5a2f1119806
+  DAYS: ${{ inputs.days || '3' }}
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+
+      - name: Find the hostnames
+        id: hosts
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -uo pipefail
+          api() { curl -sS -H "Authorization: Bearer $CF_TOKEN" "https://api.cloudflare.com/client/v4$1"; }
+          ACCOUNT=$(api "/accounts" | python3 -c "import sys,json; r=json.load(sys.stdin).get('result') or []; print(r[0]['id'] if r else '')")
+          SUB=""
+          [ -n "$ACCOUNT" ] && SUB=$(api "/accounts/$ACCOUNT/workers/subdomain" | python3 -c "import sys,json; print((json.load(sys.stdin).get('result') or {}).get('subdomain',''))")
+          ZONE=$(api "/zones?name=swampkat.com" | python3 -c "import sys,json; r=json.load(sys.stdin).get('result') or []; print(r[0]['id'] if r else '')")
+          echo "account found: $([ -n "$ACCOUNT" ] && echo yes || echo no)"
+          echo "workers.dev  : ${SUB:+dogdle.$SUB.workers.dev}"
+          echo "zone found   : $([ -n "$ZONE" ] && echo yes || echo no)"
+          echo "account=$ACCOUNT" >> "$GITHUB_OUTPUT"
+          echo "zone=$ZONE" >> "$GITHUB_OUTPUT"
+          echo "workers=${SUB:+dogdle.$SUB.workers.dev}" >> "$GITHUB_OUTPUT"
+
+      - name: Dump recent Discord rolls from KV
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          npx wrangler kv key list --namespace-id="$NS" --prefix="roll:discord-" --remote > all-rolls.json
+          npx wrangler kv key list --namespace-id="$NS" --prefix="card:discord-" --remote > cards.json
+
+          : > dates.txt
+          for i in $(seq 0 $((DAYS - 1))); do TZ=America/New_York date -d "-$i day" +%F >> dates.txt; done
+          echo "dates: $(tr '\n' ' ' < dates.txt)"
+
+          cat > /tmp/pick.cjs <<'JS'
+          const fs = require("fs");
+          const dates = new Set(fs.readFileSync("dates.txt", "utf8").split("\n").filter(Boolean));
+          const keys = require(process.cwd() + "/all-rolls.json").map((k) => k.name);
+          console.log(keys.filter((k) => dates.has(k.split(":")[2])).join("\n"));
+          JS
+          node /tmp/pick.cjs > keynames.txt
+
+          : > rolls.jsonl
+          while read -r key; do
+            [ -z "$key" ] && continue
+            value=$(npx wrangler kv key get --namespace-id="$NS" --remote "$key" 2>/dev/null || echo "")
+            [ -n "$value" ] && printf '{"key":"%s","value":%s}\n' "$key" "$value" >> rolls.jsonl
+          done < keynames.txt
+          echo "recent Discord rolls: $(wc -l < rolls.jsonl)"
+
+      - name: Check every card end to end
+        env:
+          WORKERS_HOST: ${{ steps.hosts.outputs.workers }}
+          ZONE_HOST: dogdle.swampkat.com
+        run: node --expose-gc scripts/audit-cards.mjs
+
+      - name: Are the served cards sound GIFs?
+        run: |
+          set -uo pipefail
+          pip install --quiet pillow
+          cat > /tmp/gifs.py <<'PY'
+          import glob
+          from PIL import Image, ImageStat
+          paths = sorted(glob.glob("cards/*.gif"))
+          print(f"{len(paths)} card(s) downloaded")
+          for p in paths:
+              try:
+                  im = Image.open(p)
+                  frames = getattr(im, "n_frames", 1)
+                  for i in range(frames):
+                      im.seek(i); im.load()
+                  im.seek(0)
+                  rgb = im.convert("RGB")
+                  whole = sum(ImageStat.Stat(rgb).stddev) / 3
+                  # Where the photo sits in the 300px scene; flat there means no dog.
+                  dog = sum(ImageStat.Stat(rgb.crop((75, 60, 225, 240))).stddev) / 3
+                  note = "  <-- BLANK" if whole < 4 else ("  <-- no dog?" if dog < 12 else "")
+                  print(f"  {p}: {im.size[0]}x{im.size[1]} {frames} frames, spread {whole:.0f}, centre {dog:.0f}{note}")
+              except Exception as e:
+                  print(f"  {p}: BROKEN -- {e}")
+          PY
+          python3 /tmp/gifs.py
+
+      - name: Worker invocation outcomes (Cloudflare analytics)
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ steps.hosts.outputs.account }}
+          ZONE: ${{ steps.hosts.outputs.zone }}
+        run: |
+          set -uo pipefail
+          cat > /tmp/analytics.py <<'PY'
+          import datetime, json, os, urllib.request
+
+          def gql(query, variables):
+              req = urllib.request.Request(
+                  "https://api.cloudflare.com/client/v4/graphql",
+                  data=json.dumps({"query": query, "variables": variables}).encode(),
+                  headers={"Authorization": f"Bearer {os.environ['CF_TOKEN']}", "content-type": "application/json"},
+              )
+              try:
+                  return json.load(urllib.request.urlopen(req, timeout=30))
+              except Exception as e:
+                  return {"errors": [{"message": str(e)}]}
+
+          now = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
+          iso = lambda d: d.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+          # Richest query first; each fallback asks for less in case a field or the range
+          # isn't available on this plan.
+          attempts = [
+              (int(os.environ.get("DAYS", "3")), "sum { requests errors subrequests } quantiles { cpuTimeP50 cpuTimeP99 wallTimeP99 }"),
+              (1, "sum { requests errors subrequests } quantiles { cpuTimeP50 cpuTimeP99 }"),
+              (1, "sum { requests errors }"),
+          ]
+          print("=== Worker invocations by day and outcome ===")
+          if not os.environ.get("ACCOUNT"):
+              print("  no account id; token cannot list accounts")
+          for days, fields in attempts if os.environ.get("ACCOUNT") else []:
+              q = """query($acc: String!, $since: Time!, $until: Time!) { viewer { accounts(filter: {accountTag: $acc}) {
+                workersInvocationsAdaptive(limit: 500, orderBy: [date_ASC],
+                  filter: {scriptName: "dogdle", datetime_geq: $since, datetime_leq: $until}) {
+                  dimensions { date status } %s } } } }""" % fields
+              d = gql(q, {"acc": os.environ["ACCOUNT"], "since": iso(now - datetime.timedelta(days=days)), "until": iso(now)})
+              if d.get("errors"):
+                  print(f"  ({days}d query refused: {d['errors'][0].get('message')})")
+                  continue
+              rows = d["data"]["viewer"]["accounts"][0]["workersInvocationsAdaptive"]
+              print(f"  last {days} day(s), {len(rows)} row(s)")
+              for r in rows:
+                  dim, s, qn = r["dimensions"], r["sum"], r.get("quantiles") or {}
+                  cpu = f"  cpu p50 {qn['cpuTimeP50']/1000:.0f}ms p99 {qn['cpuTimeP99']/1000:.0f}ms" if qn else ""
+                  wall = f" wall p99 {qn['wallTimeP99']/1000:.0f}ms" if "wallTimeP99" in qn else ""
+                  print(f"  {dim['date']}  {dim['status']:<22} requests {s['requests']:>6}  errors {s.get('errors', 0):>4}{cpu}{wall}")
+              break
+
+          print("\n=== swampkat.com requests for /i/ (card images), last 24h ===")
+          if not os.environ.get("ZONE"):
+              print("  no zone id")
+          else:
+              for dims in ["edgeResponseStatus userAgent securityAction", "edgeResponseStatus userAgent", "edgeResponseStatus"]:
+                  q = """query($zone: String!, $since: Time!, $until: Time!) { viewer { zones(filter: {zoneTag: $zone}) {
+                    httpRequestsAdaptiveGroups(limit: 50, orderBy: [count_DESC],
+                      filter: {datetime_geq: $since, datetime_leq: $until, clientRequestPath_like: "/i/%%"}) {
+                      count dimensions { %s } } } } }""" % dims
+                  d = gql(q, {"zone": os.environ["ZONE"], "since": iso(now - datetime.timedelta(hours=24)), "until": iso(now)})
+                  if d.get("errors"):
+                      print(f"  (query with [{dims}] refused: {d['errors'][0].get('message')})")
+                      continue
+                  groups = d["data"]["viewer"]["zones"][0]["httpRequestsAdaptiveGroups"]
+                  if not groups:
+                      print("  none")
+                  for g in groups:
+                      print(f"  {g['count']:>5}  " + "  ".join(f"{k}={v}" for k, v in g["dimensions"].items()))
+                  break
+          PY
+          python3 /tmp/analytics.py
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: discord-cards
+          path: cards/
+          if-no-files-found: ignore

@@ -3,6 +3,7 @@
 
 import ATLAS from "./generated/atlas.js";
 import decodeJpeg from "./vendor/jpeg-decoder.js";
+import { log } from "./log.js";
 
 const decoded = {};
 
@@ -141,14 +142,25 @@ export const hexToRgb = (hex) => {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 };
 
+// A Worker has 128MB. The decoder's own default ceiling is 512MB, so a huge photo would
+// kill the isolate outright -- no card, no log, a blank embed. Capped, it throws instead,
+// which is caught below and costs only the photo. Dog CEO photos run well under 2MP
+// (~12 bytes a pixel while decoding); this leaves room for several times that.
+const DECODE_LIMITS = { maxMemoryUsageInMB: 64, maxResolutionInMP: 8 };
+
 // Decoding is the expensive half and the photo never changes between frames, so it is
 // split out and done once.
 export function decodePhoto(jpegBytes) {
   try {
-    const img = decodeJpeg(jpegBytes, { useTArray: true });
-    return img?.width && img?.height ? img : null;
-  } catch {
-    return null; // not a JPEG we can read; the card renders without a photo
+    const img = decodeJpeg(jpegBytes, { useTArray: true, ...DECODE_LIMITS });
+    if (img?.width && img?.height) return img;
+    log.warn("photo.decode_failed", { bytes: jpegBytes.byteLength, reason: "empty image" });
+    return null;
+  } catch (err) {
+    // Not a JPEG we can read; the card renders without a photo.
+    const head = [...jpegBytes.slice(0, 4)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    log.warn("photo.decode_failed", { bytes: jpegBytes.byteLength, head, err });
+    return null;
   }
 }
 

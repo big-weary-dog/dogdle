@@ -24,3 +24,10 @@ run_worker_first = ["/api/*"]
 [[kv_namespaces]]
 binding = "STORE"
 id = "4c634ff1e5fd4d3ca547c5a2f1119806"
+
+# Workers Logs: keeps every console line (the JSON ones from src/log.js become searchable
+# fields) along with each invocation's outcome, so a crash or a resource-limit kill is
+# visible in the dashboard. Without this the Worker's logs exist only in a live tail.
+[observability]
+enabled = true
+head_sampling_rate = 1

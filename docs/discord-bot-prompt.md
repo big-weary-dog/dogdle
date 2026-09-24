@@ -177,6 +177,8 @@ Worth adding, both one line:
 - `POST /api/bot/roll` takes roughly 0.4–1.5s the first time (it renders the GIF) and is
   fast afterwards. Defer the interaction reply.
 - Retries are safe everywhere: the roll is idempotent and everything else is a read.
+- A `500` comes back as `{ "error": "internal error", "ray": "…" }`. Log the `ray`: it is
+  the key to the matching line in the server's logs.
 - Never log or echo the bearer token.
 - `"test": true` on a roll makes it a real dog that doesn't count — hidden from every
   leaderboard, expires in 48 hours. Use it while developing so you don't pollute the

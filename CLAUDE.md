@@ -108,8 +108,11 @@ fine; don't run two *balance corrections* at once.
 - **No egress** to dog.ceo, Cloudflare or swampkat.com from cloud sessions. Tests stub
   `fetch`. For anything live, use the manual GitHub Actions workflows: `bot-smoke.yml`
   (hits the prod bot API with test users), `kv-peek.yml` (read-only KV dump),
-  `photo-audit.yml` (find/repair rolls missing photos), `verify-breeds.yml` (weekly slug
-  check). Report blocked hosts rather than trying to route around them.
+  `photo-audit.yml` (find/repair rolls missing photos), `card-audit.yml` (recent Discord
+  cards end to end, plus Worker error counts), `verify-breeds.yml` (weekly slug check).
+  Report blocked hosts rather than trying to route around them.
+- **Log through `src/log.js`**, not bare `console.*`: one JSON object per event, which is
+  what makes Workers Logs filterable. A failure you handle quietly still gets a `warn`.
 - `pkill -f <pattern>` matches its own shell when the pattern is in the command line and
   kills it. Run it on its own, or use a PID.
 - Inside `node -e '...'`, an apostrophe in a comment or string ends the script silently.
