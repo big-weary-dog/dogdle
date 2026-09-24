@@ -2,3 +2,6 @@ node_modules/
 .wrangler/
 .dev.vars
 cards/
+# Previews from npm run sheet / npm run card
+/sheet*.png
+/card-*.gif

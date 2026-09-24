@@ -76,7 +76,7 @@ dog: curtains at both sides, trees at the corners, an eclipse in the top corner.
 prop in the centre is simply never seen.
 
 To look at them, render a contact sheet through the real pipeline rather than trusting the
-data. Three bugs in the shared effects were invisible until someone did, all of them in
+data: `npm run sheet -- out.png beach,volcano`. Three bugs in the shared effects were invisible until someone did, all of them in
 the web page as well as the cards:
 
 - **Rain fell as scattered ticks.** Every falling particle got a random rotation, which is
@@ -219,8 +219,11 @@ public/
   effects.js   the canvas renderer: effect types, layers, props, subject CSS
   vendor/      gifenc, vendored (see package.json devDependencies for the source)
 scripts/
-  build-atlas.mjs   bakes the glyph/emoji atlas with a headless browser
-  bake-golden.mjs   re-records the content and generator snapshots
+  build-atlas.mjs   bakes the glyph/emoji atlas with a headless browser  (npm run atlas)
+  bake-golden.mjs   re-records the content and generator snapshots       (npm run bake)
+  balance.mjs       balance report and correction candidates              (npm run balance)
+  sheet.mjs         contact sheet of backgrounds                          (npm run sheet)
+  card.mjs          renders Discord cards offline                         (npm run card)
 test/          node:test suites — content, roll, effects, card, bot, inventory, golden
 ```
 
@@ -345,24 +348,30 @@ The world and the sidebar are static, so both are painted once and copied per fr
 profiling showed `paintWorld` was 509ms of a 629ms render before that. A 560×320, 12-frame
 card is roughly 300ms and 250KB, and is cached in KV so a re-ask is a read.
 
-`GET /api/render-card?seed=…` renders a throwaway card on demand, for eyeballing.
+`npm run card -- alice 2026-09-22` renders one offline, for eyeballing.
 
 ---
 
 ## Development
 
+**Agents (and people) working on this repo: read [`CLAUDE.md`](CLAUDE.md) first.** It has
+the hard rules, the checklist after a content change, and how to split work across
+parallel branches without conflicts.
+
 ```bash
 npm install
 npm run dev      # wrangler dev, with local KV
-npm test         # 44 checks over the generator, content tables, renderer and bot API
+npm test         # 57 checks over the generator, content tables, renderer and bot API
+npm run balance  # where the average dog sits, and what to nudge if it drifted
 npm run deploy   # or just push — CI deploys on every push to the branch
 ```
+
+Cloud sessions install dependencies automatically via `.claude/hooks/session-start.sh`.
 
 Useful routes:
 
 - `/dev` — reroll freely, with each trait labelled by its effect type and layer
 - `/reset` — clears your local save and issues a new player id, so you can roll again
-- `/api/verify-breeds` — checks every breed slug against the live Dog CEO API
 - `/api/leaderboard`, `/api/history?player=…`
 
 ### Tests
@@ -389,8 +398,18 @@ runs the tests, deploys, and syncs `BOT_TOKEN` from the `DOGDLE_BOT_TOKEN` repos
 secret. Generate one with `openssl rand -hex 32`; until it is set, `/api/bot/*` answers
 `503`. For local work put `BOT_TOKEN=anything` in `.dev.vars`, which is gitignored.
 
-`kv-peek.yml` is a manual, read-only workflow that dumps live leaderboard state — useful
-because the Cloudflare API is not reachable from every development environment.
+Pull requests run the suite via `test.yml`. Deploys queue rather than overlap, so merges
+landing close together can't roll the site back.
+
+Some things can only be checked from outside, because the Cloudflare API and Dog CEO are
+not reachable from every development environment. Each is a workflow:
+
+| Workflow | Does |
+|---|---|
+| `bot-smoke.yml` | Manual. Exercises the live bot API with test users (see [Test rolls](#test-rolls)). |
+| `kv-peek.yml` | Manual, read-only. Dumps live leaderboard state. |
+| `photo-audit.yml` | Manual. Finds stored rolls with no photo; `repair: true` re-requests them. |
+| `verify-breeds.yml` | Weekly. Checks every breed slug against the live Dog CEO API. |
 
 ---
 

@@ -2,11 +2,14 @@
 // browser at build time. The Worker then only has to blit pixels -- no font parsing, no
 // WASM, no runtime font loading.
 //
-// The emoji set is closed: every emoji comes from src/content.js, so we know all of them
+// The emoji set is closed: every emoji comes from src/content/, so we know all of them
 // up front. Re-run this after adding an emoji to the content tables -- npm test fails if
 // the atlas is missing one.
 //
-//   npm i -D playwright && node scripts/build-atlas.mjs
+//   npm run atlas
+//
+// which installs Playwright without saving it, then runs this. Cloud sessions already have
+// Chromium at $PLAYWRIGHT_BROWSERS_PATH, so nothing is downloaded.
 //
 // Playwright is deliberately not a dependency: the atlas is committed, so nothing but this
 // script needs it, and CI shouldn't install a browser to deploy.

@@ -1,8 +1,6 @@
 import { rollDailyDog, today } from "./roll.js";
-import { renderCardGif } from "./card.js";
-import { BREEDS } from "./breeds.js";
 import { handleBot } from "./bot.js";
-import { fetchBreedPhoto, fetchPhotoBytes, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
+import { fetchBreedPhoto, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
 import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, cleanName, boardRow, visibleRows } from "./keys.js";
 
 const MAX_CARD_BYTES = 8_000_000; // animated cards are far heavier than a still
@@ -195,18 +193,6 @@ export default {
       });
     }
 
-    // Renders a throwaway card on demand, for eyeballing the renderer the bot uses. The
-    // bot's own cards come from /api/bot/roll, which stores them; this one is never kept.
-    if (url.pathname === "/api/render-card") {
-      const seed = url.searchParams.get("seed") || crypto.randomUUID();
-      const dog = rollDailyDog(`dev-${seed}`, today());
-      dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
-      const gif = renderCardGif(dog, { photo: await fetchPhotoBytes(dog.photo) });
-      return new Response(gif, {
-        headers: { "content-type": "image/gif", "cache-control": "no-store" },
-      });
-    }
-
     // Clears the local save and bounces back to the game. The roll is deterministic from
     // (player, date), so dropping only the cached result would deal the identical dog --
     // a genuine reroll needs a new player id, which is what this issues.
@@ -273,29 +259,6 @@ ${photo ? `<meta property="og:image" content="${esc(photo)}" />` : ""}
 
       return new Response(html, {
         headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" },
-      });
-    }
-
-    // Checks every slug in our breed table against the live Dog CEO API. The sandbox this
-    // was written in can't reach dog.ceo, so this is how we confirm the table post-deploy.
-    if (url.pathname === "/api/verify-breeds") {
-      const res = await fetch("https://dog.ceo/api/breeds/list/all");
-      const body = await res.json();
-
-      const valid = new Set();
-      for (const [breed, subs] of Object.entries(body.message)) {
-        valid.add(breed);
-        for (const sub of subs) valid.add(`${breed}/${sub}`);
-      }
-
-      const missing = BREEDS.filter((b) => !valid.has(b.slug)).map((b) => b.slug);
-      const unused = [...valid].filter((s) => !BREEDS.some((b) => b.slug === s));
-
-      return Response.json({
-        ok: missing.length === 0,
-        total: BREEDS.length,
-        missing,
-        unusedInApi: unused,
       });
     }
 

@@ -5,7 +5,12 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "bake": "node scripts/bake-golden.mjs",
+    "balance": "node scripts/balance.mjs",
+    "sheet": "node scripts/sheet.mjs",
+    "card": "node scripts/card.mjs",
+    "atlas": "npm i --no-save playwright && node scripts/build-atlas.mjs"
   },
   "devDependencies": {
     "gifenc": "^1.0.3",

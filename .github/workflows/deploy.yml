@@ -5,6 +5,12 @@ on:
     branches: [claude/swampkat-online-game-wuc3kt, main]
   workflow_dispatch:
 
+# Merges can land close together once several branches are in flight. Deploys queue rather
+# than overlap, so an older build can never finish last and roll the site back.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
