@@ -22,7 +22,7 @@ Every dog is four independent rolls, combined:
 | **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
 | **Background** | `src/content/backgrounds.js` | 60 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
 | **Name** | `src/content/names.js` | Flat pick from 150. |
-| **Traits** | `src/content/traits/` | 248 of them; 4–8 per dog, averaging 6, drawn without replacement. 119 belong to a **group** — see below. |
+| **Traits** | `src/content/traits/` | 270 of them; 4–8 per dog, averaging 6, drawn without replacement. 128 belong to a **group** — see below. |
 
 **Score** = the breed's value + the background's value + every trait's value. The content
 is balanced so the average dog scores **0** — see [Balance](#balance).
@@ -115,12 +115,12 @@ smells of one thing. A trait carrying a `group` blocks every other trait in that
 { text: "Starved", emoji: "🍽️", value: -5, category: "condition", group: "build", ... },
 ```
 
-Twenty-three groups, 119 traits: `build` (10), `job` (10), `voice` (7), `fame` (6),
-`money` (6), `nose` (6), `smell` (6), `coat` (5), `fetch` (5), `homes` (5), `loyalty` (5),
-`mind` (5), `speed` (5), `weather` (5), `age` (4), `camera` (4), `car` (4), `diet` (4),
-`pedigree` (4), `tail` (4), `training` (4), `sleep` (3), `cats` (2). A blocked trait is
-dropped rather than retried, so the dog still gets its full four to eight — the pool is
-242 deep and six are drawn.
+Twenty-four groups, 128 traits: `build` (11), `job` (11), `fame` (7), `voice` (7),
+`money` (6), `nose` (6), `pedigree` (6), `smell` (6), `coat` (5), `fetch` (5), `homes` (5),
+`loyalty` (5), `mind` (5), `speed` (5), `tail` (5), `weather` (5), `age` (4), `camera` (4),
+`car` (4), `diet` (4), `training` (4), `omen` (3), `sleep` (3), `cats` (2). A blocked trait
+is dropped rather than retried, so the dog still gets its full four to eight — the pool is
+264 deep and six are drawn.
 
 The bar for a group is that its members are **inherently exclusive** — not merely on a
 theme. A dog holds one rank in `fetch`, has one `job`, is one shape. Traits that merely
@@ -166,22 +166,26 @@ drama out of an extreme roll.
 Breeds and backgrounds are deliberately left lopsided (Heaven +12, Hell −7). They are the
 jackpots.
 
-Measured over 20k rolls: mean **−0.022**, median 0, tiers landing at roughly
-0.3 / 4.2 / 13.2 / 21.9 / **21.4** / 21.2 / 13.1 / 4.2 / 0.4.
+Measured over 20k rolls: mean **−0.012**, median 0, tiers landing at roughly
+0.4 / 4.2 / 13.1 / 22.1 / **21.3** / 21.3 / 13.1 / 4.2 / 0.4.
 
 ### The correction band is running dry
 
 Every rebalance so far has moved ungrouped traits in the −4…−2 band by a point, spread so
 no trait takes two. The fourth trait batch (+0.71 before correction) was the first to
-touch traits for a second time: 29 of them, a point each, new and old alike. That is fine
-as long as it stays one point at a time across many traits. Concentrating
+touch traits for a second time: 29 of them, a point each, new and old alike.
+
+The fifth (+0.80) would have hit most of those same traits again, so it was split instead:
+22 positives in the +3…+5 band down a point, and 13 negatives the previous round hadn't
+touched. Taking every correction from the negatives makes the bad end harsher batch after
+batch; `npm run balance` now lists both bands for exactly that reason. Concentrating
 a correction is what flattens the tails.
 
 ### The outer tiers are compressing
 
 Worth watching rather than fixing yet. Every group narrows the extremes, because an
 extreme score needs a stack of same-direction traits and groups are exactly what stop one.
-Platonic Ideal has gone 0.8% → 0.9% → 0.6% → 0.5% → 0.4% across the last four content passes,
+Platonic Ideal has gone 0.8% → 0.9% → 0.6% → 0.5% → 0.4% → 0.4% across the last five content passes,
 with Should Not Have Happened tracking it down on the other side.
 
 Both ends are moving together, so the ladder is still symmetric — it is getting *narrower*,

@@ -5,7 +5,8 @@
 //
 // The test suite fails once the average dog drifts past +/-0.5. The fix is always the same
 // shape: move traits one point each, spread across distinct ungrouped traits, so the
-// extremes keep their drama. The candidates printed at the bottom follow that rule.
+// extremes keep their drama. The candidates printed at the bottom follow that rule, from
+// both the negative and the positive band.
 
 import { rollDailyDog } from "../src/roll.js";
 import {
@@ -62,17 +63,27 @@ console.log(`one point    moves the average dog ~${perPoint.toFixed(4)}`);
 if (Math.abs(mean) < 0.15) {
   console.log("\nbalanced -- nothing to correct.");
 } else {
-  // Too high: deepen mid-range negatives (-2..-4 -> one lower) or trim small positives.
-  // Too low: soften mid-range negatives (-2..-4 -> one higher).
-  // Grouped traits are left alone: their effect on the mean depends on what they block.
+  // Both bands move the mean the same way when shifted in the same direction, so a
+  // correction can come from either. Split it between them: taking it all from the
+  // negatives, batch after batch, keeps hitting the same traits and makes the bad end
+  // harsher every time. Grouped traits are left alone: their effect on the mean depends
+  // on what they block.
   const high = mean > 0;
-  const candidates = spawn
-    .filter((m) => !m.group && m.value <= -2 && m.value >= -4)
-    .sort((a, b) => (high ? b.value - a.value : a.value - b.value) || a.text.localeCompare(b.text))
-    .slice(0, points);
-  console.log(`\naverage is ${high ? "high" : "low"}: move ~${points} traits one point ${high ? "down" : "up"}. Candidates:`);
-  for (const m of candidates) {
-    console.log(`  ${String(m.value).padStart(3)} -> ${String(m.value + (high ? -1 : 1)).padStart(3)}  ${m.text}`);
+  const step = high ? -1 : 1;
+  const band = (lo, hi) =>
+    spawn
+      .filter((m) => !m.group && m.value >= lo && m.value <= hi)
+      .sort((a, b) => (high ? b.value - a.value : a.value - b.value) || a.text.localeCompare(b.text));
+  const negatives = band(-4, -2);
+  const positives = band(3, 5);
+
+  console.log(`\naverage is ${high ? "high" : "low"}: move ~${points} traits one point ${high ? "down" : "up"}, split across both bands.`);
+  console.log("Prefer traits the last correction didn't touch (git log -p src/content/traits).");
+  for (const [label, list] of [["negatives, -4..-2", negatives], ["positives, +3..+5", positives]]) {
+    console.log(`\n  ${label} (${list.length} available)`);
+    for (const m of list) {
+      console.log(`    ${String(m.value).padStart(3)} -> ${String(m.value + step).padStart(3)}  ${m.text}`);
+    }
   }
-  if (candidates.length < points) console.log(`  (only ${candidates.length} ungrouped candidates in the -4..-2 band -- widen the band)`);
+  if (negatives.length + positives.length < points) console.log("\n  (not enough ungrouped candidates -- widen a band)");
 }

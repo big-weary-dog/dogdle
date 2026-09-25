@@ -45,7 +45,7 @@ export const HABIT = [
     effect: { type: "ghost", layer: "subject", params: { opacity: 0.8 } } },
   { text: "Expensive tastes", emoji: "💸", value: -1, category: "habit",
     effect: { type: "burst", layer: "front", params: { color: "#4ade80", count: 22, spread: 130 } } },
-  { text: "Steals from shops", emoji: "🛒", value: -4, category: "habit",
+  { text: "Steals from shops", emoji: "🛒", value: -5, category: "habit",
     effect: { type: "glitch", layer: "front", params: { color: "#fbbf24", intensity: 0.3, scanlines: false } } },
   { text: "Doesn\'t return the shopping cart", emoji: "🛒", value: -5, category: "habit",
     effect: { type: "spotlight", layer: "front", params: { color: "#e5e7eb", radius: 105, speed: 0.75 } } },
@@ -69,4 +69,9 @@ export const HABIT = [
   { text: "Same kibble since 2014", emoji: "🥣", value: 0, category: "habit", group: "diet", effect: null },
   { text: "Eats one kibble at a time, carried to the rug", emoji: "🍚", value: -1, category: "habit", effect: null },
   { text: "Only watches nature documentaries", emoji: "📺", value: 1, category: "habit", effect: null },
+  { text: "Weighs your heart against a feather, nightly", emoji: "⚖️", value: -1, category: "habit", effect: null },
+  { text: "Herds the children", emoji: "🐑", value: 2, category: "habit", effect: null },
+  { text: "Hides treats in the sofa", emoji: "🍪", value: -1, category: "habit", effect: null },
+  { text: "Scoots on the good carpet", emoji: "🍑", value: -4, category: "habit", effect: null },
+  { text: "Steals one shoe from each pair", emoji: "🥾", value: -3, category: "habit", effect: null },
 ];

@@ -54,7 +54,7 @@ export const TEMPERAMENT = [
 
   { text: "Certified therapy dog", emoji: "🪪", value: 5, category: "temperament", group: "job",
     effect: { type: "pulse", layer: "back", params: { color: "#4ade80", period: 2600, radius: 190 } } },
-  { text: "Likes everyone immediately", emoji: "🥰", value: 4, category: "temperament",
+  { text: "Likes everyone immediately", emoji: "🥰", value: 3, category: "temperament",
     effect: { type: "rise", layer: "front", params: { color: "#fb7185", count: 18, speed: 0.5, sway: 1.8, size: 9, shape: "heart" } } },
   { text: "Comes when called, every time", emoji: "📣", value: 4, category: "temperament", group: "training",
     effect: { type: "halo", layer: "subject", params: { color: "#38bdf8", size: 10 } } },
@@ -71,7 +71,7 @@ export const TEMPERAMENT = [
     effect: { type: "chromatic", layer: "subject", params: { offset: 3 } } },
   { text: "Ate a child", emoji: "💀", value: -9, category: "temperament",
     effect: { type: "invert", layer: "subject", params: { amount: 0.8 } } },
-  { text: "Kleptomania", emoji: "💍", value: -4, category: "temperament", effect: null },
+  { text: "Kleptomania", emoji: "💍", value: -5, category: "temperament", effect: null },
   { text: "Afraid of men in hats", emoji: "🎩", value: -1, category: "temperament", effect: null },
   { text: "Afraid of the floor", emoji: "🧊", value: -4, category: "temperament",
     effect: { type: "bounce", layer: "subject", params: { period: 1200 } } },
@@ -92,7 +92,7 @@ export const TEMPERAMENT = [
   { text: "Practicing therapist", emoji: "🛋️", value: 5, category: "temperament", group: "job",
     effect: { type: "pulse", layer: "back", params: { color: "#4ade80", period: 2800, radius: 190 } } },
   { text: "Homies with da cats", emoji: "🐈", value: 3, category: "temperament", group: "cats", effect: null },
-  { text: "Does math for treats", emoji: "🧮", value: 4, category: "temperament",
+  { text: "Does math for treats", emoji: "🧮", value: 3, category: "temperament",
     effect: { type: "halo", layer: "subject", params: { color: "#38bdf8", size: 12 } } },
   { text: "Howls in perfect pitch", emoji: "🎻", value: 3, category: "temperament", group: "voice",
     effect: { type: "ripple", layer: "back", params: { color: "#c4b5fd", rings: 4, speed: 1, maxRadius: 170 } } },
@@ -100,4 +100,5 @@ export const TEMPERAMENT = [
     effect: { type: "shake", layer: "front", params: { intensity: 2, period: 1400 } } },
   { text: "Sees something in the hallway you don't", emoji: "👻", value: -3, category: "temperament",
     effect: { type: "fog", layer: "front", params: { color: "#cbd5e1", bands: 2, opacity: 0.25, speed: 0.4 } } },
+  { text: "Leans on people. Heavily.", emoji: "🫠", value: 2, category: "temperament", effect: null },
 ];
