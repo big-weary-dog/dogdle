@@ -42,6 +42,26 @@ export function fitText(sizeKey, str, maxWidth) {
   return out.trimEnd() + "..";
 }
 
+// Breaks at spaces into at most `maxLines` lines. Whatever still doesn't fit is trimmed
+// with fitText on the last line, so the result always fits.
+export function wrapText(sizeKey, str, maxWidth, maxLines = 2) {
+  const lines = [];
+  let rest = str;
+  while (rest && lines.length < maxLines - 1 && textWidth(sizeKey, rest) > maxWidth) {
+    const words = rest.split(" ");
+    let line = words.shift();
+    while (words.length && textWidth(sizeKey, `${line} ${words[0]}`) <= maxWidth) {
+      line += ` ${words.shift()}`;
+    }
+    // A single word wider than the line can't be broken at a space; leave it to fitText.
+    if (!words.length) break;
+    lines.push(line);
+    rest = words.join(" ");
+  }
+  lines.push(fitText(sizeKey, rest, maxWidth));
+  return lines;
+}
+
 export function drawText(surface, sizeKey, str, x, y, color, maxWidth = Infinity) {
   const font = ATLAS.text[sizeKey];
   const alpha = bytes("t" + sizeKey, font.alpha);

@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { rollDailyDog } from "../src/roll.js";
-import { renderCardGif, composeCard, CARD } from "../src/card.js";
+import { renderCardGif, composeCard, layoutRows, CARD } from "../src/card.js";
 import { BACKGROUNDS, MODIFIERS } from "../src/content/index.js";
 import ATLAS from "../src/generated/atlas.js";
 import { decodePhoto } from "../src/draw.js";
@@ -87,6 +87,41 @@ test("the still composer fills the whole card", () => {
   for (let i = 3; i < card.data.length; i += 4) {
     if (card.data[i] !== 255) assert.fail(`unpainted pixel at byte ${i}`);
   }
+});
+
+// The punchline is usually at the end of a trait, so a trimmed name is a broken joke.
+const rowsOf = (dog) => [
+  ...(dog.breedValue ? [{ text: dog.breed, value: dog.breedValue }] : []),
+  { text: dog.background.name, value: dog.background.value },
+  ...dog.modifiers,
+];
+const trimmed = (lines) => lines.at(-1).endsWith("..");
+
+test("every trait name fits on the card, wrapping rather than trimming", () => {
+  for (const m of MODIFIERS.filter((t) => !t.obsolete)) {
+    const { lines } = layoutRows([m]);
+    assert.ok(!trimmed(lines[0]), `"${m.text}" doesn't fit in two lines`);
+    assert.equal(lines[0].join(" "), m.text, `"${m.text}" lost words when wrapped`);
+  }
+  for (const b of BACKGROUNDS) {
+    const { lines } = layoutRows([{ text: b.name, value: b.value }]);
+    assert.ok(!trimmed(lines[0]), `background "${b.name}" doesn't fit`);
+  }
+});
+
+test("real cards almost never trim a name, and never run off the bottom", () => {
+  let cards = 0;
+  for (let i = 0; i < 2000; i++) {
+    const rows = rowsOf(rollDailyDog(`test-player-${i}`, "2026-09-22"));
+    const { rowH, lines } = layoutRows(rows);
+    if (lines.some(trimmed)) cards++;
+
+    const used = lines.reduce((h, l) => h + rowH + (l.length - 1) * 13, 0);
+    assert.ok(rowH >= 19, `rows squeezed to ${rowH}px`);
+    assert.ok(82 + used <= CARD.height, `sidebar runs ${82 + used - CARD.height}px off the card`);
+  }
+  // Only a card stacked with long names should need to trim; it was most of them before.
+  assert.ok(cards / 2000 < 0.02, `${cards} of 2000 cards trimmed a name`);
 });
 
 test("the atlas covers every emoji the card draws", () => {

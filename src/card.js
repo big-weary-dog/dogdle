@@ -11,7 +11,10 @@
 import { RasterSurface } from "./raster.js";
 import { paintWorld, createLayers } from "../public/effects.js";
 import { GIFEncoder, quantize, applyPalette } from "../public/vendor/gifenc.js";
-import { drawText, drawEmoji, fillRect, blitSurface, hexToRgb, textWidth, drawPhotoEllipse, decodePhoto } from "./draw.js";
+import {
+  drawText, drawEmoji, fillRect, blitSurface, hexToRgb, textWidth, fitText, wrapText,
+  drawPhotoEllipse, decodePhoto,
+} from "./draw.js";
 
 export const CARD = {
   width: 560,
@@ -39,7 +42,7 @@ function drawDog(scene, photo, dog, sceneW, h) {
 export function paintSidebar(surface, dog, x, width, height) {
   fillRect(surface, x, 0, width, height, PANEL);
 
-  const pad = 12;
+  const pad = SIDEBAR_PAD;
   const left = x + pad;
   const inner = width - pad * 2;
 
@@ -63,30 +66,63 @@ export function paintSidebar(surface, dog, x, width, height) {
     ...dog.modifiers.map((m) => ({ emoji: m.emoji, text: m.text, value: m.value })),
   ];
 
-  const top = 82;
-  const available = height - top - 8;
-  const rowH = Math.min(26, Math.floor(available / Math.max(rows.length, 1)));
+  const { rowH, lines } = layoutRows(rows, width, height);
   const emojiSize = Math.min(16, rowH - 6);
 
+  let y = ROWS_TOP;
   rows.forEach((row, i) => {
-    const y = top + i * rowH;
-    if (y + rowH > height) return;
-
-    fillRect(surface, left, y, inner, rowH - 3, ROW);
+    const extra = (lines[i].length - 1) * LINE_H;
+    if (y + rowH + extra > height) return;
+    const boxH = rowH - 3 + extra;
+    fillRect(surface, left, y, inner, boxH, ROW);
 
     const valueText = signed(row.value);
     const valueW = textWidth("sm", valueText);
     const color = row.value > 0 ? GREEN : row.value < 0 ? RED : MUTED;
+    const baseline = y + boxH / 2 + 2.5;
 
-    drawEmoji(surface, row.emoji, left + 4, y + (rowH - 3 - emojiSize) / 2, emojiSize);
-    drawText(
-      surface, "sm", row.text,
-      left + emojiSize + 9, y + rowH / 2 + 1,
-      WHITE,
-      inner - emojiSize - valueW - 20
-    );
-    drawText(surface, "sm", valueText, left + inner - valueW - 5, y + rowH / 2 + 1, color);
+    drawEmoji(surface, row.emoji, left + 4, y + (boxH - emojiSize) / 2, emojiSize);
+    lines[i].forEach((line, n) => {
+      drawText(surface, "sm", line, left + emojiSize + 9, baseline - extra / 2 + n * LINE_H, WHITE);
+    });
+    drawText(surface, "sm", valueText, left + inner - valueW - 5, baseline, color);
+    y += rowH + extra;
   });
+}
+
+const SIDEBAR_PAD = 12;
+const ROWS_TOP = 82;
+
+const LINE_H = 13; // the second line of a wrapped name
+const MIN_ROW_H = 19; // below this the emoji stops being legible
+
+// Room for the trait name: the row, less the emoji, the value column and the gaps.
+const textRoom = (inner, value) => inner - 16 - textWidth("sm", signed(value)) - 20;
+
+// Lays the sidebar out so the names aren't cut off: the joke is usually at the end of the
+// line, so a trimmed trait is a trait with no punchline. A long name gets a second line,
+// and the rows share what height is left. If a card has more long names than room, the
+// ones that overflow least go back to one trimmed line until everything fits.
+export function layoutRows(rows, width = CARD.width - CARD.sceneWidth, height = CARD.height) {
+  const inner = width - SIDEBAR_PAD * 2;
+  const available = height - ROWS_TOP - 8;
+  const lines = rows.map((row) => wrapText("sm", row.text, textRoom(inner, row.value), 2));
+  const rowHeight = () => {
+    const extra = lines.reduce((n, l) => n + (l.length - 1) * LINE_H, 0);
+    return Math.min(26, Math.floor((available - extra) / Math.max(rows.length, 1)));
+  };
+
+  while (rowHeight() < MIN_ROW_H) {
+    const wrapped = rows
+      .map((row, i) => ({ i, over: textWidth("sm", row.text) - textRoom(inner, row.value) }))
+      .filter(({ i }) => lines[i].length > 1)
+      .sort((a, b) => a.over - b.over);
+    if (!wrapped.length) break;
+    const { i } = wrapped[0];
+    lines[i] = [fitText("sm", rows[i].text, textRoom(inner, rows[i].value))];
+  }
+
+  return { rowH: rowHeight(), lines };
 }
 
 // Composes a single still card -- the same pipeline as the GIF, minus the animation.
