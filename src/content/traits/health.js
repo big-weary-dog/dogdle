@@ -71,4 +71,5 @@ export const HEALTH = [
   { text: "Has snout fever", emoji: "🌡️", value: -3, category: "health",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.25, hue: 340, saturate: 1.4 } } },
   { text: "Bitten on the nose by a bat. Unvaccinated.", emoji: "🦇", value: -4, category: "health", effect: null },
+  { text: "Mummified once. Got better.", emoji: "⚱️", value: -2, category: "health", effect: null },
 ];

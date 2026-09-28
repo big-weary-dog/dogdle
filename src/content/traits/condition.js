@@ -180,4 +180,8 @@ export const CONDITION = [
     effect: { type: "tint", layer: "subject", params: { sepia: 0.5, hue: 320, saturate: 1.8 } } },
   { text: "Three heads, all opinionated", emoji: "👥", value: -1, category: "condition", effect: null },
   { text: "Neck grows a little every time you pet him", emoji: "🦕", value: 0, category: "condition", effect: null },
+  { text: "Cyborg. Warranty expired.", emoji: "🦾", value: -1, category: "condition",
+    effect: { type: "chromatic", layer: "subject", params: { offset: 2 } } },
+  { text: "Replaced a leg with a better leg", emoji: "🦿", value: 1, category: "condition", effect: null },
+  { text: "Needs charging overnight", emoji: "🔋", value: -1, category: "condition", effect: null },
 ];

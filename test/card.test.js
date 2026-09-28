@@ -111,9 +111,13 @@ test("every trait name fits on the card, wrapping rather than trimming", () => {
 });
 
 test("real cards almost never trim a name, and never run off the bottom", () => {
+  // Several days, not one: on a single day's 2000 cards the rate swings by half a point
+  // whenever content reshuffles the rolls, which fails content PRs that didn't touch it.
+  const days = ["2026-09-22", "2026-09-23", "2026-09-24", "2026-09-25", "2026-09-26"];
+  const total = days.length * 2000;
   let cards = 0;
-  for (let i = 0; i < 2000; i++) {
-    const rows = rowsOf(rollDailyDog(`test-player-${i}`, "2026-09-22"));
+  for (let n = 0; n < total; n++) {
+    const rows = rowsOf(rollDailyDog(`test-player-${n % 2000}`, days[Math.floor(n / 2000)]));
     const { rowH, lines } = layoutRows(rows);
     if (lines.some(trimmed)) cards++;
 
@@ -122,7 +126,7 @@ test("real cards almost never trim a name, and never run off the bottom", () => 
     assert.ok(82 + used <= CARD.height, `sidebar runs ${82 + used - CARD.height}px off the card`);
   }
   // Only a card stacked with long names should need to trim; it was most of them before.
-  assert.ok(cards / 2000 < 0.02, `${cards} of 2000 cards trimmed a name`);
+  assert.ok(cards / total < 0.02, `${cards} of ${total} cards trimmed a name`);
 });
 
 test("the atlas covers every emoji the card draws", () => {

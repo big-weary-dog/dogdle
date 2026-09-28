@@ -20,9 +20,9 @@ Every dog is four independent rolls, combined:
 | Part | Source | Notes |
 |---|---|---|
 | **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
-| **Background** | `src/content/backgrounds.js` | 88 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
+| **Background** | `src/content/backgrounds.js` | 101 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
 | **Name** | `src/content/names.js` | Flat pick from 150. |
-| **Traits** | `src/content/traits/` | 364 of them; 4–8 per dog, averaging 6, drawn without replacement. 146 belong to a **group** — see below. |
+| **Traits** | `src/content/traits/` | 383 of them; 4–8 per dog, averaging 6, drawn without replacement. 150 belong to a **group** — see below. |
 
 **Score** = the breed's value + the background's value + every trait's value. The content
 is balanced so the average dog scores **0** — see [Balance](#balance).
@@ -144,12 +144,12 @@ smells of one thing. A trait carrying a `group` blocks every other trait in that
 { text: "Starved", emoji: "🍽️", value: -5, category: "condition", group: "build", ... },
 ```
 
-Twenty-four groups, 146 traits: `build` (13), `fame` (11), `job` (11), `voice` (10),
-`loyalty` (8), `mind` (7), `pedigree` (7), `smell` (7), `money` (6), `nose` (6), `tail` (6),
+Twenty-four groups, 150 traits: `build` (13), `fame` (11), `job` (11), `voice` (11),
+`pedigree` (10), `loyalty` (8), `mind` (7), `smell` (7), `money` (6), `nose` (6), `tail` (6),
 `age` (5), `coat` (5), `fetch` (5), `homes` (5), `speed` (5), `weather` (5), `camera` (4),
 `car` (4), `diet` (4), `training` (4), `omen` (3), `sleep` (3), `cats` (2). A blocked trait
 is dropped rather than retried, so the dog still gets its full four to eight — the pool is
-358 deep and six are drawn.
+377 deep and six are drawn.
 
 The bar for a group is that its members are **inherently exclusive** — not merely on a
 theme. A dog holds one rank in `fetch`, has one `job`, is one shape. Traits that merely
@@ -168,7 +168,7 @@ one.
 The average dog scores 0 by construction, not by moving the goalposts.
 
 Two of the three parts pull upward: a rarity-weighted breed mean of **+0.92** and a
-background mean of **+0.89**. With six traits per dog, the trait pool has to average
+background mean of **+0.88**. With six traits per dog, the trait pool has to average
 about **−0.30** for the whole thing to centre on zero.
 
 The background mean was +1.04 until the 14 added in the background pass. Their values were
@@ -177,7 +177,8 @@ worse than Hell and says so — and the traits absorbed the difference. That is 
 division of labour: backgrounds are the lopsided jackpots, traits are the balancer. The 28
 added after that (Pripyat to Atlantis, then the Good Timeline) were split evenly enough
 between good and bad places that they moved the mean only from +0.84 to +0.89, and needed
-no correction.
+no correction. Neither did the 13 from the past and the far future (the Colosseum to the
+Heat Death of the Universe), which nudged it back to +0.88.
 
 **Groups move the mean**, which is easy to miss, and not always upward. The first six
 were largely negative, so excluding their duplicates removed the worst stacks and pushed

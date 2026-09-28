@@ -125,4 +125,8 @@ export const TEMPERAMENT = [
   { text: "Was told to wait outside the pizza place. Did.", emoji: "🍕", value: 2, category: "temperament", group: "loyalty", effect: null },
   { text: "Waited twenty years on a dung heap. Worth it.", emoji: "⛵", value: 3, category: "temperament", group: "loyalty", effect: null },
   { text: "Can pronounce the letter F. Only the letter F.", emoji: "🔤", value: 1, category: "temperament", effect: null },
+  { text: "Cave canem. He is the canem.", emoji: "🏛️", value: 1, category: "temperament", effect: null },
+  { text: "Victorian. Refuses to smile.", emoji: "🎩", value: -1, category: "temperament",
+    effect: { type: "tint", layer: "subject", params: { sepia: 0.9, hue: 0, saturate: 0.6 } } },
+  { text: "Barks in binary", emoji: "📡", value: -1, category: "temperament", group: "voice", effect: null },
 ];
