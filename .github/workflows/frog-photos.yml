@@ -1,0 +1,51 @@
+name: Fetch frog photo candidates
+
+# Cloud sessions can't reach Wikimedia; Actions can. This pulls openly licensed frog photos
+# from Commons onto a scratch branch, `frog-candidates`, where they can be looked at and the
+# good ones copied into public/frogs/ (and credited in FROG_PHOTOS). Nothing here touches
+# the deployed site. Run it again with clean=true to delete the scratch branch.
+on:
+  workflow_dispatch:
+    inputs:
+      max:
+        description: How many candidates to fetch
+        default: "60"
+        required: false
+      clean:
+        description: Delete the scratch branch instead
+        default: "false"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  frogs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch candidates
+        if: inputs.clean != 'true'
+        run: node scripts/frog-candidates.mjs "$RUNNER_TEMP/frogs" "${{ inputs.max }}"
+
+      - name: Push them to the scratch branch
+        if: inputs.clean != 'true'
+        working-directory: ${{ runner.temp }}/frogs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git init -q -b frog-candidates
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Frog photo candidates from Wikimedia Commons"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" frog-candidates
+
+      - name: Delete the scratch branch
+        if: inputs.clean == 'true'
+        run: git push origin --delete frog-candidates || echo "already gone"
