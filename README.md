@@ -20,7 +20,7 @@ Every dog is four independent rolls, combined:
 | Part | Source | Notes |
 |---|---|---|
 | **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
-| **Background** | `src/content/backgrounds.js` | 60 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
+| **Background** | `src/content/backgrounds.js` | 87 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
 | **Name** | `src/content/names.js` | Flat pick from 150. |
 | **Traits** | `src/content/traits/` | 364 of them; 4–8 per dog, averaging 6, drawn without replacement. 146 belong to a **group** — see below. |
 
@@ -168,13 +168,15 @@ one.
 The average dog scores 0 by construction, not by moving the goalposts.
 
 Two of the three parts pull upward: a rarity-weighted breed mean of **+0.92** and a
-background mean of **+0.84**. With six traits per dog, the trait pool has to average
+background mean of **+0.86**. With six traits per dog, the trait pool has to average
 about **−0.30** for the whole thing to centre on zero.
 
 The background mean was +1.04 until the 14 added in the background pass. Their values were
 set by what each place deserves, not by what the mean needed — a Timeshare Presentation is
 worse than Hell and says so — and the traits absorbed the difference. That is the intended
-division of labour: backgrounds are the lopsided jackpots, traits are the balancer.
+division of labour: backgrounds are the lopsided jackpots, traits are the balancer. The 27
+added after that (Pripyat to Atlantis) were split evenly enough between good and bad places
+that they moved the mean only from +0.84 to +0.86, and needed no correction.
 
 **Groups move the mean**, which is easy to miss, and not always upward. The first six
 were largely negative, so excluding their duplicates removed the worst stacks and pushed
