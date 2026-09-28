@@ -14,6 +14,7 @@ import { readFileSync } from "node:fs";
 import {
   NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS,
   MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS,
+  FROG, FROG_CHANCE, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MIN, FROG_TRAIT_COUNT_MAX,
 } from "../src/content/index.js";
 
 const was = JSON.parse(readFileSync(new URL("./content-inventory.json", import.meta.url)));
@@ -29,6 +30,15 @@ test("every background survived, with its effect intact", () => {
 
 test("every trait survived, with its value, category and effect intact", () => {
   assert.deepEqual([...MODIFIERS].sort(by("text")), was.modifiers);
+});
+
+test("every frog survived, and so did the odds of one", () => {
+  assert.deepEqual([...FROG_NAMES].sort(), was.frogNames);
+  assert.deepEqual([...FROG_TRAITS].sort(by("text")), was.frogTraits);
+  assert.deepEqual(
+    { ...FROG, chance: FROG_CHANCE, traitCount: { min: FROG_TRAIT_COUNT_MIN, max: FROG_TRAIT_COUNT_MAX } },
+    was.frog
+  );
 });
 
 test("the dials around them are unchanged", () => {

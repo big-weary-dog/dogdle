@@ -68,6 +68,12 @@ aren't sure whether someone has rolled.
 
 `image` is a plain animated GIF, 560×320, ~250–480KB. Put it straight in an embed.
 
+About one day in forty, a player's roll isn't a dog: **a frog has got in**. The payload
+then carries `"frog": true`, `breed` is `"Intruder"`, `rarity` is `"Not a Dog"`, and the
+name is something like `"Slimy Frog"`. The score is usually around −30, and the card draws
+a big 🐸 where the photo would be. The shape is otherwise identical, so nothing breaks if
+you ignore the flag, but a frog deserves a reaction (🐸, or a line of sympathy).
+
 ### `GET /api/bot/dog?discordId=…&date=…`
 
 The same payload **without dealing a dog**. Returns `{ "pending": true, "date": "…" }` if

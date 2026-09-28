@@ -19,6 +19,7 @@ import { rollDailyDog } from "../src/roll.js";
 import {
   NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS,
   MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS,
+  FROG, FROG_CHANCE, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MIN, FROG_TRAIT_COUNT_MAX,
 } from "../src/content/index.js";
 import { SEEDS } from "../test/golden-seeds.js";
 
@@ -44,10 +45,13 @@ writeFileSync(
     names: [...NAMES].sort(),
     backgrounds: [...BACKGROUNDS].sort(by("key")),
     modifiers: [...MODIFIERS].sort(by("text")),
+    frog: { ...FROG, chance: FROG_CHANCE, traitCount: { min: FROG_TRAIT_COUNT_MIN, max: FROG_TRAIT_COUNT_MAX } },
+    frogNames: [...FROG_NAMES].sort(),
+    frogTraits: [...FROG_TRAITS].sort(by("text")),
   })
 );
 console.log(
-  `inventory: ${NAMES.length} names, ${BACKGROUNDS.length} backgrounds, ${MODIFIERS.length} traits`
+  `inventory: ${NAMES.length} names, ${BACKGROUNDS.length} backgrounds, ${MODIFIERS.length} traits, ${FROG_TRAITS.length} frog traits`
 );
 
 // What the generator chose, not what the content says those choices contain.
@@ -55,6 +59,7 @@ const dogs = SEEDS.map(([player, date]) => {
   const dog = rollDailyDog(player, date);
   return {
     seed: `${player} ${date}`,
+    ...(dog.frog ? { frog: true } : {}),
     name: dog.name,
     breed: dog.breedSlug,
     rarity: dog.rarity,

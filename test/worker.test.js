@@ -52,3 +52,38 @@ test("the photo proxy answers a timeout as a 504, not a crash", async () => {
     globalThis.fetch = offline;
   }
 });
+
+test("a frog is dealt and stored without ever asking Dog CEO for a photo", async () => {
+  const { isFrogDay, today } = await import("../src/roll.js");
+  let player = null;
+  for (let i = 0; !player; i++) {
+    const id = `frog-player-${String(i).padStart(4, "0")}`;
+    if (isFrogDay(id, today())) player = id;
+  }
+
+  const online = globalThis.fetch;
+  globalThis.fetch = async (url) => assert.fail(`a frog fetched ${url}`);
+  const puts = {};
+  const env = {
+    STORE: {
+      get: async () => null,
+      put: async (key, value, opts) => { puts[key] = { value, opts }; },
+    },
+  };
+  try {
+    const res = await worker.fetch(new Request(`https://dogdle.swampkat.com/api/roll?player=${player}`), env);
+    const dog = await res.json();
+    assert.equal(dog.frog, true);
+    assert.equal(dog.photo, null);
+    assert.equal(dog.breed, "Intruder");
+    const row = puts[`day:${today()}:${player}`].opts.metadata;
+    assert.match(row.dog, / Frog$/, "the frog is on the leaderboard under its own name");
+
+    // And replaying it doesn't try to "repair" the missing photo either.
+    env.STORE.get = async () => dog;
+    const again = await worker.fetch(new Request(`https://dogdle.swampkat.com/api/roll?player=${player}`), env);
+    assert.equal((await again.json()).replayed, true);
+  } finally {
+    globalThis.fetch = online;
+  }
+});

@@ -36,6 +36,7 @@ test("fixed seeds still produce the exact same dogs", () => {
 
     // Field by field, because a whole-object diff on a dog with eight traits is
     // unreadable in a test failure.
+    assert.equal(Boolean(dog.frog), Boolean(was.frog), `${player}: frog or dog`);
     assert.equal(dog.name, was.name, `${player}: name`);
     assert.equal(dog.breedSlug, was.breed, `${player}: breed`);
     assert.equal(dog.rarity, was.rarity, `${player}: rarity`);

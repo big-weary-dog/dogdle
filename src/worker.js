@@ -131,9 +131,11 @@ async function route(request, url, env) {
 
   // Unlimited rerolls for playtesting. Everything it can reach is already public in the
   // client bundle, so there's nothing to gate -- it just skips the once-a-day lock.
+  // `frog=1` forces a frog, which otherwise turns up once in forty.
   if (url.pathname === "/api/dev-roll") {
     const seed = url.searchParams.get("seed") || crypto.randomUUID();
-    const dog = rollDailyDog(`dev-${seed}`, today());
+    const force = url.searchParams.get("frog") ? { frog: true } : {};
+    const dog = rollDailyDog(`dev-${seed}`, today(), force);
     dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
     dog.devSeed = seed;
 

@@ -41,7 +41,13 @@ function render(dog) {
     stage.classList.add("shaking");
   }
 
-  if (dog.photo) {
+  spinner.classList.toggle("frog", Boolean(dog.frog));
+  spinner.style.filter = dog.frog ? subject.filter : "";
+  if (dog.frog) {
+    dogPhoto.hidden = true;
+    spinner.hidden = false;
+    spinner.textContent = "🐸";
+  } else if (dog.photo) {
     dogPhoto.crossOrigin = "anonymous";
     dogPhoto.src = `/img?u=${encodeURIComponent(dog.photo)}`;
     dogPhoto.style.borderColor = dog.rarityColor;
@@ -60,7 +66,7 @@ function render(dog) {
   }
 
   el("dogName").textContent = dog.name;
-  el("breedName").textContent = `${dog.breed} · ${dog.breedSlug}`;
+  el("breedName").textContent = `${dog.breed} · ${dog.breedSlug ?? "frog"}`;
   el("rarityBadge").textContent = dog.rarityLabel;
   el("rarityBadge").style.background = dog.rarityColor;
   el("qualityLabel").textContent = dog.qualityLabel;
@@ -82,6 +88,7 @@ function render(dog) {
   const list = el("modifiersList");
   list.innerHTML = "";
   const rows = [
+    ...(dog.frog ? [{ label: "🐸 Is a frog", category: "intruder", value: dog.breedValue }] : []),
     { label: `${dog.background.emoji} ${dog.background.name}`, category: "background", value: dog.background.value, scene: true },
     ...dog.modifiers.map((m) => ({
       label: `${m.emoji} ${m.text}`, category: `${m.category}${m.effect ? ` · ${m.effect.type}/${m.effect.layer}` : ""}`,
@@ -104,12 +111,13 @@ function render(dog) {
   el("result").hidden = false;
 }
 
-async function reroll(seed = crypto.randomUUID()) {
-  const res = await fetch(`/api/dev-roll?seed=${encodeURIComponent(seed)}`);
+async function reroll(seed = crypto.randomUUID(), { frog = false } = {}) {
+  const res = await fetch(`/api/dev-roll?seed=${encodeURIComponent(seed)}${frog ? "&frog=1" : ""}`);
   render(await res.json());
 }
 
 el("rerollBtn").onclick = () => reroll();
+el("frogBtn").onclick = () => reroll(undefined, { frog: true });
 
 // Cycles quickly so you can eyeball a lot of combinations in a few seconds.
 let spinning = null;

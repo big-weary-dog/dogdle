@@ -5,13 +5,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, NAMES, QUALITY_TIERS } from "../src/content/index.js";
+import {
+  BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, NAMES, QUALITY_TIERS,
+  FROG, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MAX,
+} from "../src/content/index.js";
 import { BREEDS, RARITIES, RARITY_ORDER } from "../src/breeds.js";
 
 const spawnable = MODIFIERS.filter((m) => !m.obsolete);
 
 test("every modifier is fully specified", () => {
-  for (const m of MODIFIERS) {
+  for (const m of [...MODIFIERS, ...FROG_TRAITS]) {
     assert.ok(m.text?.length, `modifier missing text: ${JSON.stringify(m)}`);
     assert.ok(m.emoji?.length, `missing emoji: ${m.text}`);
     assert.equal(typeof m.value, "number", `non-numeric value: ${m.text}`);
@@ -23,7 +26,7 @@ test("every modifier is fully specified", () => {
 
 test("modifier text is unique", () => {
   const seen = new Set();
-  for (const m of MODIFIERS) {
+  for (const m of [...MODIFIERS, ...FROG_TRAITS]) {
     assert.ok(!seen.has(m.text), `duplicate modifier: ${m.text}`);
     seen.add(m.text);
   }
@@ -79,6 +82,7 @@ test("colours are hex strings the canvas can parse", () => {
   }
   for (const r of Object.values(RARITIES)) assert.match(r.color, hex, `bad rarity colour: ${r.color}`);
   for (const t of QUALITY_TIERS) assert.match(t.color, hex, `bad tier colour: ${t.color}`);
+  assert.match(FROG.color, hex, `bad frog colour: ${FROG.color}`);
 });
 
 test("quality tiers ascend and cover every score", () => {
@@ -102,4 +106,14 @@ test("dog names are unique and non-empty", () => {
 test("enough spawnable modifiers to fill the largest dog", () => {
   // sampleDistinct draws without replacement; too small a pool would silently short-change.
   assert.ok(spawnable.length >= 12, `only ${spawnable.length} spawnable modifiers`);
+});
+
+test("the frog table is its own world", () => {
+  assert.equal(new Set(FROG_NAMES).size, FROG_NAMES.length, "duplicate frog name");
+  for (const n of FROG_NAMES) assert.match(n, /^\S.* Frog$/, `not a frog name: ${n}`);
+  for (const t of FROG_TRAITS) {
+    assert.equal(t.category, "frog", `${t.text} should be in the frog category`);
+    assert.ok(!t.group, `${t.text}: frogs don't use groups`);
+  }
+  assert.ok(FROG_TRAITS.length >= FROG_TRAIT_COUNT_MAX * 3, "too few frog traits to vary");
 });

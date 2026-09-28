@@ -5,14 +5,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { BACKGROUNDS, MODIFIERS } from "../src/content/index.js";
+import { BACKGROUNDS, MODIFIERS, FROG_TRAITS } from "../src/content/index.js";
 import { EFFECT_TYPES, DOM_EFFECTS, SUBJECT_STYLES, subjectStyle } from "../public/effects.js";
 
 const LAYERS = new Set(["back", "front", "subject"]);
 
 const allEffects = [
   ...BACKGROUNDS.map((b) => ({ owner: b.key, effect: b.effect })),
-  ...MODIFIERS.filter((m) => m.effect).map((m) => ({ owner: m.text, effect: m.effect })),
+  ...[...MODIFIERS, ...FROG_TRAITS].filter((m) => m.effect).map((m) => ({ owner: m.text, effect: m.effect })),
 ];
 
 test("every referenced effect type is one the engine implements", () => {

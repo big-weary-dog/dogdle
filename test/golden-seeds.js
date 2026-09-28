@@ -17,4 +17,7 @@ export const SEEDS = [
   ["discord-900000000000000002", "2026-09-22"],
   ["8f14e45f-ceea-467a-9c1e-1b2c3d4e5f60", "2026-07-04"],
   ["8f14e45f-ceea-467a-9c1e-1b2c3d4e5f61", "2026-07-04"],
+  // Frog days, so the intruders are pinned too.
+  ["golden-mudskipper", "2026-06-15"],
+  ["golden-toad", "2026-05-05"],
 ];

@@ -57,6 +57,8 @@ function present(dog, imageUrl, origin) {
   return {
     name: dog.name,
     breed: dog.breed,
+    // Once in forty days it isn't a dog at all (content/frogs.js). Worth a reaction.
+    ...(dog.frog ? { frog: true } : {}),
     rarity: dog.rarityLabel,
     rarityColor: dog.rarityColor,
     score: dog.score,

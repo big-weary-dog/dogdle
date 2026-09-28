@@ -10,6 +10,7 @@ const MAX_PHOTO_BYTES = 6_000_000;
 // Dog CEO gives a random photo per call; we want the same photo all day for a given dog,
 // so the result is cached in the Cloudflare cache keyed by breed+date.
 export async function fetchBreedPhoto(slug, dateStr) {
+  if (!slug) return null; // a frog: there is no photo, and nothing is broken
   const cacheKey = new Request(`https://dogdle.internal/photo/${slug}/${dateStr}`);
   const cache = caches.default;
 
@@ -52,7 +53,7 @@ export async function fetchBreedPhoto(slug, dateStr) {
 // Returns whether it actually repaired anything, because a caller that has already
 // rendered something from the photo-less dog needs to throw that away.
 export async function backfillPhoto(env, key, dog) {
-  if (dog.photo || dog.test) return false;
+  if (dog.photo || dog.test || dog.frog) return false;
 
   // Look the slug up again by breed name rather than trusting the stored one. A slug is a
   // lookup key into someone else's API, not part of the dog: when one turns out to be

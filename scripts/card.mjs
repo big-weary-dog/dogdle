@@ -4,6 +4,7 @@
 //
 //   node scripts/card.mjs                           three sample players -> card-*.gif
 //   node scripts/card.mjs alice,bob 2026-09-22      those players on that day
+//   node scripts/card.mjs alice --frog              whatever alice was, as a frog
 //
 // The output is an animated GIF; open it with the Read tool to see the first frame.
 
@@ -11,10 +12,12 @@ import { writeFileSync } from "fs";
 import { renderCardGif, CARD } from "../src/card.js";
 import { rollDailyDog, today } from "../src/roll.js";
 
-const [playerArg = "sample-1,sample-2,sample-3", date = today()] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const frog = args.includes("--frog") ? { frog: true } : {};
+const [playerArg = "sample-1,sample-2,sample-3", date = today()] = args.filter((a) => a !== "--frog");
 
 for (const player of playerArg.split(",")) {
-  const dog = rollDailyDog(player, date);
+  const dog = rollDailyDog(player, date, frog);
   const started = process.hrtime.bigint();
   const gif = renderCardGif(dog);
   const ms = Number(process.hrtime.bigint() - started) / 1e6;

@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 
 import { rollDailyDog } from "../src/roll.js";
 import { renderCardGif, composeCard, layoutRows, CARD } from "../src/card.js";
-import { BACKGROUNDS, MODIFIERS } from "../src/content/index.js";
+import { BACKGROUNDS, MODIFIERS, FROG, FROG_TRAITS } from "../src/content/index.js";
 import ATLAS from "../src/generated/atlas.js";
 import { decodePhoto } from "../src/draw.js";
 import { setLogSink } from "../src/log.js";
@@ -67,7 +67,7 @@ test("a rendered card is a real GIF with the frames we asked for", () => {
 
 test("every effect in the content tables survives a headless render", () => {
   // One dog per effect, so a broken effect fails here rather than on somebody's roll.
-  const specs = [...BACKGROUNDS.map((b) => b.effect), ...MODIFIERS.map((m) => m.effect)];
+  const specs = [...BACKGROUNDS, ...MODIFIERS, ...FROG_TRAITS].map((x) => x.effect);
 
   for (const effect of specs) {
     if (!effect) continue;
@@ -91,14 +91,14 @@ test("the still composer fills the whole card", () => {
 
 // The punchline is usually at the end of a trait, so a trimmed name is a broken joke.
 const rowsOf = (dog) => [
-  ...(dog.breedValue ? [{ text: dog.breed, value: dog.breedValue }] : []),
+  ...(dog.breedValue ? [{ text: dog.frog ? FROG.row : dog.breed, value: dog.breedValue }] : []),
   { text: dog.background.name, value: dog.background.value },
   ...dog.modifiers,
 ];
 const trimmed = (lines) => lines.at(-1).endsWith("..");
 
 test("every trait name fits on the card, wrapping rather than trimming", () => {
-  for (const m of MODIFIERS.filter((t) => !t.obsolete)) {
+  for (const m of [...MODIFIERS.filter((t) => !t.obsolete), ...FROG_TRAITS]) {
     const { lines } = layoutRows([m]);
     assert.ok(!trimmed(lines[0]), `"${m.text}" doesn't fit in two lines`);
     assert.equal(lines[0].join(" "), m.text, `"${m.text}" lost words when wrapped`);
@@ -128,7 +128,9 @@ test("the atlas covers every emoji the card draws", () => {
   const used = new Set([
     ...BACKGROUNDS.map((b) => b.emoji),
     ...MODIFIERS.map((m) => m.emoji),
+    ...FROG_TRAITS.map((m) => m.emoji),
     "🧬", // the breed row, which belongs to no table
+    FROG.emoji, // a frog's breed row
   ]);
   const missing = [...used].filter((e) => ATLAS.emoji.index[e] === undefined);
   assert.deepEqual(missing, [], "run scripts/build-atlas.mjs after adding emoji");
@@ -154,4 +156,18 @@ test("a photo too big for a Worker is refused, not decoded", () => {
   assert.deepEqual(seen.map((e) => e.event), ["photo.decode_failed", "photo.decode_failed"]);
   assert.match(seen[0].err.message, /maxResolutionInMP/);
   assert.equal(seen[1].head, "89504e47");
+});
+
+test("a frog's card draws the frog, not a photo", () => {
+  const frog = rollDailyDog("test-player-4", "2026-09-22", { frog: true });
+  assert.ok(ATLAS.hero?.[FROG.emoji], "the atlas needs the big frog: npm run atlas");
+  const gif = readGif(renderCardGif(frog, { frames: 2 }));
+  assert.equal(gif.frames, 2);
+
+  // The middle of the scene should be frog-green, not whatever the background is.
+  const card = composeCard(frog, { settle: 0 });
+  const plain = composeCard({ ...frog, frog: false }, { settle: 0 });
+  const at = (c, x, y) => [...c.data.slice((y * c.width + x) * 4, (y * c.width + x) * 4 + 3)];
+  const cx = CARD.sceneWidth / 2, cy = Math.round(CARD.height * 0.5);
+  assert.notDeepEqual(at(card, cx, cy), at(plain, cx, cy), "nothing drawn where the frog should be");
 });

@@ -23,7 +23,7 @@ the Read tool; don't guess at how a visual looks from its data.
 
 | Where | What |
 |---|---|
-| `src/content/` | Everything a player sees: `traits/<category>.js`, `backgrounds.js`, `names.js`, `tiers.js`. `index.js` is the barrel. |
+| `src/content/` | Everything a player sees: `traits/<category>.js`, `backgrounds.js`, `names.js`, `tiers.js`, and `frogs.js` (the ~1-in-40 intruders, with their own traits). `index.js` is the barrel. |
 | `src/roll.js` | The deterministic generator. `hash(player:date)` seeds the PRNG. |
 | `src/breeds.js` | Breed table, Dog CEO slugs, rarity weights and values. |
 | `src/worker.js` | Web routes. `src/bot.js` is the Discord bot API (`/api/bot/*`). |
@@ -53,7 +53,8 @@ the Read tool; don't guess at how a visual looks from its data.
 2. **Rolls are immutable.** Nothing may re-deal a stored dog. Anything that changes what
    `rollDailyDog` returns for a given seed changes *future* dogs only, and will show up
    in `test/golden.json` — read that diff before re-baking.
-3. **Keep the average dog at 0.** The test fails outside ±0.5. Correct drift by moving
+3. **Keep the average dog at 0.** The test fails outside ±0.5. Frogs are excluded from the
+   average on purpose, and frog traits never balance dogs. Correct drift by moving
    traits **one point each across many distinct, ungrouped traits** — never by piling
    the correction onto a few. `npm run balance` lists candidates. Backgrounds and breeds
    are the lopsided jackpots; traits are the balancer.
@@ -89,6 +90,7 @@ Several agents can work at once if each stays in a lane. Lanes are by file owner
 | Traits | `src/content/traits/*.js` | Snapshots, maybe atlas |
 | Backgrounds | `src/content/backgrounds.js` | Snapshots, maybe atlas |
 | Names / tiers | `src/content/names.js`, `tiers.js` | Snapshots |
+| Frogs | `src/content/frogs.js` | Snapshots, maybe atlas |
 | Discord bot API | `src/bot.js`, `docs/discord-bot-prompt.md`, `test/bot.test.js` | `src/keys.js` if rows change |
 | Web UI | `public/app.js`, `public/index.html`, `public/dev.*` | — |
 | Card renderer | `src/card.js`, `src/draw.js`, `src/raster.js` | — |

@@ -127,6 +127,52 @@ export function drawEmoji(surface, glyph, x, y, size) {
   }
 }
 
+// One of the big baked glyphs (atlas.hero), centred on (cx, cy) at `size` pixels.
+export function drawHero(surface, glyph, cx, cy, size) {
+  const meta = ATLAS.hero?.[glyph];
+  if (!meta) return false;
+
+  const rgba = bytes(`hero${glyph}`, meta.rgba);
+  const { data, width: sw, height: sh } = surface;
+  const scale = meta.size / size;
+  const x0 = Math.round(cx - size / 2), y0 = Math.round(cy - size / 2);
+
+  for (let dy = 0; dy < size; dy++) {
+    const ty = y0 + dy;
+    if (ty < 0 || ty >= sh) continue;
+    const sy = Math.min(meta.size - 1, (dy * scale) | 0);
+    for (let dx = 0; dx < size; dx++) {
+      const tx = x0 + dx;
+      if (tx < 0 || tx >= sw) continue;
+      const si = (sy * meta.size + Math.min(meta.size - 1, (dx * scale) | 0)) * 4;
+      const a = rgba[si + 3] / 255;
+      if (a <= 0.004) continue;
+      const di = (ty * sw + tx) * 4;
+      data[di] += (rgba[si] - data[di]) * a;
+      data[di + 1] += (rgba[si + 1] - data[di + 1]) * a;
+      data[di + 2] += (rgba[si + 2] - data[di + 2]) * a;
+      data[di + 3] = 255;
+    }
+  }
+  return true;
+}
+
+// A soft dark ellipse, for something to stand on.
+export function drawShadow(surface, cx, cy, rx, ry, opacity) {
+  const { data, width: sw, height: sh } = surface;
+  for (let ty = Math.max(0, Math.floor(cy - ry)); ty < Math.min(sh, Math.ceil(cy + ry)); ty++) {
+    for (let tx = Math.max(0, Math.floor(cx - rx)); tx < Math.min(sw, Math.ceil(cx + rx)); tx++) {
+      const d = ((tx - cx) / rx) ** 2 + ((ty - cy) / ry) ** 2;
+      if (d >= 1) continue;
+      const a = opacity * (1 - d);
+      const di = (ty * sw + tx) * 4;
+      data[di] -= data[di] * a;
+      data[di + 1] -= data[di + 1] * a;
+      data[di + 2] -= data[di + 2] * a;
+    }
+  }
+}
+
 export function fillRect(surface, x, y, w, h, color) {
   const { data, width: sw, height: sh } = surface;
   const [r, g, b, a = 1] = color;

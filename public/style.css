@@ -387,6 +387,18 @@ footer {
   50% { transform: translateY(-9px); }
 }
 
+/* A frog has no photo: the slot the spinner uses becomes the frog, hopping. */
+.spinner.frog {
+  font-size: 9rem;
+  line-height: 1;
+  animation: frog-hop 760ms ease-in-out infinite;
+}
+
+@keyframes frog-hop {
+  0%, 100% { transform: translateY(0) scale(1.05, 0.95); }
+  45% { transform: translateY(-16px) scale(0.97, 1.03); }
+}
+
 @keyframes shake {
   0%, 100% { transform: translate(0, 0); }
   25% { transform: translate(var(--shake), calc(var(--shake) * -0.6)); }
@@ -396,5 +408,5 @@ footer {
 
 @media (prefers-reduced-motion: reduce) {
   .stage.shaking { animation: none; }
-  #dogPhoto, .modifiers li { animation: none; }
+  #dogPhoto, .modifiers li, .spinner.frog { animation: none; }
 }

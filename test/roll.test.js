@@ -4,8 +4,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { rollDailyDog, today, DAY_ZONE } from "../src/roll.js";
-import { MODIFIERS, QUALITY_TIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX } from "../src/content/index.js";
+import { rollDailyDog, isFrogDay, today, DAY_ZONE } from "../src/roll.js";
+import {
+  MODIFIERS, QUALITY_TIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, FROG, FROG_CHANCE, FROG_TRAITS,
+} from "../src/content/index.js";
 import { BREEDS, RARITY_VALUE, breedValue } from "../src/breeds.js";
 
 const sample = (n, date = "2026-09-19") =>
@@ -137,7 +139,8 @@ test("a rolled dog carries everything the client renders", () => {
 });
 
 test("the average dog scores about zero", () => {
-  const scores = sample(6000).map((d) => d.score);
+  // Dogs only: a frog is a deliberate tax on top of a balanced dog (content/frogs.js).
+  const scores = sample(6000).filter((d) => !d.frog).map((d) => d.score);
   const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
   // Sampling noise on 6k rolls is well under half a point.
   assert.ok(Math.abs(mean) < 0.5, `average dog scores ${mean.toFixed(3)}, expected ~0`);
@@ -161,4 +164,48 @@ test("the day boundary is midnight Eastern, across daylight saving", () => {
 
 test("today() returns an ISO date the storage keys accept", () => {
   assert.match(today(), /^\d{4}-\d{2}-\d{2}$/);
+});
+
+test("frogs get in now and then, and only on their own day", () => {
+  const dogs = sample(8000);
+  const frogs = dogs.filter((d) => d.frog);
+  const rate = frogs.length / dogs.length;
+  assert.ok(Math.abs(rate - FROG_CHANCE) < FROG_CHANCE * 0.35, `frog rate ${rate.toFixed(4)}`);
+  dogs.forEach((d, i) => assert.equal(Boolean(d.frog), isFrogDay(`test-player-${i}`, "2026-09-19")));
+});
+
+test("a frog is a frog all the way through", () => {
+  const dogTraits = new Set(MODIFIERS.map((m) => m.text));
+  const frogTraits = new Set(FROG_TRAITS.map((m) => m.text));
+  for (let i = 0; i < 300; i++) {
+    const frog = rollDailyDog(`frog-${i}`, "2026-09-19", { frog: true });
+    assert.equal(frog.frog, true);
+    assert.equal(frog.breedSlug, null, "a frog has no photo to look up");
+    assert.equal(frog.breedValue, FROG.value);
+    assert.match(frog.name, / Frog$/);
+    for (const m of frog.modifiers) {
+      assert.ok(frogTraits.has(m.text), `${m.text} is not a frog trait`);
+      assert.ok(!dogTraits.has(m.text), `${m.text} is also a dog trait`);
+    }
+  }
+  // And the other way: a dog never picks up a frog trait.
+  for (const dog of sample(2000).filter((d) => !d.frog)) {
+    for (const m of dog.modifiers) assert.ok(!frogTraits.has(m.text), `${dog.name} got ${m.text}`);
+  }
+});
+
+test("frogs are bad news", () => {
+  const scores = Array.from({ length: 2000 }, (_, i) =>
+    rollDailyDog(`frog-${i}`, "2026-09-19", { frog: true }).score);
+  const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+  assert.ok(mean < -20, `the average frog scores ${mean.toFixed(1)}`);
+  assert.ok(FROG_TRAITS.every((t) => t.value < 0), "every frog trait should cost points");
+});
+
+test("forcing a day's answer doesn't change the dog underneath", () => {
+  for (let i = 0; i < 200; i++) {
+    const day = rollDailyDog(`test-player-${i}`, "2026-09-19");
+    if (day.frog) continue;
+    assert.deepEqual(rollDailyDog(`test-player-${i}`, "2026-09-19", { frog: false }), day);
+  }
 });

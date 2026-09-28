@@ -16,7 +16,7 @@
 
 import { chromium } from "playwright";
 import { writeFileSync, mkdirSync } from "fs";
-import { BACKGROUNDS, MODIFIERS } from "../src/content/index.js";
+import { BACKGROUNDS, MODIFIERS, FROG, FROG_TRAITS } from "../src/content/index.js";
 
 const TEXT_SIZES = [
   { key: "sm", px: 11, weight: 400 },
@@ -27,11 +27,16 @@ const EMOJI_PX = 20;
 const ASCII = Array.from({ length: 95 }, (_, i) => String.fromCharCode(32 + i));
 
 // Emoji the card draws that aren't attached to a background or a trait.
-const EXTRA = ["🧬"]; // the breed's own scoring row
+const EXTRA = ["🧬", FROG.emoji]; // the breed's own scoring row, a dog's or a frog's
+
+// Drawn big, in place of a photo. Baked at the size it's drawn, since scaling a 20px
+// emoji up to fill the scene would be a blur of squares.
+const HERO = [{ glyph: FROG.emoji, px: 150 }];
 
 const emoji = [...new Set([
   ...BACKGROUNDS.map((b) => b.emoji),
   ...MODIFIERS.map((m) => m.emoji),
+  ...FROG_TRAITS.map((m) => m.emoji),
   ...EXTRA,
 ])];
 
@@ -97,6 +102,26 @@ const bakedEmoji = await page.evaluate(
   { list: emoji, px: EMOJI_PX }
 );
 
+const hero = {};
+for (const { glyph, px } of HERO) {
+  hero[glyph] = await page.evaluate(
+    ({ glyph, px }) => {
+      const size = Math.ceil(px * 1.2);
+      const c = document.createElement("canvas");
+      c.width = c.height = size;
+      const x = c.getContext("2d");
+      x.font = `${px}px sans-serif`;
+      x.textBaseline = "middle";
+      x.textAlign = "center";
+      x.fillText(glyph, size / 2, size / 2);
+      return { size, rgba: Array.from(x.getImageData(0, 0, size, size).data) };
+    },
+    { glyph, px }
+  );
+  hero[glyph].rgba = Buffer.from(Uint8Array.from(hero[glyph].rgba)).toString("base64");
+  console.log(`hero ${glyph}: ${hero[glyph].size}px`);
+}
+
 await browser.close();
 
 const atlas = {
@@ -108,6 +133,7 @@ const atlas = {
     index: Object.fromEntries(emoji.map((e, i) => [e, i])),
     rgba: Buffer.from(Uint8Array.from(bakedEmoji.rgba)).toString("base64"),
   },
+  hero,
 };
 
 mkdirSync("src/generated", { recursive: true });

@@ -11,9 +11,10 @@
 import { RasterSurface } from "./raster.js";
 import { paintWorld, createLayers } from "../public/effects.js";
 import { GIFEncoder, quantize, applyPalette } from "../public/vendor/gifenc.js";
+import { FROG } from "./content/index.js";
 import {
   drawText, drawEmoji, fillRect, blitSurface, hexToRgb, textWidth, fitText, wrapText,
-  drawPhotoEllipse, decodePhoto,
+  drawPhotoEllipse, decodePhoto, drawHero, drawShadow,
 } from "./draw.js";
 
 export const CARD = {
@@ -34,9 +35,20 @@ const RED = [248, 113, 113];
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 
 // Where the dog sits in the scene, shared by the still and animated paths.
-function drawDog(scene, photo, dog, sceneW, h) {
+function drawDog(scene, photo, dog, sceneW, h, t = 0) {
+  if (dog.frog) return drawFrog(scene, sceneW, h, t);
   if (!photo) return;
   drawPhotoEllipse(scene, photo, sceneW / 2, h * 0.46, sceneW * 0.74, h * 0.62, hexToRgb(dog.rarityColor));
+}
+
+// No photo for a frog: it's drawn from the atlas, hopping in place.
+const HOP_MS = CARD.frames * CARD.delay / 2; // two hops a loop, so the GIF loops cleanly
+function drawFrog(scene, sceneW, h, t) {
+  const size = Math.round(h * 0.47);
+  const lift = Math.abs(Math.sin((t / HOP_MS) * Math.PI)) * h * 0.05;
+  const ground = h * 0.5 + size * 0.42;
+  drawShadow(scene, sceneW / 2, ground, size * 0.36 - lift, size * 0.07, 0.45);
+  drawHero(scene, FROG.emoji, sceneW / 2, h * 0.5 - lift, size);
 }
 
 export function paintSidebar(surface, dog, x, width, height) {
@@ -51,8 +63,8 @@ export function paintSidebar(surface, dog, x, width, height) {
   drawText(surface, "sm", `${dog.breed} · ${dog.rarityLabel}`, left, 42, MUTED, inner - 4);
 
   const quality = hexToRgb(dog.qualityColor);
-  drawText(surface, "md", dog.qualityLabel, left, 62, quality, inner - 40);
   const scoreText = signed(dog.score);
+  drawText(surface, "md", dog.qualityLabel, left, 62, quality, inner - textWidth("lg", scoreText) - 3);
   drawText(surface, "lg", scoreText, x + width - pad - textWidth("lg", scoreText), 64, quality);
 
   fillRect(surface, left, 72, inner, 1, [38, 43, 54]);
@@ -61,7 +73,8 @@ export function paintSidebar(surface, dog, x, width, height) {
   // breed only earns a row once it's worth something -- a common breed scores nothing and
   // a row of zero would be noise on every second card.
   const rows = [
-    ...(dog.breedValue ? [{ emoji: "🧬", text: dog.breed, value: dog.breedValue }] : []),
+    ...(dog.frog ? [{ emoji: FROG.emoji, text: FROG.row, value: dog.breedValue }]
+      : dog.breedValue ? [{ emoji: "🧬", text: dog.breed, value: dog.breedValue }] : []),
     { emoji: dog.background.emoji, text: dog.background.name, value: dog.background.value },
     ...dog.modifiers.map((m) => ({ emoji: m.emoji, text: m.text, value: m.value })),
   ];
@@ -186,7 +199,7 @@ export function renderCardGif(dog, opts = {}) {
     scene.data.set(sceneBase);
     // Back effects sit behind the dog, front effects pass in front of it.
     for (const layer of back) layer.draw(ctx, sceneW, h, delay, t);
-    drawDog(scene, photo, dog, sceneW, h);
+    drawDog(scene, photo, dog, sceneW, h, t);
     for (const layer of front) layer.draw(ctx, sceneW, h, delay, t);
     t += delay;
 

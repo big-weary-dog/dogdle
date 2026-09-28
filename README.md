@@ -48,6 +48,27 @@ Common breeds are a flat zero — they're the baseline a dog is measured against
 breed is worth negative points**: the Pit Bull Terrier, at −3. Not a claim about the dog,
 a claim about the insurance and the landlord.
 
+### Frogs
+
+About one day in forty (`FROG_CHANCE`, 2.4% measured), the machine doesn't deal a dog: **a
+frog has got in**. Frogs are vicious intruders. A frog has no breed and no photo: it draws
+as a big hopping 🐸. It gets a name like Slimy Frog or Loathsome Frog, and 4–6 traits from
+its own table of 30 (`src/content/frogs.js`), every one of them negative. It still rolls a
+background like a dog, since it's standing somewhere, but being a frog costs −12 on its own.
+A frog averages about **−30**, which is nearly always Should Not Have Happened.
+
+Two things keep frogs from disturbing anything else:
+
+- **The frog check has its own hash** (`frog:player:date`), separate from the dog's
+  generator. Adding frogs re-dealt no day that stayed a dog; the only golden change was two
+  new frog seeds.
+- **Frogs sit outside the balance.** The ±0.5 test and `npm run balance` measure dogs only.
+  A frog is a tax on top of a balanced dog, so with frogs counted the average roll is
+  about −0.75, and that is intended.
+
+`rollDailyDog(player, date, { frog: true })` forces one: `/dev` has a 🐸 button, and
+`npm run card -- alice --frog` renders the card.
+
 ---
 
 ## Visuals

@@ -168,7 +168,9 @@ function renderResult(dog) {
 
   const rows = [
     // Only when it scores: a common breed is worth nothing and a zero row is just noise.
-    ...(dog.breedValue ? [{ label: `🧬 ${dog.breed}`, value: dog.breedValue }] : []),
+    // A frog's "breed" row is being a frog (src/content/frogs.js), and it always scores.
+    ...(dog.frog ? [{ label: "🐸 Is a frog", value: dog.breedValue }]
+      : dog.breedValue ? [{ label: `🧬 ${dog.breed}`, value: dog.breedValue }] : []),
     { label: `${dog.background.emoji} ${dog.background.name}`, value: dog.background.value, scene: true },
     ...dog.modifiers.map((m) => ({ label: `${m.emoji} ${m.text}`, value: m.value })),
   ];
@@ -245,6 +247,20 @@ function drawCardFrame(ctx, w, h, dog) {
     ctx.beginPath();
     ctx.ellipse(dx + dw / 2, dy + dh / 2, dw / 2, dh / 2, 0, 0, Math.PI * 2);
     ctx.stroke();
+  }
+
+  // A frog is the spinner slot, drawn as a glyph at the size it's shown.
+  if (dog.frog && !spinner.hidden) {
+    const rect = spinner.getBoundingClientRect();
+    const stageRect = stageEl.getBoundingClientRect();
+    const scale = w / stageRect.width;
+    ctx.save();
+    ctx.filter = spinner.style.filter || "none";
+    ctx.font = `${Math.round(parseFloat(getComputedStyle(spinner).fontSize) * scale)}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("🐸", (rect.left + rect.width / 2 - stageRect.left) * scale, (rect.top + rect.height / 2 - stageRect.top) * scale);
+    ctx.restore();
   }
 
   ctx.drawImage(el("sceneFront"), 0, 0, w, h);
@@ -329,7 +345,13 @@ function showDog(dog, { animate }) {
 
   const reveal = () => {
     spinner.hidden = true;
-    if (dog.photo) {
+    if (dog.frog) {
+      // No photo to wait for: the frog is simply there.
+      spinner.hidden = false;
+      spinner.textContent = "🐸";
+      spinner.classList.add("frog");
+      spinner.style.filter = subjectStyle([dog.background.effect, ...dog.modifiers.map((m) => m.effect)]).filter;
+    } else if (dog.photo) {
       dogPhoto.crossOrigin = "anonymous";
       dogPhoto.src = `/img?u=${encodeURIComponent(dog.photo)}`;
       dogPhoto.alt = dog.breed;

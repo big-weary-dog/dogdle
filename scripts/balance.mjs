@@ -14,8 +14,12 @@ import {
   MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX,
 } from "../src/content/index.js";
 
-const SAMPLE = 20000;
-const dogs = Array.from({ length: SAMPLE }, (_, i) => rollDailyDog(`balance-${i}`, "2026-09-19"));
+// Dogs only. A frog is a deliberate tax on top of a balanced dog, so it's reported on its
+// own at the end and kept out of every number the test and the corrections care about.
+const rolled = Array.from({ length: 20000 }, (_, i) => rollDailyDog(`balance-${i}`, "2026-09-19"));
+const dogs = rolled.filter((d) => !d.frog);
+const frogs = rolled.filter((d) => d.frog);
+const SAMPLE = dogs.length;
 const scores = dogs.map((d) => d.score).sort((a, b) => a - b);
 const mean = scores.reduce((a, b) => a + b, 0) / SAMPLE;
 const median = scores[Math.floor(SAMPLE / 2)];
@@ -56,6 +60,10 @@ console.log(`\ntraits       ${spawn.length} spawnable, mean ${traitMean.toFixed(
 
 // A dog draws a few traits from the pool, so one point on one trait moves the average dog
 // by (traits per dog / pool size).
+const frogMean = frogs.reduce((s, d) => s + d.score, 0) / (frogs.length || 1);
+const everyone = rolled.reduce((s, d) => s + d.score, 0) / rolled.length;
+console.log(`\nfrogs        ${frogs.length} of ${rolled.length} (${((100 * frogs.length) / rolled.length).toFixed(1)}%), averaging ${frogMean.toFixed(1)}; with them the average roll is ${everyone.toFixed(2)}`);
+
 const perPoint = avg((d) => d.modifiers.length) / spawn.length;
 const points = Math.round(Math.abs(mean) / perPoint);
 console.log(`one point    moves the average dog ~${perPoint.toFixed(4)}`);

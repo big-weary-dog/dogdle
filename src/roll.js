@@ -2,7 +2,10 @@
 // refreshing can't reroll, but two friends on the same day get independent pulls.
 
 import { BREEDS, RARITIES, RARITY_ORDER, breedsByRarity, breedValue } from "./breeds.js";
-import { NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS } from "./content/index.js";
+import {
+  NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS,
+  FROG, FROG_CHANCE, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MIN, FROG_TRAIT_COUNT_MAX,
+} from "./content/index.js";
 
 function mulberry32(seed) {
   return function () {
@@ -78,31 +81,37 @@ export function today(now = new Date()) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: DAY_ZONE }).format(now);
 }
 
-export function rollDailyDog(playerId, dateStr = today()) {
+// Backgrounds roll their own rarity, so a common breed can still land somewhere absurd.
+function pickBackground(rng) {
+  const bgRarity = pickRarity(rng, BACKGROUND_WEIGHTS);
+  const bgPool = BACKGROUNDS.filter((b) => b.rarity === bgRarity);
+  return bgPool.length ? pick(rng, bgPool) : pick(rng, BACKGROUNDS);
+}
+
+const pickCount = (rng, min, max) => min + Math.floor(rng() * (max - min + 1));
+
+// A frog is decided by its own hash rather than the dog's generator, so frogs arriving
+// didn't re-deal a single day that stayed a dog. See content/frogs.js.
+export function isFrogDay(playerId, dateStr) {
+  return mulberry32(hashString(`frog:${playerId}:${dateStr}`))() < FROG_CHANCE;
+}
+
+// `frog` overrides the day's own answer, for /dev and the preview scripts.
+export function rollDailyDog(playerId, dateStr = today(), { frog = isFrogDay(playerId, dateStr) } = {}) {
   const rng = mulberry32(hashString(`${playerId}:${dateStr}`));
+  if (frog) return rollFrog(rng, dateStr);
 
   const breedRarity = pickRarity(rng, BREED_WEIGHTS);
   const pool = breedsByRarity(breedRarity);
   const breed = pool.length ? pick(rng, pool) : pick(rng, BREEDS);
-
-  // Backgrounds roll their own rarity, so a common breed can still land somewhere absurd.
-  const bgRarity = pickRarity(rng, BACKGROUND_WEIGHTS);
-  const bgPool = BACKGROUNDS.filter((b) => b.rarity === bgRarity);
-  const background = bgPool.length ? pick(rng, bgPool) : pick(rng, BACKGROUNDS);
+  const background = pickBackground(rng);
 
   const name = pick(rng, NAMES);
-  const span = MODIFIER_COUNT_MAX - MODIFIER_COUNT_MIN + 1;
-  const modifierCount = MODIFIER_COUNT_MIN + Math.floor(rng() * span);
+  const modifierCount = pickCount(rng, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX);
   const modifiers = sampleDistinct(rng, SPAWNABLE_MODIFIERS, modifierCount);
-
-  const breedPoints = breedValue(breed);
-  const score =
-    breedPoints + background.value + modifiers.reduce((sum, m) => sum + m.value, 0);
-  const quality = qualityFor(score);
   const rarity = RARITIES[breed.rarity];
 
-  return {
-    date: dateStr,
+  return dealt(dateStr, {
     name,
     breed: breed.name,
     breedSlug: breed.slug,
@@ -110,7 +119,38 @@ export function rollDailyDog(playerId, dateStr = today()) {
     rarityLabel: rarity.label,
     rarityColor: rarity.color,
     rarityGlow: rarity.glow,
-    breedValue: breedPoints,
+    breedValue: breedValue(breed),
+  }, background, modifiers);
+}
+
+// No breed, no photo, and its own traits. The scene is the one thing it shares with dogs.
+function rollFrog(rng, dateStr) {
+  const background = pickBackground(rng);
+  const name = pick(rng, FROG_NAMES);
+  const count = pickCount(rng, FROG_TRAIT_COUNT_MIN, FROG_TRAIT_COUNT_MAX);
+  const traits = sampleDistinct(rng, FROG_TRAITS, count);
+
+  return dealt(dateStr, {
+    frog: true,
+    name,
+    breed: FROG.breed,
+    breedSlug: null, // nothing to look up: Dog CEO has no frogs, thankfully
+    rarity: "frog",
+    rarityLabel: FROG.label,
+    rarityColor: FROG.color,
+    rarityGlow: FROG.glow,
+    breedValue: FROG.value,
+  }, background, traits);
+}
+
+function dealt(dateStr, animal, background, modifiers) {
+  const score =
+    animal.breedValue + background.value + modifiers.reduce((sum, m) => sum + m.value, 0);
+  const quality = qualityFor(score);
+
+  return {
+    date: dateStr,
+    ...animal,
     background: {
       key: background.key,
       emoji: background.emoji,
