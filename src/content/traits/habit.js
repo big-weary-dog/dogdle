@@ -87,4 +87,8 @@ export const HABIT = [
   { text: "Plays poker with the other dogs. Losing.", emoji: "🃏", value: -3, category: "habit", effect: null },
   { text: "Listens to his master's voice on the gramophone", emoji: "📯", value: 1, category: "habit", effect: null },
   { text: "Undefeated at Keepy Uppy", emoji: "🏐", value: 2, category: "habit", effect: null },
+  { text: "Only enters a room through the window", emoji: "🧟", value: -2, category: "habit", effect: null },
+  { text: "Only cooperates for coffee-flavored gum", emoji: "🍬", value: 0, category: "habit", effect: null },
+  { text: "Rolled in soot to pass as a Labrador", emoji: "⬛", value: 1, category: "habit", effect: null },
+  { text: "Only sleeps in round rooms", emoji: "⭕", value: -1, category: "habit", effect: null },
 ];

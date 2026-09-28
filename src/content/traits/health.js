@@ -68,4 +68,7 @@ export const HEALTH = [
     effect: { type: "pulse", layer: "back", params: { color: "#c084fc", period: 2200, radius: 175 } } },
   { text: "Chewed the Necronomicon. Still digesting.", emoji: "📕", value: -5, category: "health",
     effect: { type: "glitch", layer: "front", params: { color: "#7c3aed", intensity: 0.3, scanlines: false } } },
+  { text: "Has snout fever", emoji: "🌡️", value: -3, category: "health",
+    effect: { type: "tint", layer: "subject", params: { sepia: 0.25, hue: 340, saturate: 1.4 } } },
+  { text: "Bitten on the nose by a bat. Unvaccinated.", emoji: "🦇", value: -4, category: "health", effect: null },
 ];

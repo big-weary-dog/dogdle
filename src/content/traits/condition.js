@@ -179,4 +179,5 @@ export const CONDITION = [
   { text: "Big, red, and still growing", emoji: "🔴", value: 1, category: "condition", group: "build",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.5, hue: 320, saturate: 1.8 } } },
   { text: "Three heads, all opinionated", emoji: "👥", value: -1, category: "condition", effect: null },
+  { text: "Neck grows a little every time you pet him", emoji: "🦕", value: 0, category: "condition", effect: null },
 ];
