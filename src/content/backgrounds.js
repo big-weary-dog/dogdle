@@ -1113,6 +1113,31 @@ const SCENES = [
       { shape: "ellipse", x: 0.9, y: 0.88, w: 0.08, h: 0.04, color: "#facc15", alpha: 0.8 },
     ],
   },
+  {
+    key: "goodtimeline", emoji: "🏙️", name: "The Twin Towers, 2005 (The Good Timeline)", rarity: "epic", value: 7,
+    sky: ["#38bdf8", "#e0f2fe"], ground: "#78716c",
+    effect: { type: "rays", layer: "back", params: { color: "#fef9c3", beams: 8, opacity: 0.24, speed: 0.05 } },
+    props: [
+      { shape: "rect", layer: "sky", x: 0.5, y: 0.6, w: 1.2, h: 0.1, color: "#0369a1" },
+      { shape: "rect", layer: "sky", x: 0.72, y: 0.4, w: 0.07, h: 0.22, color: "#94a3b8" },
+      { shape: "rect", layer: "sky", x: 0.66, y: 0.46, w: 0.05, h: 0.16, color: "#a1a1aa" },
+      { shape: "rect", layer: "sky", x: 0.825, y: 0.1, w: 0.075, h: 0.52, color: "#cbd5e1" },
+      { shape: "rect", layer: "sky", x: 0.825, y: 0.025, w: 0.006, h: 0.08, color: "#64748b" },
+      { shape: "rect", layer: "sky", x: 0.935, y: 0.13, w: 0.075, h: 0.49, color: "#e2e8f0" },
+      { shape: "rect", layer: "sky", x: 0.797, y: 0.1, w: 0.003, h: 0.52, color: "#94a3b8", repeat: 5, gap: 0.014 },
+      { shape: "rect", layer: "sky", x: 0.907, y: 0.13, w: 0.003, h: 0.49, color: "#94a3b8", repeat: 5, gap: 0.014 },
+      { shape: "rect", layer: "sky", x: 0.2, y: 0.5, w: 0.06, h: 0.12, color: "#94a3b8" },
+      { shape: "rect", layer: "sky", x: 0.26, y: 0.46, w: 0.05, h: 0.16, color: "#a1a1aa" },
+      { shape: "rect", x: 0.07, y: 0.5, w: 0.018, h: 0.1, color: "#5eead4" },
+      { shape: "poly", x: 0, points: [[0.055, 0.6], [0.085, 0.6], [0.09, 0.64], [0.05, 0.64]], color: "#57534e" },
+      { shape: "ellipse", x: 0.07, y: 0.49, w: 0.025, h: 0.025, color: "#5eead4" },
+      { shape: "rect", x: 0.08, y: 0.44, w: 0.006, h: 0.05, color: "#5eead4" },
+      { shape: "ellipse", x: 0.08, y: 0.435, w: 0.014, h: 0.014, color: "#fde047" },
+      { shape: "ellipse", layer: "sky", x: 0.3, y: 0.1, w: 0.2, h: 0.05, color: "#ffffff", alpha: 0.8 },
+      { shape: "rect", x: 0.5, y: 0.74, w: 1.2, h: 0.012, color: "#292524" },
+      { shape: "rect", x: 0.03, y: 0.752, w: 0.01, h: 0.07, color: "#292524", repeat: 10, gap: 0.105 },
+    ],
+  },
 ];
 
 export const BACKGROUNDS = [...SCENES].sort((a, b) => a.key.localeCompare(b.key));
