@@ -75,6 +75,8 @@ the Read tool; don't guess at how a visual looks from its data.
 1. `npm test`. A golden or inventory failure after an *intended* change → `npm run bake`,
    then read the diff it made: it should show exactly what you meant to change.
 2. `npm run balance` if values, groups or pools changed.
+   New traits skew generous: aim a batch's values to sum to about `−0.3 × count` so
+   the correction stays small.
 3. `npm run atlas` if you used a new emoji.
 4. Update the counts in the README (traits, groups, backgrounds) if they moved.
 
