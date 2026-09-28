@@ -43,26 +43,23 @@ function render(dog) {
 
   spinner.classList.toggle("frog", Boolean(dog.frog));
   spinner.style.filter = dog.frog ? subject.filter : "";
-  if (dog.frog) {
+  dogPhoto.classList.toggle("frog", Boolean(dog.frog));
+  const glyph = () => {
     dogPhoto.hidden = true;
     spinner.hidden = false;
-    spinner.textContent = "🐸";
-  } else if (dog.photo) {
+    spinner.textContent = dog.frog ? "🐸" : "🐕";
+  };
+  if (dog.photo) {
     dogPhoto.crossOrigin = "anonymous";
-    dogPhoto.src = `/img?u=${encodeURIComponent(dog.photo)}`;
+    // A frog's photo is one of our own; a dog's is re-served from Dog CEO through /img.
+    dogPhoto.src = dog.photo.startsWith("/") ? dog.photo : `/img?u=${encodeURIComponent(dog.photo)}`;
     dogPhoto.style.borderColor = dog.rarityColor;
     dogPhoto.style.boxShadow = `0 10px 30px rgba(0,0,0,.55), ${dog.rarityGlow}`;
     dogPhoto.hidden = false;
     spinner.hidden = true;
-    dogPhoto.onerror = () => {
-      dogPhoto.hidden = true;
-      spinner.hidden = false;
-      spinner.textContent = "🐕";
-    };
+    dogPhoto.onerror = glyph;
   } else {
-    dogPhoto.hidden = true;
-    spinner.hidden = false;
-    spinner.textContent = "🐕";
+    glyph();
   }
 
   el("dogName").textContent = dog.name;

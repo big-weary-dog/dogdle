@@ -53,7 +53,7 @@ test("the photo proxy answers a timeout as a 504, not a crash", async () => {
   }
 });
 
-test("a frog is dealt and stored without ever asking Dog CEO for a photo", async () => {
+test("a frog is dealt with its own photo, without ever asking Dog CEO", async () => {
   const { isFrogDay, today } = await import("../src/roll.js");
   let player = null;
   for (let i = 0; !player; i++) {
@@ -74,15 +74,27 @@ test("a frog is dealt and stored without ever asking Dog CEO for a photo", async
     const res = await worker.fetch(new Request(`https://dogdle.swampkat.com/api/roll?player=${player}`), env);
     const dog = await res.json();
     assert.equal(dog.frog, true);
-    assert.equal(dog.photo, null);
+    assert.match(dog.photo, /^\/frogs\/[\w-]+\.jpg$/, "a frog's photo is one of ours");
     assert.equal(dog.breed, "Intruder");
     const row = puts[`day:${today()}:${player}`].opts.metadata;
     assert.match(row.dog, / Frog$/, "the frog is on the leaderboard under its own name");
 
-    // And replaying it doesn't try to "repair" the missing photo either.
+    // And replaying it keeps the same photo.
     env.STORE.get = async () => dog;
     const again = await worker.fetch(new Request(`https://dogdle.swampkat.com/api/roll?player=${player}`), env);
-    assert.equal((await again.json()).replayed, true);
+    const replay = await again.json();
+    assert.equal(replay.replayed, true);
+    assert.equal(replay.photo, dog.photo);
+
+    // A frog dealt before frog photos existed gets one on read, still without the network.
+    const { photo, ...legacy } = dog;
+    env.STORE.get = async () => ({ ...legacy, photo: null });
+    env.STORE.getWithMetadata = async () => ({ metadata: row });
+    const { rollKey } = await import("../src/keys.js");
+    delete puts[rollKey(player, today())];
+    const healed = await (await worker.fetch(new Request(`https://dogdle.swampkat.com/api/roll?player=${player}`), env)).json();
+    assert.equal(healed.photo, photo, "the backfill picks the same frog the roll would have");
+    assert.equal(JSON.parse(puts[rollKey(player, today())].value).photo, photo, "and keeps it");
   } finally {
     globalThis.fetch = online;
   }

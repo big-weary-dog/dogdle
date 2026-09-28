@@ -7,7 +7,8 @@ import assert from "node:assert/strict";
 
 import { rollDailyDog } from "../src/roll.js";
 import { renderCardGif, composeCard, layoutRows, CARD } from "../src/card.js";
-import { BACKGROUNDS, MODIFIERS, FROG, FROG_TRAITS } from "../src/content/index.js";
+import { readFileSync } from "node:fs";
+import { BACKGROUNDS, MODIFIERS, FROG, FROG_TRAITS, FROG_PHOTOS } from "../src/content/index.js";
 import ATLAS from "../src/generated/atlas.js";
 import { decodePhoto } from "../src/draw.js";
 import { setLogSink } from "../src/log.js";
@@ -158,7 +159,7 @@ test("a photo too big for a Worker is refused, not decoded", () => {
   assert.equal(seen[1].head, "89504e47");
 });
 
-test("a frog's card draws the frog, not a photo", () => {
+test("a frog without a photo draws the big frog glyph", () => {
   const frog = rollDailyDog("test-player-4", "2026-09-22", { frog: true });
   assert.ok(ATLAS.hero?.[FROG.emoji], "the atlas needs the big frog: npm run atlas");
   const gif = readGif(renderCardGif(frog, { frames: 2 }));
@@ -170,4 +171,17 @@ test("a frog's card draws the frog, not a photo", () => {
   const at = (c, x, y) => [...c.data.slice((y * c.width + x) * 4, (y * c.width + x) * 4 + 3)];
   const cx = CARD.sceneWidth / 2, cy = Math.round(CARD.height * 0.5);
   assert.notDeepEqual(at(card, cx, cy), at(plain, cx, cy), "nothing drawn where the frog should be");
+});
+
+test("a frog with a photo draws the photo", () => {
+  const frog = rollDailyDog("test-player-4", "2026-09-22", { frog: true });
+  const photo = readFileSync(`public/frogs/${FROG_PHOTOS[0].file}`);
+  const gif = readGif(renderCardGif(frog, { frames: 2, photo }));
+  assert.equal(gif.frames, 2);
+
+  const withPhoto = composeCard(frog, { settle: 0, photo });
+  const glyph = composeCard(frog, { settle: 0 });
+  const at = (c, x, y) => [...c.data.slice((y * c.width + x) * 4, (y * c.width + x) * 4 + 3)];
+  const cx = CARD.sceneWidth / 2, cy = Math.round(CARD.height * 0.46);
+  assert.notDeepEqual(at(withPhoto, cx, cy), at(glyph, cx, cy), "the photo should replace the glyph");
 });

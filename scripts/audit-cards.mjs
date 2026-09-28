@@ -109,7 +109,10 @@ for (const { key, value: dog } of rolls.sort((a, b) => a.key.localeCompare(b.key
   } else {
     let bytes = null;
     try {
-      const res = await fetch(dog.photo, { signal: AbortSignal.timeout(15000) });
+      // A frog's photo is a site path to one of our own assets, which the checkout has.
+      const res = dog.photo.startsWith("/")
+        ? new Response(readFileSync(`public${dog.photo}`), { headers: { "content-type": "image/jpeg" } })
+        : await fetch(dog.photo, { signal: AbortSignal.timeout(15000) });
       console.log(`  photo      : ${res.status} ${res.headers.get("content-type")} ${res.headers.get("content-length") ?? "?"}B ${dog.photo}`);
       if (res.ok) bytes = new Uint8Array(await res.arrayBuffer());
       else flag(who, `photo answers ${res.status}`);

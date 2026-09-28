@@ -14,7 +14,7 @@
 
 import { rollDailyDog, today } from "./roll.js";
 import { renderCardGif } from "./card.js";
-import { fetchBreedPhoto, fetchPhotoBytes, backfillPhoto } from "./photo.js";
+import { photoFor, fetchPhotoBytes, backfillPhoto } from "./photo.js";
 import { cardKey, rollKey, dayKey, guildKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
 import { log } from "./log.js";
 
@@ -86,7 +86,7 @@ export const cardTtl = (dog) => (dog.test ? TEST_TTL_SECONDS : CARD_TTL_SECONDS)
 // Returns the bytes, or null if even a photo-less card couldn't be drawn.
 export async function renderCard(env, player, dog) {
   const started = Date.now();
-  const photo = await fetchPhotoBytes(dog.photo);
+  const photo = await fetchPhotoBytes(dog.photo, env);
 
   let gif;
   try {
@@ -170,7 +170,7 @@ export async function handleBot(request, url, env) {
     // The card was rendered without it and cached for a month, so it's drawn again.
     const repaired = Boolean(saved) && (await backfillPhoto(env, rollKey(player, date), dog));
     if (!saved) {
-      dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
+      dog.photo = await photoFor(dog);
       dog.player = name;
       dog.source = "discord";
       if (isTest) dog.test = true;

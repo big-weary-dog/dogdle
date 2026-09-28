@@ -1,6 +1,6 @@
 import { rollDailyDog, today } from "./roll.js";
 import { handleBot, renderCard } from "./bot.js";
-import { fetchBreedPhoto, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
+import { photoFor, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
 import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, cleanName, boardRow, visibleRows } from "./keys.js";
 import { log } from "./log.js";
 
@@ -72,7 +72,7 @@ async function route(request, url, env) {
     }
 
     const dog = rollDailyDog(player, date);
-    dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
+    dog.photo = await photoFor(dog);
     dog.player = name;
 
     await env.STORE.put(rollKey(player, date), JSON.stringify(dog), {
@@ -136,7 +136,7 @@ async function route(request, url, env) {
     const seed = url.searchParams.get("seed") || crypto.randomUUID();
     const force = url.searchParams.get("frog") ? { frog: true } : {};
     const dog = rollDailyDog(`dev-${seed}`, today(), force);
-    dog.photo = await fetchBreedPhoto(dog.breedSlug, dog.date);
+    dog.photo = await photoFor(dog);
     dog.devSeed = seed;
 
     return Response.json(dog, { headers: { "cache-control": "no-store" } });
@@ -280,9 +280,10 @@ location.replace("/");
     const stored = await env.STORE.get(cardKey(player, date), "stream");
     const hasCard = stored !== null;
     if (stored) await stored.cancel();
+    const fallback = hasCard ? null : await photoFor(dog);
     const photo = hasCard
       ? `${url.origin}/i/${player}/${date}.gif`
-      : await fetchBreedPhoto(dog.breedSlug, dog.date);
+      : fallback && new URL(fallback, url.origin).toString(); // a frog's is a site path
 
     const title = `${dog.name} the ${dog.breed} — ${dog.qualityLabel} (${dog.score > 0 ? "+" : ""}${dog.score})`;
     const description = [

@@ -36,16 +36,23 @@ const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 
 // Where the dog sits in the scene, shared by the still and animated paths.
 function drawDog(scene, photo, dog, sceneW, h, t = 0) {
-  if (dog.frog) return drawFrog(scene, sceneW, h, t);
+  if (dog.frog) return drawFrog(scene, photo, dog, sceneW, h, t);
   if (!photo) return;
   drawPhotoEllipse(scene, photo, sceneW / 2, h * 0.46, sceneW * 0.74, h * 0.62, hexToRgb(dog.rarityColor));
 }
 
-// No photo for a frog: it's drawn from the atlas, hopping in place.
+// A frog hops in place: its photo if it has one, otherwise a big 🐸 from the atlas.
 const HOP_MS = CARD.frames * CARD.delay / 2; // two hops a loop, so the GIF loops cleanly
-function drawFrog(scene, sceneW, h, t) {
-  const size = Math.round(h * 0.47);
+function drawFrog(scene, photo, dog, sceneW, h, t) {
   const lift = Math.abs(Math.sin((t / HOP_MS) * Math.PI)) * h * 0.05;
+  if (photo) {
+    const drawnH = Math.min(h * 0.62, (sceneW * 0.74 * photo.height) / photo.width);
+    const ground = h * 0.46 + drawnH / 2 + h * 0.03;
+    drawShadow(scene, sceneW / 2, ground, sceneW * 0.24 - lift, h * 0.03, 0.4);
+    drawPhotoEllipse(scene, photo, sceneW / 2, h * 0.46 - lift, sceneW * 0.74, h * 0.62, hexToRgb(dog.rarityColor));
+    return;
+  }
+  const size = Math.round(h * 0.47);
   const ground = h * 0.5 + size * 0.42;
   drawShadow(scene, sceneW / 2, ground, size * 0.36 - lift, size * 0.07, 0.45);
   drawHero(scene, FROG.emoji, sceneW / 2, h * 0.5 - lift, size);

@@ -17,7 +17,7 @@ function mulberry32(seed) {
   };
 }
 
-function hashString(str) {
+export function hashString(str) {
   let h = 1779033703 ^ str.length;
   for (let i = 0; i < str.length; i++) {
     h = Math.imul(h ^ str.charCodeAt(i), 3432918353);

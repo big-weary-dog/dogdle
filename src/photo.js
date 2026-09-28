@@ -1,6 +1,8 @@
 // Dog CEO photo lookup, shared by the web routes and the bot card renderer.
 
 import { BREEDS, photoEndpoint } from "./breeds.js";
+import { FROG_PHOTOS } from "./content/index.js";
+import { hashString } from "./roll.js";
 import { log } from "./log.js";
 
 export const PHOTO_HOST = "images.dog.ceo";
@@ -10,7 +12,7 @@ const MAX_PHOTO_BYTES = 6_000_000;
 // Dog CEO gives a random photo per call; we want the same photo all day for a given dog,
 // so the result is cached in the Cloudflare cache keyed by breed+date.
 export async function fetchBreedPhoto(slug, dateStr) {
-  if (!slug) return null; // a frog: there is no photo, and nothing is broken
+  if (!slug) return null;
   const cacheKey = new Request(`https://dogdle.internal/photo/${slug}/${dateStr}`);
   const cache = caches.default;
 
@@ -44,6 +46,23 @@ export async function fetchBreedPhoto(slug, dateStr) {
   }
 }
 
+// Dog CEO has no frogs. Frog photos are our own static assets (public/frogs/, openly
+// licensed from Wikimedia Commons and credited in FROG_PHOTOS), stored on the roll as a
+// site path. Which one is chosen from the frog itself, with no network, so it's settled
+// the moment the frog is dealt.
+export const FROG_PHOTO_RE = /^\/frogs\/[\w-]+\.jpg$/;
+
+export function frogPhoto(dog) {
+  if (!FROG_PHOTOS.length) return null;
+  const seed = [dog.name, dog.date, dog.score, ...dog.modifiers.map((m) => m.text)].join(":");
+  return `/frogs/${FROG_PHOTOS[hashString(seed) % FROG_PHOTOS.length].file}`;
+}
+
+// The photo for a freshly dealt dog, or a frog.
+export function photoFor(dog) {
+  return dog.frog ? frogPhoto(dog) : fetchBreedPhoto(dog.breedSlug, dog.date);
+}
+
 // A roll is immutable so that editing the content tables can't re-deal a dog somebody has
 // already been shown. The photo URL is the one part of a stored roll that isn't a dealt
 // outcome -- it's decoration, resolved by a network call that can simply fail, and when it
@@ -53,7 +72,9 @@ export async function fetchBreedPhoto(slug, dateStr) {
 // Returns whether it actually repaired anything, because a caller that has already
 // rendered something from the photo-less dog needs to throw that away.
 export async function backfillPhoto(env, key, dog) {
-  if (dog.photo || dog.test || dog.frog) return false;
+  if (dog.photo || dog.test) return false;
+  // Frogs dealt before frog photos existed get one here, like any photo-less dog.
+  if (dog.frog) return keepPhoto(env, key, dog, frogPhoto(dog));
 
   // Look the slug up again by breed name rather than trusting the stored one. A slug is a
   // lookup key into someone else's API, not part of the dog: when one turns out to be
@@ -62,12 +83,14 @@ export async function backfillPhoto(env, key, dog) {
   const current = BREEDS.find((b) => b.name === dog.breed);
   const slug = current?.slug ?? dog.breedSlug;
 
-  const photo = await fetchBreedPhoto(slug, dog.date);
-  if (!photo) return false; // still unreachable; try again next load
-  log.info("photo.backfilled", { key, breed: dog.breed, slug });
+  return keepPhoto(env, key, dog, await fetchBreedPhoto(slug, dog.date), { breedSlug: slug });
+}
 
-  dog.breedSlug = slug;
-  dog.photo = photo;
+async function keepPhoto(env, key, dog, photo, fields = {}) {
+  if (!photo) return false; // still unreachable; try again next load
+  Object.assign(dog, fields, { photo });
+  log.info("photo.backfilled", { key, breed: dog.breed, slug: dog.breedSlug });
+
   // A put replaces metadata, and the leaderboard reads entirely from metadata.
   const { metadata } = await env.STORE.getWithMetadata(key);
   await env.STORE.put(key, JSON.stringify(dog), metadata ? { metadata } : {});
@@ -75,18 +98,23 @@ export async function backfillPhoto(env, key, dog) {
 }
 
 // The bytes themselves, for the headless renderer. Host-locked like /img is: this only
-// ever fetches what fetchBreedPhoto handed back.
-export async function fetchPhotoBytes(photoUrl) {
+// ever fetches what fetchBreedPhoto handed back, or one of our own frogs.
+export async function fetchPhotoBytes(photoUrl, env) {
   if (!photoUrl) return null;
   const fail = (reason, fields = {}) => {
     log.warn("photo.bytes_failed", { url: photoUrl, reason, ...fields });
     return null;
   };
   try {
-    const parsed = new URL(photoUrl);
-    if (parsed.protocol !== "https:" || parsed.hostname !== PHOTO_HOST) return fail("host");
-
-    const res = await fetch(parsed.toString(), { signal: AbortSignal.timeout(PHOTO_TIMEOUT_MS) });
+    let res;
+    if (FROG_PHOTO_RE.test(photoUrl)) {
+      if (!env?.ASSETS) return fail("no_assets");
+      res = await env.ASSETS.fetch(new Request(`https://assets.local${photoUrl}`));
+    } else {
+      const parsed = new URL(photoUrl);
+      if (parsed.protocol !== "https:" || parsed.hostname !== PHOTO_HOST) return fail("host");
+      res = await fetch(parsed.toString(), { signal: AbortSignal.timeout(PHOTO_TIMEOUT_MS) });
+    }
     if (!res.ok) return fail("status", { status: res.status });
 
     const buf = await res.arrayBuffer();

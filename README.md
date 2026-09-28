@@ -51,8 +51,10 @@ a claim about the insurance and the landlord.
 ### Frogs
 
 About one day in forty (`FROG_CHANCE`, 2.4% measured), the machine doesn't deal a dog: **a
-frog has got in**. Frogs are vicious intruders. A frog has no breed and no photo: it draws
-as a big hopping 🐸. It gets a name like Slimy Frog or Loathsome Frog, and 4–6 traits from
+frog has got in**. Frogs are vicious intruders. A frog has no breed, and Dog CEO has no
+frogs, so its photo is a real frog of our own: one of 18 openly licensed Wikimedia Commons
+photos in `public/frogs/` (`FROG_PHOTOS`), picked from the frog itself and stored on the roll
+like a dog's photo URL. It hops. If the photo can't load, it's a big hopping 🐸 instead. It gets a name like Slimy Frog or Loathsome Frog, and 4–6 traits from
 its own table of 30 (`src/content/frogs.js`), every one of them negative. It still rolls a
 background like a dog, since it's standing somewhere, but being a frog costs −12 on its own.
 A frog averages about **−30**, which is nearly always Should Not Have Happened.
@@ -68,6 +70,12 @@ Two things keep frogs from disturbing anything else:
 
 `rollDailyDog(player, date, { frog: true })` forces one: `/dev` has a 🐸 button, and
 `npm run card -- alice --frog` renders the card.
+
+More frog photos: run the **Fetch frog photo candidates** workflow (`frog-photos.yml`), which
+pulls openly licensed frogs from Commons onto a scratch branch, `frog-candidates`, with a
+`candidates.json` of credits. Copy the good ones into `public/frogs/` (640px wide, landscape,
+under 200KB), add them to `FROG_PHOTOS` with their credit, then run it again with
+`clean=true` to delete the branch. New photos only reach future frogs.
 
 ---
 
@@ -463,3 +471,5 @@ whether its card was `rendered`, `cached` or `failed`.
 
 Photos from the [Dog CEO API](https://dog.ceo/dog-api/). GIF encoding by
 [gifenc](https://github.com/mattdesl/gifenc).
+
+Frog photos from Wikimedia Commons, resized: [american-toad](https://commons.wikimedia.org/wiki/File:Bufo_americanus_PJC1.jpg) by Cephas (CC BY-SA 3.0), [blue-poison-dart-frog](https://commons.wikimedia.org/wiki/File:Dendrobates_azureus_(Dendrobates_tinctorius)_Edit.jpg) by Michael Gäbler (CC BY 3.0), [burrowing-frog-grumpy](https://commons.wikimedia.org/wiki/File:Glyphoglossus_molossus,_Blunt-headed_burrowing_frog_-_Hua_Hin_District,_Near_Pala-U.jpg) by Rushenb (CC BY-SA 2.0), [burrowing-frog-leaves](https://commons.wikimedia.org/wiki/File:Glyphoglossus_molossus,_Blunt-headed_burrowing_frog_-_Mueang_Loei_District,_Loei_Province_(47097003944).jpg) by Rushen (CC BY-SA 2.0), [cane-toad](https://commons.wikimedia.org/wiki/File:Bufo_marinus_in_Venezuela.jpg) by Wilfredor (CC0), [common-toad](https://commons.wikimedia.org/wiki/File:Bufo_bufo_on_grass2.JPG) by Korall (CC BY-SA 3.0), [dyeing-poison-frog](https://commons.wikimedia.org/wiki/File:Dendrobates_tinctorius_-_Karlsruhe_Zoo_05.jpg) by H. Zell (CC BY-SA 3.0), [edible-frog-lily-pad](https://commons.wikimedia.org/wiki/File:Rana_esculenta_on_Nymphaea_edit.JPG) by Grand-Duc, Niabot (edit) (CC BY 3.0), [golden-mantella](https://commons.wikimedia.org/wiki/File:Variegated_golden_frog_(Mantella_baroni)_Ranomafana.jpg) by Charles J. Sharp (CC BY-SA 4.0), [marsh-frog-warty](https://commons.wikimedia.org/wiki/File:2017.06.11.-03-Anglerteiche-Rimbach--Seefrosch.jpg) by Andreas Eichler (CC BY-SA 4.0), [marsh-frog](https://commons.wikimedia.org/wiki/File:Marsh_frog_(Pelophylax_ridibundus).jpg) by Charles J. Sharp (CC BY-SA 4.0), [peeking-tree-frog](https://commons.wikimedia.org/wiki/File:Aplastodiscus_arildae_no_Parque_Estadual_de_Caparao_por_Lucas_Rosado_(03).jpg) by Lucas Rosado Mendonça (CC BY-SA 4.0), [red-eyed-tree-frog-night](https://commons.wikimedia.org/wiki/File:Red-eyed_Tree_Frog_-_Litoria_chloris_edit1.jpg) by LiquidGhoul edited by Muhammad (CC BY-SA 3.0), [red-eyed-tree-frog](https://commons.wikimedia.org/wiki/File:Red_eyed_tree_frog_edit2.jpg) by Careyjamesbalboa (Carey James Balboa) (Public domain), [strawberry-poison-frog](https://commons.wikimedia.org/wiki/File:Strawberry_poison_dart_frog_(70539).jpg) by Rhododendrites (CC BY-SA 4.0), [water-frog-eye](https://commons.wikimedia.org/wiki/File:Waterfrog_head.jpg) by Holger Gröschl (CC BY-SA 2.0 de), [white-lipped-tree-frog-leaf](https://commons.wikimedia.org/wiki/File:White-lipped_tree_frog_(Nyctimystes_infrafrenatus)_Daintree.jpg) by Charles J. Sharp (CC BY-SA 4.0), [white-lipped-tree-frog](https://commons.wikimedia.org/wiki/File:Litoria_infrafrenata_-_Julatten.jpg) by JJ Harrison (https://www.jjharrison.com.au/) (CC BY-SA 3.0).

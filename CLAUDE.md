@@ -28,7 +28,7 @@ the Read tool; don't guess at how a visual looks from its data.
 | `src/breeds.js` | Breed table, Dog CEO slugs, rarity weights and values. |
 | `src/worker.js` | Web routes. `src/bot.js` is the Discord bot API (`/api/bot/*`). |
 | `src/keys.js` | KV key layout and leaderboard rows, shared by web and bot. |
-| `src/photo.js` | Dog CEO lookup, photo bytes, `backfillPhoto` repair. |
+| `src/photo.js` | Dog CEO lookup, frog photo pick, photo bytes, `backfillPhoto` repair. |
 | `src/card.js` + `raster.js` + `draw.js` | Headless GIF card renderer (no canvas in Workers). |
 | `public/effects.js` | **Shared** effect engine: the web page *and* the card both run it. |
 | `public/app.js` | The web game. `public/dev.html` is `/dev`, unlimited rerolls. |
@@ -90,7 +90,7 @@ Several agents can work at once if each stays in a lane. Lanes are by file owner
 | Traits | `src/content/traits/*.js` | Snapshots, maybe atlas |
 | Backgrounds | `src/content/backgrounds.js` | Snapshots, maybe atlas |
 | Names / tiers | `src/content/names.js`, `tiers.js` | Snapshots |
-| Frogs | `src/content/frogs.js` | Snapshots, maybe atlas |
+| Frogs | `src/content/frogs.js`, `public/frogs/` | Snapshots, maybe atlas |
 | Discord bot API | `src/bot.js`, `docs/discord-bot-prompt.md`, `test/bot.test.js` | `src/keys.js` if rows change |
 | Web UI | `public/app.js`, `public/index.html`, `public/dev.*` | — |
 | Card renderer | `src/card.js`, `src/draw.js`, `src/raster.js` | — |
@@ -113,7 +113,8 @@ fine; don't run two *balance corrections* at once.
   `fetch`. For anything live, use the manual GitHub Actions workflows: `bot-smoke.yml`
   (hits the prod bot API with test users), `kv-peek.yml` (read-only KV dump),
   `photo-audit.yml` (find/repair rolls missing photos), `card-audit.yml` (recent Discord
-  cards end to end, plus Worker error counts), `verify-breeds.yml` (weekly slug check).
+  cards end to end, plus Worker error counts), `verify-breeds.yml` (weekly slug check),
+  `frog-photos.yml` (openly licensed frog photos from Commons onto a scratch branch).
   Report blocked hosts rather than trying to route around them.
 - **Log through `src/log.js`**, not bare `console.*`: one JSON object per event, which is
   what makes Workers Logs filterable. A failure you handle quietly still gets a `warn`.

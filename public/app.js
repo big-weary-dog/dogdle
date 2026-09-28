@@ -46,6 +46,8 @@ function countdown() {
 }
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
+// A dog's photo is a Dog CEO URL, re-served through /img; a frog's is already one of ours.
+const photoSrc = (photo) => (photo.startsWith("/") ? photo : `/img?u=${encodeURIComponent(photo)}`);
 
 
 
@@ -345,28 +347,26 @@ function showDog(dog, { animate }) {
 
   const reveal = () => {
     spinner.hidden = true;
-    if (dog.frog) {
-      // No photo to wait for: the frog is simply there.
+    // With no photo, the spinner slot stands in: a dog glyph, or a big hopping frog.
+    const glyph = () => {
+      dogPhoto.hidden = true;
       spinner.hidden = false;
-      spinner.textContent = "🐸";
-      spinner.classList.add("frog");
-      spinner.style.filter = subjectStyle([dog.background.effect, ...dog.modifiers.map((m) => m.effect)]).filter;
-    } else if (dog.photo) {
+      spinner.textContent = dog.frog ? "🐸" : "🐕";
+      spinner.classList.toggle("frog", Boolean(dog.frog));
+      if (dog.frog) spinner.style.filter = subjectStyle([dog.background.effect, ...dog.modifiers.map((m) => m.effect)]).filter;
+    };
+    if (dog.photo) {
       dogPhoto.crossOrigin = "anonymous";
-      dogPhoto.src = `/img?u=${encodeURIComponent(dog.photo)}`;
-      dogPhoto.alt = dog.breed;
+      dogPhoto.src = photoSrc(dog.photo);
+      dogPhoto.alt = dog.frog ? dog.name : dog.breed;
+      dogPhoto.classList.toggle("frog", Boolean(dog.frog));
       dogPhoto.style.boxShadow = `0 10px 30px rgba(0,0,0,.55), ${dog.rarityGlow}`;
       dogPhoto.style.borderColor = dog.rarityColor;
       dogPhoto.hidden = false;
       // A dead photo URL shouldn't leave an empty frame.
-      dogPhoto.onerror = () => {
-        dogPhoto.hidden = true;
-        spinner.hidden = false;
-        spinner.textContent = "🐕";
-      };
+      dogPhoto.onerror = glyph;
     } else {
-      spinner.hidden = false;
-      spinner.textContent = "🐕";
+      glyph();
     }
     renderResult(dog);
     pullBtn.disabled = true;

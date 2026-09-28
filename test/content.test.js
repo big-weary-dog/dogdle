@@ -7,8 +7,10 @@ import assert from "node:assert/strict";
 
 import {
   BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, NAMES, QUALITY_TIERS,
-  FROG, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MAX,
+  FROG, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MAX, FROG_PHOTOS,
 } from "../src/content/index.js";
+import { readdirSync, readFileSync } from "node:fs";
+import { decodePhoto } from "../src/draw.js";
 import { BREEDS, RARITIES, RARITY_ORDER } from "../src/breeds.js";
 
 const spawnable = MODIFIERS.filter((m) => !m.obsolete);
@@ -116,4 +118,21 @@ test("the frog table is its own world", () => {
     assert.ok(!t.group, `${t.text}: frogs don't use groups`);
   }
   assert.ok(FROG_TRAITS.length >= FROG_TRAIT_COUNT_MAX * 3, "too few frog traits to vary");
+});
+
+// They're someone else's photos: each one ships with its credit, and nothing ships without.
+test("every frog photo is on disk, decodes on the card, and is credited", () => {
+  assert.ok(FROG_PHOTOS.length >= 8, "too few frog photos to vary");
+  const onDisk = readdirSync("public/frogs").sort();
+  assert.deepEqual(FROG_PHOTOS.map((p) => p.file).sort(), onDisk, "public/frogs/ and FROG_PHOTOS disagree");
+  for (const p of FROG_PHOTOS) {
+    assert.match(p.file, /^[\w-]+\.jpg$/, `bad file name: ${p.file}`);
+    assert.ok(p.by?.length, `${p.file}: who took it?`);
+    assert.match(p.license, /^(CC0|Public domain|CC BY(-SA)? \d)/, `${p.file}: not an open licence`);
+    assert.match(p.source, /^https:\/\/commons\.wikimedia\.org\/wiki\/File:/, `${p.file}: no source page`);
+    const bytes = readFileSync(`public/frogs/${p.file}`);
+    assert.ok(bytes.byteLength < 200_000, `${p.file} is ${bytes.byteLength}B; keep them small`);
+    const img = decodePhoto(bytes);
+    assert.ok(img && img.width >= img.height, `${p.file} should decode, landscape`);
+  }
 });

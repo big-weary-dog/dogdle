@@ -1,8 +1,9 @@
 // Frogs. Every so often the machine doesn't deal a dog at all: a frog has got in.
 //
-// A frog is an intruder, not a breed. It has no Dog CEO photo (it draws as a big 🐸), no
-// dog name, and none of the dog traits. It draws from its own table below instead, which
-// is all bad news. A frog averages about -30, which is the point.
+// A frog is an intruder, not a breed. It has no Dog CEO photo (it gets a real frog from
+// FROG_PHOTOS below, or a big 🐸 if that fails), no dog name, and none of the dog traits.
+// It draws from its own table below instead, which is all bad news. A frog averages about
+// -30, which is the point.
 //
 // Frogs sit outside the dog balance on purpose. The average *dog* is kept at 0, and a frog
 // is a tax on top of it: the balance test and `npm run balance` measure dogs only.
@@ -82,3 +83,46 @@ export const FROG_TRAITS = [
   { text: "Faintly radioactive green", emoji: "☢️", value: -4, category: "frog",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.3, hue: 60, saturate: 1.8 } } },
 ].sort((a, b) => a.text.localeCompare(b.text));
+
+// Real frogs, since Dog CEO has none. Served from public/frogs/ and picked per frog in
+// src/photo.js. Every one is openly licensed on Wikimedia Commons and needs its credit
+// kept (the README lists them). Adding one is safe: a frog's photo is stored when it's
+// dealt, so only future frogs see the new set. Fetch candidates with frog-photos.yml.
+export const FROG_PHOTOS = [
+  { file: "american-toad.jpg", by: "Cephas", license: "CC BY-SA 3.0",
+    source: "https://commons.wikimedia.org/wiki/File:Bufo_americanus_PJC1.jpg" },
+  { file: "blue-poison-dart-frog.jpg", by: "Michael Gäbler", license: "CC BY 3.0",
+    source: "https://commons.wikimedia.org/wiki/File:Dendrobates_azureus_(Dendrobates_tinctorius)_Edit.jpg" },
+  { file: "burrowing-frog-grumpy.jpg", by: "Rushenb", license: "CC BY-SA 2.0",
+    source: "https://commons.wikimedia.org/wiki/File:Glyphoglossus_molossus,_Blunt-headed_burrowing_frog_-_Hua_Hin_District,_Near_Pala-U.jpg" },
+  { file: "burrowing-frog-leaves.jpg", by: "Rushen", license: "CC BY-SA 2.0",
+    source: "https://commons.wikimedia.org/wiki/File:Glyphoglossus_molossus,_Blunt-headed_burrowing_frog_-_Mueang_Loei_District,_Loei_Province_(47097003944).jpg" },
+  { file: "cane-toad.jpg", by: "Wilfredor", license: "CC0",
+    source: "https://commons.wikimedia.org/wiki/File:Bufo_marinus_in_Venezuela.jpg" },
+  { file: "common-toad.jpg", by: "Korall", license: "CC BY-SA 3.0",
+    source: "https://commons.wikimedia.org/wiki/File:Bufo_bufo_on_grass2.JPG" },
+  { file: "dyeing-poison-frog.jpg", by: "H. Zell", license: "CC BY-SA 3.0",
+    source: "https://commons.wikimedia.org/wiki/File:Dendrobates_tinctorius_-_Karlsruhe_Zoo_05.jpg" },
+  { file: "edible-frog-lily-pad.jpg", by: "Grand-Duc, Niabot (edit)", license: "CC BY 3.0",
+    source: "https://commons.wikimedia.org/wiki/File:Rana_esculenta_on_Nymphaea_edit.JPG" },
+  { file: "golden-mantella.jpg", by: "Charles J. Sharp", license: "CC BY-SA 4.0",
+    source: "https://commons.wikimedia.org/wiki/File:Variegated_golden_frog_(Mantella_baroni)_Ranomafana.jpg" },
+  { file: "marsh-frog-warty.jpg", by: "Andreas Eichler", license: "CC BY-SA 4.0",
+    source: "https://commons.wikimedia.org/wiki/File:2017.06.11.-03-Anglerteiche-Rimbach--Seefrosch.jpg" },
+  { file: "marsh-frog.jpg", by: "Charles J. Sharp", license: "CC BY-SA 4.0",
+    source: "https://commons.wikimedia.org/wiki/File:Marsh_frog_(Pelophylax_ridibundus).jpg" },
+  { file: "peeking-tree-frog.jpg", by: "Lucas Rosado Mendonça", license: "CC BY-SA 4.0",
+    source: "https://commons.wikimedia.org/wiki/File:Aplastodiscus_arildae_no_Parque_Estadual_de_Caparao_por_Lucas_Rosado_(03).jpg" },
+  { file: "red-eyed-tree-frog-night.jpg", by: "LiquidGhoul edited by Muhammad", license: "CC BY-SA 3.0",
+    source: "https://commons.wikimedia.org/wiki/File:Red-eyed_Tree_Frog_-_Litoria_chloris_edit1.jpg" },
+  { file: "red-eyed-tree-frog.jpg", by: "Careyjamesbalboa (Carey James Balboa)", license: "Public domain",
+    source: "https://commons.wikimedia.org/wiki/File:Red_eyed_tree_frog_edit2.jpg" },
+  { file: "strawberry-poison-frog.jpg", by: "Rhododendrites", license: "CC BY-SA 4.0",
+    source: "https://commons.wikimedia.org/wiki/File:Strawberry_poison_dart_frog_(70539).jpg" },
+  { file: "water-frog-eye.jpg", by: "Holger Gröschl", license: "CC BY-SA 2.0 de",
+    source: "https://commons.wikimedia.org/wiki/File:Waterfrog_head.jpg" },
+  { file: "white-lipped-tree-frog-leaf.jpg", by: "Charles J. Sharp", license: "CC BY-SA 4.0",
+    source: "https://commons.wikimedia.org/wiki/File:White-lipped_tree_frog_(Nyctimystes_infrafrenatus)_Daintree.jpg" },
+  { file: "white-lipped-tree-frog.jpg", by: "JJ Harrison (https://www.jjharrison.com.au/)", license: "CC BY-SA 3.0",
+    source: "https://commons.wikimedia.org/wiki/File:Litoria_infrafrenata_-_Julatten.jpg" },
+];
