@@ -128,9 +128,11 @@ test("board rows carry what a digest needs, and the public board doesn't", async
   });
 
   const { rows } = await (await call(e, `/api/bot/leaderboard?guildId=${GUILD}`)).json();
-  assert.equal(rows[0].discordId, USER);
-  assert.ok(rows[0].image.endsWith(`/i/${botPlayerId(USER)}/${today()}.gif`));
-  assert.equal(rows.at(-1).qualityEmoji, "😬", "old rows get a tier emoji too");
+  // Rows sort by score, and today's dog may be worse than Rex: find each row by who it is.
+  const mine = rows.find((r) => r.player === "Felfox");
+  assert.equal(mine.discordId, USER);
+  assert.ok(mine.image.endsWith(`/i/${botPlayerId(USER)}/${today()}.gif`));
+  assert.equal(rows.find((r) => r.player === "old").qualityEmoji, "😬", "old rows get a tier emoji too");
 
   // The website's own board is unauthenticated, so it must not hand out Discord ids.
   const { default: worker } = await import("../src/worker.js");
