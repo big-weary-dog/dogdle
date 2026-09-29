@@ -1,5 +1,5 @@
 import { rollDailyDog, today } from "./roll.js";
-import { handleBot, renderCard, kennelFor, kennelPageData } from "./bot.js";
+import { handleBot, renderCard, kennelFor, kennelPageData, kennelPreview, kennelPage } from "./bot.js";
 import { photoFor, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
 import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, kennelKey, cleanName, boardRow, visibleRows } from "./keys.js";
 import { log } from "./log.js";
@@ -252,9 +252,30 @@ async function route(request, url, env) {
     return Response.json(data, { headers: { "cache-control": "public, max-age=60" } });
   }
 
-  // The album page itself is static; it reads the player from its own path.
-  if (/^\/kennel\/discord-\d{5,24}\/?$/.test(url.pathname)) {
-    return env.ASSETS.fetch(new Request(new URL("/kennel", url)));
+  // The album page is static and reads the player from its own path. Its head is filled in
+  // here, so a link pasted into Discord unfurls as "<name>'s Kennel" with the album image.
+  const kennelPath = url.pathname.match(/^\/kennel\/(discord-\d{5,24})\/?$/);
+  if (kennelPath) {
+    const page = await env.ASSETS.fetch(new Request(new URL("/kennel", url)));
+    const preview = page.ok ? await kennelPreview(env, kennelPath[1], url.origin) : null;
+    if (!preview) return page;
+    const title = `${preview.name ? `${preview.name}'s Kennel` : "Kennel"} · Dogdle`;
+    const about = `${preview.days} ${preview.days === 1 ? "dog" : "dogs"} rolled on Dogdle.`;
+    const head = `<title>${esc(title)}</title>
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Dogdle" />
+  <meta property="og:title" content="${esc(title)}" />
+  <meta property="og:description" content="${esc(about)}" />
+  <meta property="og:url" content="${esc(kennelPage(url.origin, kennelPath[1]))}" />
+  <meta property="og:image" content="${esc(preview.image)}" />
+  <meta property="og:image:width" content="560" />
+  <meta property="og:image:height" content="420" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#65a30d" />`;
+    const html = (await page.text()).replace(/<title>[^<]*<\/title>/, head);
+    return new Response(html, {
+      headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=60" },
+    });
   }
 
   // A Discord player's album, as named by /api/bot/kennel. Like a card, a missing one is

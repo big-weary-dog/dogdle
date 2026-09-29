@@ -61,6 +61,8 @@ export function buildKennel(dogs) {
   let frogs = 0;
   let best = null;
   let worst = null;
+  let total = 0;
+  let counted = 0;
 
   for (const dog of dogs) {
     if (dog.frog) frogs++;
@@ -70,6 +72,8 @@ export function buildKennel(dogs) {
     if (!dog.frog) for (const m of dog.modifiers ?? []) if (LIVE_TRAITS.has(m.text)) traits.add(m.text);
     tiers.add(qualityFor(dog.score).label);
     if (dog.frog) continue;
+    total += dog.score;
+    counted++;
     if (!best || dog.score > best.score) best = dog;
     if (!worst || dog.score < worst.score) worst = dog;
   }
@@ -86,9 +90,17 @@ export function buildKennel(dogs) {
     .slice(0, 3)
     .map((f) => ({ ...f, rarityLabel: RARITIES[f.rarity].label, rarityColor: RARITIES[f.rarity].color }));
 
+  // The average dog, to one decimal, and the tier it would land in. Frogs stay out of
+  // both, as they do out of the game's own balance.
+  const average = counted ? Math.round((total / counted) * 10) / 10 : null;
+  const tier = average === null ? null : qualityFor(average);
+
   return {
     days: dogs.length,
     frogs,
+    total,
+    average,
+    averageQuality: tier && { label: tier.label, emoji: tier.emoji, color: tier.color },
     breeds: { found: breeds.size, total: BREED_RARITY.size },
     backgrounds: { found: places.size, total: BACKGROUND.size },
     traits: { found: traits.size, total: LIVE_TRAITS.size },
@@ -191,7 +203,8 @@ export function composeKennel(kennel, name) {
   drawEmoji(s, "🐾", x, 11, 18);
   drawText(s, "lg", name ? `${name}'s Kennel` : "Kennel", x + 24, 26, WHITE, col - 24);
   const dogsLine = `${kennel.days} ${kennel.days === 1 ? "dog" : "dogs"}` +
-    (kennel.frogs ? `, ${kennel.frogs} ${kennel.frogs === 1 ? "frog" : "frogs"}` : "");
+    (kennel.frogs ? `, ${kennel.frogs} ${kennel.frogs === 1 ? "frog" : "frogs"}` : "") +
+    (kennel.average === null ? "" : `, total ${signed(kennel.total)}`);
   drawText(s, "sm", dogsLine, x, 44, MUTED, col);
   fillRect(s, x, 53, col, 1, [38, 43, 54]);
 
@@ -210,22 +223,28 @@ export function composeKennel(kennel, name) {
     if (!seen.has(t.label)) fillRect(s, tx, 144, 16, 16, [...PANEL, 0.8]);
   });
 
-  let y = 172;
+  let y = 170;
   const tierColor = (d) => hexToRgb(QUALITY_TIERS.find((t) => t.label === d.quality).color);
   if (kennel.best) {
     drawText(s, "sm", "Best", x, y + 9, MUTED);
     drawRow(s, x, y + 14, col, kennel.best.qualityEmoji, kennel.best.name, signed(kennel.best.score), tierColor(kennel.best));
-    y += 40;
+    y += 36;
   }
   if (kennel.worst && kennel.worst !== kennel.best && kennel.worst.date !== kennel.best?.date) {
     drawText(s, "sm", "Worst", x, y + 9, MUTED);
     drawRow(s, x, y + 14, col, kennel.worst.qualityEmoji, kennel.worst.name, signed(kennel.worst.score), tierColor(kennel.worst));
-    y += 40;
+    y += 36;
   }
   if (kennel.rarest.length) {
     drawText(s, "sm", "Rarest find", x, y + 9, MUTED);
     const r = kennel.rarest[0];
     drawRow(s, x, y + 14, col, r.emoji, r.name, r.rarityLabel, hexToRgb(r.rarityColor));
+    y += 36;
+  }
+  if (kennel.averageQuality) {
+    const a = kennel.averageQuality;
+    drawText(s, "sm", "Average dog", x, y + 9, MUTED);
+    drawRow(s, x, y + 14, col, a.emoji, a.label, signed(kennel.average), hexToRgb(a.color));
   }
 
   // Right: every place there is, found ones lit, with a strip of rarity colour on each.

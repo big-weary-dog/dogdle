@@ -393,7 +393,12 @@ The same collection is public on the website at `/kennel/discord-<id>`: the coun
 calendar (click a day to jump to its dog) and every card the player has rolled, sortable
 by date or score. It reads
 `/api/kennel?player=`, which needs no token — nothing in a kennel is private — and only
-answers for Discord players, since a web player's id is their secret roll key.
+answers for Discord players, since a web player's id is their secret roll key. The page's
+head is filled in by the Worker (one list, one read), so its link unfurls in Discord as
+"<name>'s Kennel" with the album image: posting the link alone is a whole kennel reply.
+
+A kennel also has a **total** (every dog's score added up) and an **average dog**, both
+leaving frogs out.
 
 ### Test rolls
 

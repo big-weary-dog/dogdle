@@ -176,6 +176,15 @@ export async function playerDogs(env, player, want) {
   return dogs.length ? { stamp, dogs } : null;
 }
 
+// Just enough to name the album page in a link preview: who, how many, and the album
+// image. One list and one read, since every unfurl and every page view lands here.
+export async function kennelPreview(env, player, origin) {
+  const keys = await rollKeys(env, player);
+  if (!keys.length) return null;
+  const newest = await env.STORE.get(keys.at(-1), "json");
+  return { name: newest?.player || "", days: keys.length, image: kennelUrl(origin, player, kennelStamp(keys)) };
+}
+
 // Everything the website's album page shows, for GET /api/kennel. Unauthenticated, so it
 // only ever holds what the Discord embeds already show publicly.
 export async function kennelPageData(env, player, origin) {
@@ -363,7 +372,9 @@ export async function handleBot(request, url, env) {
       ...kennel,
       image: kennelUrl(url.origin, player, album.stamp),
       link: kennelPage(url.origin, player),
-      text: `${kennel.days} ${kennel.days === 1 ? "dog" : "dogs"} · ${breeds.found}/${breeds.total} breeds · ` +
+      text: `${kennel.days} ${kennel.days === 1 ? "dog" : "dogs"} · ` +
+        (kennel.average === null ? "" : `total ${signed(kennel.total)} · average ${signed(kennel.average)} · `) +
+        `${breeds.found}/${breeds.total} breeds · ` +
         `${backgrounds.found}/${backgrounds.total} places · ${traits.found}/${traits.total} traits`,
     });
   }

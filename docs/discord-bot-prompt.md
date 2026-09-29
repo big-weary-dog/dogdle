@@ -121,6 +121,8 @@ never deals a dog. A player with no dogs yet gets `{ "empty": true, "days": 0 }`
 ```json
 {
   "name": "Felfox", "days": 40, "frogs": 2,
+  "total": -23, "average": -0.6,
+  "averageQuality": { "label": "Perfectly Average", "emoji": "😐", "color": "#facc15" },
   "breeds":      { "found": 32,  "total": 131 },
   "backgrounds": { "found": 30,  "total": 101 },
   "traits":      { "found": 168, "total": 377 },
@@ -133,14 +135,16 @@ never deals a dog. A player with no dogs yet gets `{ "empty": true, "days": 0 }`
                "rarity": "legendary", "rarityLabel": "Legendary", "rarityColor": "#fbbf24" }],
   "image": "https://dogdle.swampkat.com/k/discord-1234.../2026-09-29-40.gif",
   "link":  "https://dogdle.swampkat.com/kennel/discord-1234...",
-  "text": "40 dogs · 32/131 breeds · 30/101 places · 168/377 traits"
+  "text": "40 dogs · total -23 · average -0.6 · 32/131 breeds · 30/101 places · 168/377 traits"
 }
 ```
 
 `image` is a still 560×420 album: the counts and highlights on the left, a grid of every
 place in the game on the right, lit where the player has been, and along the bottom a year
 of squares, one a day, coloured by that day's quality tier (frogs are green). `best` and
-`worst` never count frogs. `link` is the album page on the website. Its URL changes whenever a
+`worst` never count frogs, and neither do `total` (every dog's score added up) and
+`average` (the average dog, to one decimal; `null` with no dogs). `link` is the album
+page on the website. Its URL changes whenever a
 dog is added, so Discord never shows a stale one — always use the `image` from the latest
 call rather than keeping one.
 
@@ -227,6 +231,12 @@ Worth adding, both one line:
 - A **wooden spoon** for the bottom one, if it's negative. The game is cynical; lean in.
 
 ## Message 3 — `/dogdle kennel`
+
+**The simplest version is just the link.** `https://dogdle.swampkat.com/kennel/discord-<id>`
+unfurls in Discord as "{name}'s Kennel" with the album image, no token needed. Add
+`?d=<today, US Eastern>` so Discord's link cache shows today's album, not yesterday's.
+
+The richer version:
 
 Reply with **one embed**, shaped like Message 1: the player as the author, `image` as the
 image, `text` as the one line of detail. Title it `🐾 {name}'s Kennel`, falling back to the

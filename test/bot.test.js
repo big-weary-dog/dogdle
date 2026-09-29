@@ -411,7 +411,11 @@ test("the kennel counts what a player's dogs turned up", async () => {
   assert.ok(k.best.score >= k.worst.score);
   assert.ok(k.rarest.length >= 1 && k.rarest.length <= 3);
   assert.equal(k.placesFound, undefined, "the image's working lists stay out of the reply");
-  assert.match(k.text, /^13 dogs · /);
+  assert.match(k.text, /^13 dogs · total [+-]?\d+ · average [+-]?[\d.]+ · /);
+  const dogs = [...e.STORE.store].filter(([k]) => k.startsWith("roll:")).map(([, v]) => JSON.parse(v.value));
+  assert.equal(k.total, dogs.reduce((sum, d) => sum + d.score, 0), "the total is every dog's score");
+  assert.equal(k.average, Math.round((k.total / 13) * 10) / 10);
+  assert.ok(k.averageQuality.label);
 
   const stamp = `${today()}-13`;
   assert.ok(k.image.endsWith(`/k/${botPlayerId(USER)}/${stamp}.gif`));
@@ -472,6 +476,7 @@ test("the best list is the top six dogs, the worst the bottom three, and never a
   const kennel = await (await call(e, `/api/bot/kennel?discordId=${USER}`)).json();
   assert.notEqual(kennel.worst.date, frogDate, "a frog is never the kennel's worst dog either");
   assert.equal(kennel.frogs, 1);
+  assert.equal(kennel.average, Math.round((kennel.total / 20) * 10) / 10, "a frog stays out of the average too");
 });
 
 test("a roll links to the player's album page", async () => {
@@ -501,5 +506,20 @@ test("the album page only exists for Discord players", async () => {
   assert.equal(web.status, 400, "a web player's id is their roll key; it never goes in a link");
 
   const page = await siteRequest(e, `/kennel/${botPlayerId(USER)}`);
-  assert.equal(await page.text(), "/kennel", "served from the static page");
+  assert.equal(await page.text(), "/kennel", "served from the static page, untouched while it's empty");
+});
+
+test("an album page link unfurls with the player's name and album", async () => {
+  const page = "<html><head><title>Kennel · Dogdle</title></head><body></body></html>";
+  const e = { ...env(), ASSETS: { fetch: async () => new Response(page) } };
+  seedDogs(e, 4);
+  const key = `roll:${botPlayerId(USER)}:2026-08-04`;
+  const newest = JSON.parse(e.STORE.store.get(key).value);
+  e.STORE.store.set(key, { value: JSON.stringify({ ...newest, player: 'megapwn <b>"x"</b>' }), metadata: {} });
+
+  const html = await (await siteRequest(e, `/kennel/${botPlayerId(USER)}`)).text();
+  assert.match(html, /<title>megapwn &lt;b&gt;&quot;x&quot;&lt;\/b&gt;&#39;s Kennel · Dogdle<\/title>/, "named, and escaped");
+  assert.ok(html.includes(`<meta property="og:image" content="https://dogdle.swampkat.com/k/${botPlayerId(USER)}/2026-08-04-4.gif" />`));
+  assert.ok(html.includes("4 dogs rolled on Dogdle."));
+  assert.ok(!html.includes("<b>"), "a name never becomes markup");
 });
