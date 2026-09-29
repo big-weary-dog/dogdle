@@ -11,11 +11,13 @@ standing, and a handful of traits that are each an asset or a liability; they ad
 score, and the score lands it in one of nine quality tiers. **One roll per person per day,
 no rerolls** — the day rolls over at midnight US Eastern.
 
-The bot does two things:
+The bot does three things:
 
 1. **`/dogdle`** — rolls the caller's dog and posts it.
 2. **A daily digest** — one message summarising everyone's dogs, modelled on the Wordle
    bot's morning post: a compact leaderboard, then a card per player, then a button.
+3. **`/dogdle kennel`** — the caller's collection: every breed, place and trait their
+   dogs have turned up, as one image.
 
 The server renders the card image, including a sidebar listing every trait with its emoji
 and point value. **The image carries the detail; the text stays short.**
@@ -103,6 +105,34 @@ no `discordId` and no `image` — skip those when building per-player cards.
 
 Every dog that player has been dealt, newest first.
 
+### `GET /api/bot/kennel?discordId=…`
+
+The player's collection, counted against everything that can turn up. Read-only — it
+never deals a dog. A player with no dogs yet gets `{ "empty": true, "days": 0 }`.
+
+```json
+{
+  "name": "Felfox", "days": 40, "frogs": 2,
+  "breeds":      { "found": 32,  "total": 131 },
+  "backgrounds": { "found": 30,  "total": 101 },
+  "traits":      { "found": 168, "total": 377 },
+  "tiers":       { "found": 8,   "total": 9 },
+  "best":  { "name": "Marmalade", "breed": "Coton de Tulear", "score": 17, "date": "2026-08-26",
+             "quality": "Exceptional Animal", "qualityEmoji": "🌟" },
+  "worst": { "name": "Pesto", "breed": "Chihuahua", "score": -27, "date": "2026-08-24",
+             "quality": "Should Not Have Happened", "qualityEmoji": "💀" },
+  "rarest": [{ "kind": "background", "name": "Deep Space", "emoji": "🪐",
+               "rarity": "legendary", "rarityLabel": "Legendary", "rarityColor": "#fbbf24" }],
+  "image": "https://dogdle.swampkat.com/k/discord-1234.../2026-09-29-40.gif",
+  "text": "40 dogs · 32/131 breeds · 30/101 places · 168/377 traits"
+}
+```
+
+`image` is a still 560×320 album: the counts and highlights on the left, and a grid of every
+place in the game on the right, lit where the player has been. Its URL changes whenever a
+dog is added, so Discord never shows a stale one — always use the `image` from the latest
+call rather than keeping one.
+
 ---
 
 ## Message 1 — `/dogdle`
@@ -164,6 +194,17 @@ Worth adding, both one line:
 
 - A **Dog of the Day** callout for the top score.
 - A **wooden spoon** for the bottom one, if it's negative. The game is cynical; lean in.
+
+## Message 3 — `/dogdle kennel`
+
+Reply with **one embed**, shaped like Message 1: the player as the author, `image` as the
+image, `text` as the one line of detail. Title it `🐾 {name}'s Kennel`, falling back to the
+Discord display name when `name` is empty.
+
+- It's the caller's own kennel. An optional `user` option can show someone else's — it's
+  the same call with their id, and nothing on it is private.
+- `empty: true` → an ephemeral "no dogs yet — `/dogdle` to get your first."
+- Don't list the counts as fields; they're in the image. One line under it is plenty.
 
 ---
 

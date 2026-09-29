@@ -14,8 +14,9 @@
 
 import { rollDailyDog, today } from "./roll.js";
 import { renderCardGif } from "./card.js";
+import { buildKennel, renderKennelGif } from "./kennel.js";
 import { photoFor, fetchPhotoBytes, backfillPhoto } from "./photo.js";
-import { cardKey, rollKey, dayKey, guildKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
+import { cardKey, rollKey, dayKey, guildKey, kennelKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
 import { log } from "./log.js";
 
 const SNOWFLAKE_RE = /^\d{5,24}$/;
@@ -23,9 +24,12 @@ const CARD_TTL_SECONDS = 60 * 60 * 24 * 30;
 // A smoke test shouldn't leave anything behind that someone has to go and delete.
 const TEST_TTL_SECONDS = 60 * 60 * 48;
 const BOARD_LIMIT = 200;
+// An album is redrawn whenever a dog is added, so an old one is only kept for a straggler.
+const KENNEL_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 export const botPlayerId = (discordId) => `discord-${discordId}`;
 const cardUrl = (origin, player, date) => `${origin}/i/${player}/${date}.gif`;
+const kennelUrl = (origin, player, stamp) => `${origin}/k/${player}/${stamp}.gif`;
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 const json = (body, status = 200) =>
@@ -131,6 +135,53 @@ async function writeIndex(env, key, value, opts) {
   } catch (err) {
     log.warn("board.write_failed", { key, err });
   }
+}
+
+// The keys of every roll a player has, oldest first. Key names end in the date, so the
+// list alone says how many dogs there are and when the last one was dealt.
+async function rollKeys(env, player) {
+  const names = [];
+  let cursor;
+  do {
+    const listed = await env.STORE.list({ prefix: `roll:${player}:`, cursor });
+    names.push(...listed.keys.map((k) => k.name));
+    cursor = listed.list_complete === false ? listed.cursor : undefined;
+  } while (cursor);
+  return names.sort();
+}
+
+// Names the album's current state, so its image URL changes the moment a dog is added
+// and Discord's image cache can never show an old one.
+const kennelStamp = (keys) => `${keys.at(-1).split(":").at(-1)}-${keys.length}`;
+// The name on the album comes from the rolls themselves, so a redraw is always identical.
+const kennelName = (dogs) => [...dogs].reverse().find((d) => d.player)?.player || "";
+// KV allows a thousand operations a request. That's most of three years of daily rolls;
+// past it, the album counts the newest ones.
+const KENNEL_MAX_READS = 950;
+
+// Draws a player's album as it stands and stores it under its stamp. Returns null for a
+// player with no dogs, or when `want` names a state the album is no longer in -- which is
+// settled from the list alone, before reading a single roll.
+export async function kennelFor(env, player, want) {
+  const keys = await rollKeys(env, player);
+  if (!keys.length) return null;
+  const stamp = kennelStamp(keys);
+  if (want && want !== stamp) return null;
+
+  const dogs = (await Promise.all(keys.slice(-KENNEL_MAX_READS).map((k) => env.STORE.get(k, "json"))))
+    .filter((d) => d?.date && d.background);
+  if (!dogs.length) return null;
+
+  const kennel = buildKennel(dogs);
+  const name = kennelName(dogs);
+  const gif = renderKennelGif(kennel, name);
+  try {
+    await env.STORE.put(kennelKey(player, stamp), gif, { expirationTtl: KENNEL_TTL_SECONDS });
+  } catch (err) {
+    // The image route redraws a missing album, so this heals on first view.
+    log.warn("kennel.store_failed", { player, stamp, err });
+  }
+  return { kennel, name, stamp, gif };
 }
 
 export async function handleBot(request, url, env) {
@@ -258,6 +309,28 @@ export async function handleBot(request, url, env) {
       .sort((a, b) => String(b.date).localeCompare(String(a.date)));
 
     return json({ rows });
+  }
+
+  // The collection: every breed, place, trait and tier this player's dogs have turned up.
+  if (route === "kennel" && request.method === "GET") {
+    const discordId = url.searchParams.get("discordId") || "";
+    if (!SNOWFLAKE_RE.test(discordId)) return json({ error: "invalid discordId" }, 400);
+
+    const player = botPlayerId(discordId);
+    const album = await kennelFor(env, player);
+    if (!album) return json({ empty: true, days: 0 });
+
+    const { placesFound, tiersFound, ...kennel } = album.kennel;
+    const { breeds, backgrounds, traits } = kennel;
+    log.info("bot.kennel", { player, days: kennel.days, bytes: album.gif.byteLength });
+    return json({
+      name: album.name,
+      ...kennel,
+      image: kennelUrl(url.origin, player, album.stamp),
+      link: `${url.origin}/`,
+      text: `${kennel.days} ${kennel.days === 1 ? "dog" : "dogs"} · ${breeds.found}/${breeds.total} breeds · ` +
+        `${backgrounds.found}/${backgrounds.total} places · ${traits.found}/${traits.total} traits`,
+    });
   }
 
   return json({ error: "no such bot route" }, 404);

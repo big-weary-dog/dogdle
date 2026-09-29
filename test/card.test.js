@@ -10,6 +10,7 @@ import { renderCardGif, composeCard, layoutRows, CARD } from "../src/card.js";
 import { readFileSync } from "node:fs";
 import { BACKGROUNDS, MODIFIERS, FROG, FROG_TRAITS, FROG_PHOTOS } from "../src/content/index.js";
 import ATLAS from "../src/generated/atlas.js";
+import { KENNEL_EMOJI } from "../src/kennel.js";
 import { decodePhoto } from "../src/draw.js";
 import { setLogSink } from "../src/log.js";
 
@@ -129,13 +130,14 @@ test("real cards almost never trim a name, and never run off the bottom", () => 
   assert.ok(cards / total < 0.02, `${cards} of ${total} cards trimmed a name`);
 });
 
-test("the atlas covers every emoji the card draws", () => {
+test("the atlas covers every emoji the card and the album draw", () => {
   const used = new Set([
     ...BACKGROUNDS.map((b) => b.emoji),
     ...MODIFIERS.map((m) => m.emoji),
     ...FROG_TRAITS.map((m) => m.emoji),
     "🧬", // the breed row, which belongs to no table
     FROG.emoji, // a frog's breed row
+    ...KENNEL_EMOJI,
   ]);
   const missing = [...used].filter((e) => ATLAS.emoji.index[e] === undefined);
   assert.deepEqual(missing, [], "run scripts/build-atlas.mjs after adding emoji");

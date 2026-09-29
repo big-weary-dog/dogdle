@@ -7,7 +7,8 @@ import assert from "node:assert/strict";
 
 import { handleBot, botPlayerId } from "../src/bot.js";
 import { PLAYER_ID_RE } from "../src/keys.js";
-import { today } from "../src/roll.js";
+import { today, rollDailyDog } from "../src/roll.js";
+import { BACKGROUNDS, QUALITY_TIERS } from "../src/content/index.js";
 import { BREEDS } from "../src/breeds.js";
 import { setLogSink } from "../src/log.js";
 
@@ -365,4 +366,88 @@ test("an image with no roll behind it is a 404 no proxy may keep", async () => {
   assert.equal(res.headers.get("cache-control"), "no-store");
   assert.equal(events("card.missing").length, 1);
   assert.equal(e.STORE.store.size, 0, "a miss must not write anything");
+});
+
+// ---------- the kennel: a player's collection, drawn as one image ----------
+
+const siteRequest = (e, path) =>
+  import("../src/worker.js").then(({ default: worker }) =>
+    worker.fetch(new Request(`https://dogdle.swampkat.com${path}`), e)
+  );
+
+// Stored dogs on the first `days` days of August, as if the player had rolled them.
+function seedDogs(e, days, user = USER) {
+  const player = botPlayerId(user);
+  for (let i = 1; i <= days; i++) {
+    const date = `2026-08-${String(i).padStart(2, "0")}`;
+    e.STORE.store.set(`roll:${player}:${date}`, {
+      value: JSON.stringify(rollDailyDog(player, date)),
+      metadata: { date },
+    });
+  }
+}
+
+test("an empty kennel says so and writes nothing", async () => {
+  const e = env();
+  const res = await (await call(e, `/api/bot/kennel?discordId=${USER}`)).json();
+  assert.deepEqual(res, { empty: true, days: 0 });
+  assert.equal(e.STORE.store.size, 0);
+});
+
+test("the kennel counts what a player's dogs turned up", async () => {
+  const e = env();
+  seedDogs(e, 12);
+  await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER, displayName: "Felfox" } });
+
+  const k = await (await call(e, `/api/bot/kennel?discordId=${USER}`)).json();
+  assert.equal(k.days, 13);
+  assert.equal(k.name, "Felfox", "the name comes from the newest roll that has one");
+  assert.equal(k.backgrounds.total, BACKGROUNDS.length);
+  assert.equal(k.breeds.total, BREEDS.length);
+  assert.equal(k.tiers.total, QUALITY_TIERS.length);
+  for (const part of [k.breeds, k.backgrounds, k.traits, k.tiers]) {
+    assert.ok(part.found >= 1 && part.found <= part.total);
+  }
+  assert.ok(k.best.score >= k.worst.score);
+  assert.ok(k.rarest.length >= 1 && k.rarest.length <= 3);
+  assert.equal(k.placesFound, undefined, "the image's working lists stay out of the reply");
+  assert.match(k.text, /^13 dogs · /);
+
+  const stamp = `${today()}-13`;
+  assert.ok(k.image.endsWith(`/k/${botPlayerId(USER)}/${stamp}.gif`));
+  assert.ok(e.STORE.store.get(`kennel:${botPlayerId(USER)}:${stamp}`), "the album is stored");
+});
+
+test("an album is served as a GIF, and redrawn when KV hasn't got it yet", async () => {
+  const e = env();
+  seedDogs(e, 5);
+  const { image } = await (await call(e, `/api/bot/kennel?discordId=${USER}`)).json();
+  const path = new URL(image).pathname;
+
+  const res = await siteRequest(e, path);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers.get("content-type"), "image/gif");
+  assert.deepEqual([...new Uint8Array(await res.arrayBuffer()).slice(0, 4)], [0x47, 0x49, 0x46, 0x38]);
+
+  e.STORE.store.delete(`kennel:${botPlayerId(USER)}:2026-08-05-5`);
+  logged = [];
+  assert.equal((await siteRequest(e, path)).status, 200);
+  assert.equal(events("kennel.rendered_on_read").length, 1);
+});
+
+test("an album stamp that isn't current is a 404 that reads no rolls", async () => {
+  const e = env();
+  seedDogs(e, 3);
+  e.STORE.reads = [];
+  const res = await siteRequest(e, `/k/${botPlayerId(USER)}/2026-08-03-2.gif`);
+  assert.equal(res.status, 404);
+  assert.equal(res.headers.get("cache-control"), "no-store");
+  assert.deepEqual(e.STORE.reads.filter((k) => k.startsWith("roll:")), []);
+  assert.ok(![...e.STORE.store.keys()].some((k) => k.startsWith("kennel:")), "a miss must not write");
+});
+
+test("the album route is for Discord players only", async () => {
+  const e = env();
+  const res = await siteRequest(e, "/k/0b7f4a9e-1c2d-4e5f-8a9b-0c1d2e3f4a5b/2026-08-03-2.gif");
+  assert.equal(res.status, 404);
 });

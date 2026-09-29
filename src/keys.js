@@ -5,6 +5,7 @@
 //   day:<date>:<player>     the global leaderboard index for a date
 //   guild:<guild>:<date>:<player>   the same, scoped to one Discord server
 //   card:<player>:<date>    the rendered share image
+//   kennel:<player>:<stamp> a rendered album; the stamp changes whenever a dog is added
 //
 // The three index keys store an empty value and put the row in the metadata, so a
 // leaderboard is one list call and never fetches a value.
@@ -18,6 +19,7 @@ export const cardKey = (player, date) => `card:${player}:${date}`;
 export const rollKey = (player, date) => `roll:${player}:${date}`;
 export const dayKey = (date, player) => `day:${date}:${player}`;
 export const guildKey = (guild, date, player) => `guild:${guild}:${date}:${player}`;
+export const kennelKey = (player, stamp) => `kennel:${player}:${stamp}`;
 
 export const cleanName = (raw) =>
   String(raw || "").replace(/[\u0000-\u001f\u007f]/g, "").trim().slice(0, 20);

@@ -1,13 +1,14 @@
 import { rollDailyDog, today } from "./roll.js";
-import { handleBot, renderCard } from "./bot.js";
+import { handleBot, renderCard, kennelFor } from "./bot.js";
 import { photoFor, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
-import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, cleanName, boardRow, visibleRows } from "./keys.js";
+import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, kennelKey, cleanName, boardRow, visibleRows } from "./keys.js";
 import { log } from "./log.js";
 
 const MAX_CARD_BYTES = 8_000_000; // animated cards are far heavier than a still
 const CARD_TTL_SECONDS = 60 * 60 * 24 * 30;
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const GIF_MAGIC = [0x47, 0x49, 0x46, 0x38]; // "GIF8", covering 87a and 89a
+const KENNEL_STAMP_RE = /^\d{4}-\d{2}-\d{2}-\d{1,4}$/;
 
 // Cards may be a still or an animation; the stored bytes decide how they're served.
 function sniffImageType(buf) {
@@ -237,6 +238,28 @@ async function route(request, url, env) {
         "content-type": sniffImageType(card) ?? "image/png",
         "cache-control": "public, max-age=86400",
       },
+    });
+  }
+
+  // A Discord player's album, as named by /api/bot/kennel. Like a card, a missing one is
+  // drawn again -- but only if the stamp is the album's current state, so this can't be
+  // used to render anything on demand.
+  if (url.pathname.startsWith("/k/")) {
+    const [, , player, file] = url.pathname.split("/");
+    const stamp = (file || "").replace(/\.gif$/, "");
+    if (!PLAYER_ID_RE.test(player || "") || !player.startsWith("discord-") || !KENNEL_STAMP_RE.test(stamp)) {
+      return new Response("not found", { status: 404 });
+    }
+
+    let gif = await env.STORE.get(kennelKey(player, stamp), "arrayBuffer");
+    if (!gif) {
+      gif = (await kennelFor(env, player, stamp))?.gif ?? null;
+      log.warn("kennel.rendered_on_read", { player, stamp, ok: Boolean(gif), colo: request.cf?.colo });
+    }
+    if (!gif) return new Response("not found", { status: 404, headers: { "cache-control": "no-store" } });
+
+    return new Response(gif, {
+      headers: { "content-type": "image/gif", "cache-control": "public, max-age=86400" },
     });
   }
 

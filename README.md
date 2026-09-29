@@ -345,6 +345,7 @@ endpoint would let anyone burn someone else's day. With no secret set the API an
 | `GET /api/bot/dog?discordId=&date=` | Today's dog **without** dealing one — `{ pending: true }` if they haven't rolled. |
 | `GET /api/bot/leaderboard?guildId=&date=` | Scores for a date. No `guildId` gives the global board. |
 | `GET /api/bot/history?discordId=` | Every dog that player has been dealt, newest first. |
+| `GET /api/bot/kennel?discordId=` | Their collection — breeds, places, traits and tiers found out of everything there is — and an album image. |
 
 A roll answers with the pieces of a message, not a formatted one:
 
@@ -363,6 +364,21 @@ A roll answers with the pieces of a message, not a formatted one:
 `image` is a plain GIF URL, so posting it bare unfurls as an image with no card chrome.
 The traits are already drawn into the card's sidebar, which is the point: the message can
 be mostly the GIF.
+
+### The kennel
+
+`/api/bot/kennel` is a player's collection: the breeds, places and traits their dogs have
+turned up and the tiers they've landed in, each out of everything that can still turn up
+(obsolete traits don't count, or no album could ever be finished). `src/kennel.js` counts
+it and draws it — a still album with a grid of every place in the game, lit where the
+player has been, sorted common to legendary so the gaps that matter sit at the end.
+
+It's built from the stored rolls every time, one read per dog, rather than kept up to date
+on each roll: there is nothing to migrate and nothing to drift. The album is stored under a
+**stamp** — the newest roll's date and the number of rolls — so its URL changes the moment
+a dog is added and Discord's image cache never shows an old one. `/k/<player>/<stamp>.gif`
+redraws a missing album like `/i/` redraws a missing card, but only for the current stamp,
+which the roll list settles before a single roll is read.
 
 ### Test rolls
 

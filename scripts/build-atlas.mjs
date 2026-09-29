@@ -17,6 +17,7 @@
 import { chromium } from "playwright";
 import { writeFileSync, mkdirSync } from "fs";
 import { BACKGROUNDS, MODIFIERS, FROG, FROG_TRAITS } from "../src/content/index.js";
+import { KENNEL_EMOJI } from "../src/kennel.js";
 
 const TEXT_SIZES = [
   { key: "sm", px: 11, weight: 400 },
@@ -38,6 +39,7 @@ const emoji = [...new Set([
   ...MODIFIERS.map((m) => m.emoji),
   ...FROG_TRAITS.map((m) => m.emoji),
   ...EXTRA,
+  ...KENNEL_EMOJI, // the album (src/kennel.js)
 ])];
 
 const browser = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" });

@@ -27,6 +27,7 @@ the Read tool; don't guess at how a visual looks from its data.
 | `src/roll.js` | The deterministic generator. `hash(player:date)` seeds the PRNG. |
 | `src/breeds.js` | Breed table, Dog CEO slugs, rarity weights and values. |
 | `src/worker.js` | Web routes. `src/bot.js` is the Discord bot API (`/api/bot/*`). |
+| `src/kennel.js` | A player's collection (`/api/bot/kennel`) and its album image. |
 | `src/keys.js` | KV key layout and leaderboard rows, shared by web and bot. |
 | `src/photo.js` | Dog CEO lookup, frog photo pick, photo bytes, `backfillPhoto` repair. |
 | `src/card.js` + `raster.js` + `draw.js` | Headless GIF card renderer (no canvas in Workers). |
@@ -91,7 +92,7 @@ Several agents can work at once if each stays in a lane. Lanes are by file owner
 | Backgrounds | `src/content/backgrounds.js` | Snapshots, maybe atlas |
 | Names / tiers | `src/content/names.js`, `tiers.js` | Snapshots |
 | Frogs | `src/content/frogs.js`, `public/frogs/` | Snapshots, maybe atlas |
-| Discord bot API | `src/bot.js`, `docs/discord-bot-prompt.md`, `test/bot.test.js` | `src/keys.js` if rows change |
+| Discord bot API | `src/bot.js`, `src/kennel.js`, `docs/discord-bot-prompt.md`, `test/bot.test.js` | `src/keys.js` if rows change |
 | Web UI | `public/app.js`, `public/index.html`, `public/dev.*` | — |
 | Card renderer | `src/card.js`, `src/draw.js`, `src/raster.js` | — |
 | Effects engine | `public/effects.js`, `test/effects.test.js` | Affects web *and* card |
