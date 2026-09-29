@@ -91,4 +91,7 @@ export const HABIT = [
   { text: "Only cooperates for coffee-flavored gum", emoji: "🍬", value: 0, category: "habit", effect: null },
   { text: "Rolled in soot to pass as a Labrador", emoji: "⬛", value: 1, category: "habit", effect: null },
   { text: "Only sleeps in round rooms", emoji: "⭕", value: -1, category: "habit", effect: null },
+  { text: "KING OF DA HIGHWAY", emoji: "🛣️", value: 1, category: "habit",
+    effect: { type: "halo", layer: "subject", params: { color: "#fbbf24", size: 12 } } },
+  { text: "Tips the Ubereats Driver", emoji: "🛵", value: 1, category: "habit", effect: null },
 ];
