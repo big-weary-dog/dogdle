@@ -1,5 +1,5 @@
 import { rollDailyDog, today } from "./roll.js";
-import { handleBot, renderCard, kennelFor } from "./bot.js";
+import { handleBot, renderCard, kennelFor, kennelPageData } from "./bot.js";
 import { photoFor, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
 import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, kennelKey, cleanName, boardRow, visibleRows } from "./keys.js";
 import { log } from "./log.js";
@@ -239,6 +239,22 @@ async function route(request, url, env) {
         "cache-control": "public, max-age=86400",
       },
     });
+  }
+
+  // A Discord player's whole collection, for the album page. Discord players only: a web
+  // player's id is the key to their daily roll, so it must never appear in a shareable URL.
+  if (url.pathname === "/api/kennel") {
+    const player = url.searchParams.get("player") || "";
+    if (!PLAYER_ID_RE.test(player) || !player.startsWith("discord-")) {
+      return Response.json({ error: "invalid player id" }, { status: 400 });
+    }
+    const data = await kennelPageData(env, player, url.origin);
+    return Response.json(data, { headers: { "cache-control": "public, max-age=60" } });
+  }
+
+  // The album page itself is static; it reads the player from its own path.
+  if (/^\/kennel\/discord-\d{5,24}\/?$/.test(url.pathname)) {
+    return env.ASSETS.fetch(new Request(new URL("/kennel", url)));
   }
 
   // A Discord player's album, as named by /api/bot/kennel. Like a card, a missing one is

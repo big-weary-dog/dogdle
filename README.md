@@ -248,6 +248,7 @@ A single Cloudflare Worker serves both the API and the static assets.
 src/
   worker.js    routes: roll, leaderboard, history, card upload/serve, image proxy, share page
   bot.js       the Discord bot API (/api/bot/*)
+  kennel.js    a player's collection and its album image
   roll.js      the deterministic generator and the Eastern day boundary
   content/     the content tables, one file per kind:
                  names.js, backgrounds.js, tiers.js, traits/<category>.js
@@ -263,6 +264,7 @@ public/
   index.html   the game
   app.js       roll, render, capture the GIF, leaderboard
   dev.js/html  /dev — unlimited rerolls for playtesting
+  kennel.html  /kennel/<player> — a Discord player's album, every dog they've rolled
   effects.js   the canvas renderer: effect types, layers, props, subject CSS
   vendor/      gifenc, vendored (see package.json devDependencies for the source)
 scripts/
@@ -271,6 +273,7 @@ scripts/
   balance.mjs       balance report and correction candidates              (npm run balance)
   sheet.mjs         contact sheet of backgrounds                          (npm run sheet)
   card.mjs          renders Discord cards offline                         (npm run card)
+  kennel.mjs        renders kennel albums offline                         (npm run kennel)
 test/          node:test suites — content, roll, effects, card, bot, inventory, golden
 ```
 
@@ -284,6 +287,7 @@ One KV namespace, separated by key prefix:
 | `day:<date>:<player>` | Leaderboard entry — summary lives in **list metadata**, so the board is one `list` call and never fetches values |
 | `guild:<guild>:<date>:<player>` | The same row, scoped to one Discord server |
 | `card:<player>:<date>` | The rendered share GIF, 30-day TTL |
+| `kennel:<player>:<stamp>` | A rendered kennel album, 7-day TTL |
 
 **Rolls are immutable.** The first roll of a day is stored; every later load replays it.
 Without that, editing the content tables would silently re-deal every dog already shown.
@@ -346,6 +350,9 @@ endpoint would let anyone burn someone else's day. With no secret set the API an
 | `GET /api/bot/leaderboard?guildId=&date=` | Scores for a date. No `guildId` gives the global board. |
 | `GET /api/bot/history?discordId=` | Every dog that player has been dealt, newest first. |
 | `GET /api/bot/kennel?discordId=` | Their collection — breeds, places, traits and tiers found out of everything there is — and an album image. |
+| `GET /api/bot/best?discordId=` | Their six best dogs and three worst, frogs excluded, each with its card. |
+
+Roll, dog and kennel replies also carry a link to the player's album page on the website.
 
 A roll answers with the pieces of a message, not a formatted one:
 
@@ -371,7 +378,9 @@ be mostly the GIF.
 turned up and the tiers they've landed in, each out of everything that can still turn up
 (obsolete traits don't count, or no album could ever be finished). `src/kennel.js` counts
 it and draws it — a still album with a grid of every place in the game, lit where the
-player has been, sorted common to legendary so the gaps that matter sit at the end.
+player has been, sorted common to legendary so the gaps that matter sit at the end, and a
+year of squares along the bottom, one a day, coloured by how good that day's dog was
+(frogs are green). Best and worst dog skip frogs: a frog is a bad day by design.
 
 It's built from the stored rolls every time, one read per dog, rather than kept up to date
 on each roll: there is nothing to migrate and nothing to drift. The album is stored under a
@@ -379,6 +388,11 @@ on each roll: there is nothing to migrate and nothing to drift. The album is sto
 a dog is added and Discord's image cache never shows an old one. `/k/<player>/<stamp>.gif`
 redraws a missing album like `/i/` redraws a missing card, but only for the current stamp,
 which the roll list settles before a single roll is read.
+
+The same collection is public on the website at `/kennel/discord-<id>`: the counts, the
+calendar and every card the player has rolled, sortable by date or score. It reads
+`/api/kennel?player=`, which needs no token — nothing in a kennel is private — and only
+answers for Discord players, since a web player's id is their secret roll key.
 
 ### Test rolls
 

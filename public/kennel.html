@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kennel · Dogdle</title>
+  <meta name="description" content="Every dog one player has rolled on Dogdle." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🐾</text></svg>" />
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .wrap.kennel { max-width: 920px; }
+    .kennel header { margin-bottom: 22px; }
+    .kennel h1 { font-size: 2rem; overflow-wrap: anywhere; }
+    .kennel h2 { font-size: 1rem; margin: 0 0 10px; color: var(--muted); font-weight: 600; }
+    .kennel section { margin-top: 26px; }
+    .kennel a { color: #7dd3fc; }
+    .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+    .notice { text-align: center; color: var(--muted); padding: 40px 0; }
+
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+    .stat .top { display: flex; justify-content: space-between; font-size: 0.92rem; }
+    .stat .count { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .bar { height: 6px; border-radius: 3px; background: #1f2430; margin-top: 8px; overflow: hidden; }
+    .bar i { display: block; height: 100%; border-radius: 3px; }
+    .tiers { display: flex; gap: 6px; font-size: 1.2rem; margin-top: 6px; }
+    .tiers span.no { opacity: 0.18; filter: grayscale(1); }
+
+    .calendar-scroll { overflow-x: auto; padding-bottom: 4px; }
+    .months { display: grid; grid-auto-flow: column; grid-auto-columns: 12px; gap: 3px; font-size: 0.7rem; color: var(--muted); height: 14px; }
+    .months span { white-space: nowrap; }
+    .calendar { display: grid; grid-template-rows: repeat(7, 12px); grid-auto-flow: column; grid-auto-columns: 12px; gap: 3px; }
+    .calendar i { border-radius: 2px; background: #1a1f29; }
+    .calendar i.gone { visibility: hidden; }
+    .legend { display: flex; align-items: center; gap: 3px; font-size: 0.72rem; color: var(--muted); margin-top: 8px; flex-wrap: wrap; }
+    .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+    .legend .gap { width: 10px; }
+
+    .highlights { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+    .highlight .label { font-size: 0.78rem; color: var(--muted); }
+    .highlight .what { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font-weight: 600; }
+    .highlight .sub { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+
+    .places { display: grid; grid-template-columns: repeat(auto-fill, minmax(34px, 1fr)); gap: 4px; }
+    .places span { aspect-ratio: 1; display: grid; place-items: center; font-size: 1.15rem; border-radius: 6px;
+      background: #1a1f29; border-bottom: 3px solid; }
+    .places span.no { background: #12151c; font-size: 0; }
+
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .toolbar h2 { margin: 0; }
+    .sort { display: flex; gap: 6px; }
+    .sort button { background: #1a1f29; color: var(--text); border: 1px solid var(--line); border-radius: 999px;
+      padding: 5px 12px; font: inherit; font-size: 0.85rem; cursor: pointer; }
+    .sort button[aria-pressed="true"] { background: #334155; border-color: #475569; }
+    .dogs { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+    .dog { margin: 0; }
+    .dog img { width: 100%; aspect-ratio: 560 / 320; display: block; border-radius: 10px; border: 1px solid var(--line); background: #11141b; }
+    .dog figcaption { display: flex; justify-content: space-between; gap: 8px; font-size: 0.85rem; margin-top: 6px; }
+    .dog .when { color: var(--muted); white-space: nowrap; }
+    .dog .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    footer { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 36px; }
+  </style>
+</head>
+<body>
+  <main class="wrap kennel">
+    <header>
+      <h1 id="title">🐾 Kennel</h1>
+      <p class="tagline" id="subtitle"></p>
+    </header>
+    <div id="content"><p class="notice">Fetching the dogs…</p></div>
+    <footer>Every dog here was rolled once, on its day, and kept. <a href="/">Roll your own →</a></footer>
+  </main>
+  <script type="module" src="/kennel-page.js"></script>
+</body>
+</html>

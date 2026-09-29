@@ -7,11 +7,12 @@
 import { RasterSurface } from "./raster.js";
 import { GIFEncoder, quantize, applyPalette } from "../public/vendor/gifenc.js";
 import { BREEDS, RARITIES, RARITY_ORDER } from "./breeds.js";
-import { BACKGROUNDS, MODIFIERS, QUALITY_TIERS } from "./content/index.js";
+import { BACKGROUNDS, MODIFIERS, QUALITY_TIERS, FROG } from "./content/index.js";
 import { qualityFor } from "./roll.js";
 import { drawText, drawEmoji, fillRect, hexToRgb, textWidth, fitText } from "./draw.js";
 
-export const KENNEL = { width: 560, height: 320 };
+// The top 320px match a card; the calendar strip runs underneath.
+export const KENNEL = { width: 560, height: 420, top: 320 };
 
 // Everything the album draws that isn't a background: its own labels, and the tier emoji,
 // which no card draws. scripts/build-atlas.mjs bakes these.
@@ -37,7 +38,7 @@ const GRID = [...BACKGROUNDS].sort(
 );
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
-const summary = (dog) => {
+export const summary = (dog) => {
   const tier = qualityFor(dog.score);
   return {
     name: dog.name,
@@ -50,7 +51,8 @@ const summary = (dog) => {
   };
 };
 
-// `dogs` oldest first. A tie for best or worst keeps the first dog to get there.
+// `dogs` oldest first. A tie for best or worst keeps the first dog to get there. Frogs
+// are never either: one is a bad day by design, and it would own the worst slot forever.
 export function buildKennel(dogs) {
   const breeds = new Set();
   const places = new Set();
@@ -67,6 +69,7 @@ export function buildKennel(dogs) {
     // A frog's traits are its own table, not part of the dog collection.
     if (!dog.frog) for (const m of dog.modifiers ?? []) if (LIVE_TRAITS.has(m.text)) traits.add(m.text);
     tiers.add(qualityFor(dog.score).label);
+    if (dog.frog) continue;
     if (!best || dog.score > best.score) best = dog;
     if (!worst || dog.score < worst.score) worst = dog;
   }
@@ -96,6 +99,7 @@ export function buildKennel(dogs) {
     // Which places and tiers, for the image. Keys and labels, so they survive JSON.
     placesFound: [...places],
     tiersFound: [...tiers],
+    calendar: dogs.map((d) => ({ date: d.date, score: d.score, ...(d.frog ? { frog: true } : {}) })),
   };
 }
 
@@ -128,8 +132,56 @@ function gridFit(n, w, h, gap) {
   return { tile: 8, cols: Math.floor((w + gap) / (8 + gap)) };
 }
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAY_MS = 86400000;
+const TIER_COLORS = QUALITY_TIERS.map((t) => hexToRgb(t.color));
+const dayColor = (d) => (d.frog ? hexToRgb(FROG.color) : TIER_COLORS[QUALITY_TIERS.indexOf(qualityFor(d.score))]);
+
+// A year of days as a strip of squares, one column a week, coloured by how good the dog
+// was. It ends on the newest roll rather than today, so a redraw is always identical.
+function drawCalendar(s, x, y, calendar) {
+  if (!calendar.length) return;
+  const weeks = 53;
+  const cell = 8;
+  const step = cell + 2;
+  const byDate = new Map(calendar.map((d) => [d.date, d]));
+  const end = Date.parse(`${calendar.at(-1).date}T00:00:00Z`);
+  const start = end - ((weeks - 1) * 7 + new Date(end).getUTCDay()) * DAY_MS;
+
+  let lastLabel = -Infinity;
+  for (let col = 0; col < weeks; col++) {
+    const cx = x + col * step;
+    const first = new Date(start + col * 7 * DAY_MS);
+    // A month is labelled over the first week it starts in, if there's room.
+    if (first.getUTCDate() <= 7 && cx - lastLabel >= 28) {
+      drawText(s, "sm", MONTHS[first.getUTCMonth()], cx, y - 5, MUTED);
+      lastLabel = cx;
+    }
+    for (let row = 0; row < 7; row++) {
+      const t = start + (col * 7 + row) * DAY_MS;
+      if (t > end) break;
+      const dog = byDate.get(new Date(t).toISOString().slice(0, 10));
+      fillRect(s, cx, y + row * step, cell, cell, dog ? dayColor(dog) : EMPTY);
+    }
+  }
+}
+
+// What the album page draws that the stats don't carry: every place in grid order, and the
+// tier ladder. A place not found yet gives away only its rarity.
+export function albumLayout(kennel) {
+  const found = new Set(kennel.placesFound);
+  const reached = new Set(kennel.tiersFound);
+  return {
+    places: GRID.map((b) =>
+      found.has(b.key) ? { found: true, emoji: b.emoji, name: b.name, rarity: b.rarity } : { found: false, rarity: b.rarity }
+    ),
+    tierList: QUALITY_TIERS.map((t) => ({ emoji: t.emoji, label: t.label, color: t.color, found: reached.has(t.label) })),
+    rarityColors: Object.fromEntries(RARITY_ORDER.map((r) => [r, RARITIES[r].color])),
+  };
+}
+
 export function composeKennel(kennel, name) {
-  const { width: w, height: h } = KENNEL;
+  const { width: w, height: h, top } = KENNEL;
   const s = new RasterSurface(w, h);
   fillRect(s, 0, 0, w, h, PANEL);
 
@@ -165,7 +217,7 @@ export function composeKennel(kennel, name) {
     drawRow(s, x, y + 14, col, kennel.best.qualityEmoji, kennel.best.name, signed(kennel.best.score), tierColor(kennel.best));
     y += 40;
   }
-  if (kennel.worst && kennel.days > 1) {
+  if (kennel.worst && kennel.worst !== kennel.best && kennel.worst.date !== kennel.best?.date) {
     drawText(s, "sm", "Worst", x, y + 9, MUTED);
     drawRow(s, x, y + 14, col, kennel.worst.qualityEmoji, kennel.worst.name, signed(kennel.worst.score), tierColor(kennel.worst));
     y += 40;
@@ -180,9 +232,9 @@ export function composeKennel(kennel, name) {
   const gx = x + col + 14;
   const gw = w - gx - 12;
   const gap = 2;
-  const { tile, cols } = gridFit(GRID.length, gw, h - 24, gap);
+  const { tile, cols } = gridFit(GRID.length, gw, top - 24, gap);
   const rows = Math.ceil(GRID.length / cols);
-  const gy = Math.round((h - (rows * (tile + gap) - gap)) / 2);
+  const gy = Math.round((top - (rows * (tile + gap) - gap)) / 2);
   const found = new Set(kennel.placesFound);
   GRID.forEach((b, i) => {
     const tx = gx + (i % cols) * (tile + gap);
@@ -195,6 +247,9 @@ export function composeKennel(kennel, name) {
       drawEmoji(s, b.emoji, tx + (tile - size) / 2, ty + (tile - 2 - size) / 2, size);
     }
   });
+
+  fillRect(s, x, top + 2, w - x * 2, 1, [38, 43, 54]);
+  drawCalendar(s, x, top + 18, kennel.calendar);
 
   return s;
 }

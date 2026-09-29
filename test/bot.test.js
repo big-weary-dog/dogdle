@@ -451,3 +451,55 @@ test("the album route is for Discord players only", async () => {
   const res = await siteRequest(e, "/k/0b7f4a9e-1c2d-4e5f-8a9b-0c1d2e3f4a5b/2026-08-03-2.gif");
   assert.equal(res.status, 404);
 });
+
+test("the best list is the top six dogs, the worst the bottom three, and never a frog", async () => {
+  const e = env();
+  seedDogs(e, 20);
+  const frogDate = "2026-08-21";
+  const frog = rollDailyDog(botPlayerId(USER), frogDate, { frog: true });
+  frog.score = -99;
+  e.STORE.store.set(`roll:${botPlayerId(USER)}:${frogDate}`, { value: JSON.stringify(frog), metadata: { date: frogDate } });
+
+  const res = await (await call(e, `/api/bot/best?discordId=${USER}`)).json();
+  assert.equal(res.best.length, 6);
+  assert.equal(res.worst.length, 3);
+  const scores = [...res.best, ...[...res.worst].reverse()].map((d) => d.score);
+  assert.deepEqual(scores, [...scores].sort((a, b) => b - a), "best descending, worst ascending");
+  assert.ok(![...res.best, ...res.worst].some((d) => d.frog || d.date === frogDate));
+  assert.ok(res.best[0].image.endsWith(`/i/${botPlayerId(USER)}/${res.best[0].date}.gif`));
+  assert.ok(res.link.endsWith(`/kennel/${botPlayerId(USER)}`));
+
+  const kennel = await (await call(e, `/api/bot/kennel?discordId=${USER}`)).json();
+  assert.notEqual(kennel.worst.date, frogDate, "a frog is never the kennel's worst dog either");
+  assert.equal(kennel.frogs, 1);
+});
+
+test("a roll links to the player's album page", async () => {
+  const e = env();
+  const dog = await (await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER } })).json();
+  assert.equal(dog.kennel, `https://dogdle.swampkat.com/kennel/${botPlayerId(USER)}`);
+});
+
+test("the album page's data has every dog and hides places not found", async () => {
+  const e = env();
+  seedDogs(e, 9);
+  const res = await siteRequest(e, `/api/kennel?player=${botPlayerId(USER)}`);
+  assert.equal(res.status, 200);
+  const k = await res.json();
+  assert.equal(k.dogs.length, 9);
+  assert.equal(k.dogs[0].date, "2026-08-09", "newest first");
+  assert.ok(k.dogs[0].image.endsWith(`/i/${botPlayerId(USER)}/2026-08-09.gif`));
+  assert.equal(k.places.length, BACKGROUNDS.length);
+  assert.equal(k.places.filter((p) => p.found).length, k.backgrounds.found);
+  assert.ok(k.places.filter((p) => !p.found).every((p) => !p.name && !p.emoji));
+  assert.equal(k.calendar.length, 9);
+});
+
+test("the album page only exists for Discord players", async () => {
+  const e = { ...env(), ASSETS: { fetch: async (req) => new Response(new URL(req.url).pathname) } };
+  const web = await siteRequest(e, "/api/kennel?player=0b7f4a9e-1c2d-4e5f-8a9b-0c1d2e3f4a5b");
+  assert.equal(web.status, 400, "a web player's id is their roll key; it never goes in a link");
+
+  const page = await siteRequest(e, `/kennel/${botPlayerId(USER)}`);
+  assert.equal(await page.text(), "/kennel", "served from the static page");
+});

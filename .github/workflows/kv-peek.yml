@@ -2,7 +2,13 @@ name: Peek KV
 
 # Run by hand to inspect live game state: who has rolled today, how many dogs are stored,
 # how many share cards exist. Read-only.
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      player:
+        description: "Optional: a Discord display name or discord-<id> whose stored rolls to dump"
+        required: false
+        default: ""
 
 env:
   NS: 4c634ff1e5fd4d3ca547c5a2f1119806
@@ -41,3 +47,38 @@ jobs:
           echo "=== share cards stored ==="
           npx wrangler kv key list --namespace-id="$NS" --prefix="card:" --remote > cards.json
           node -e 'const k=require("./cards.json"); console.log("count:", k.length); k.slice(0,10).forEach(x=>console.log("  ", x.name));'
+
+      - name: Discord players
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          WANT: ${{ inputs.player }}
+        run: |
+          npx wrangler kv key list --namespace-id="$NS" --prefix="day:" --remote > days.json
+          node -e '
+            const seen = new Map();
+            for (const k of require("./days.json")) {
+              const [, date, player] = k.name.split(":");
+              if (!player.startsWith("discord-")) continue;
+              const p = seen.get(player) || { names: new Set(), days: 0, last: "" };
+              if (k.metadata?.player) p.names.add(k.metadata.player);
+              p.days++; if (date > p.last) p.last = date;
+              seen.set(player, p);
+            }
+            console.log("=== discord players:", seen.size, "===");
+            for (const [id, p] of [...seen].sort((a, b) => b[1].days - a[1].days))
+              console.log(`  ${id.padEnd(30)} ${String(p.days).padStart(4)} days, last ${p.last}  ${[...p.names].join(" / ")}`);
+            const want = (process.env.WANT || "").trim().toLowerCase();
+            if (!want) process.exit(0);
+            const hit = [...seen].find(([id, p]) => id === want || [...p.names].some((n) => n.toLowerCase() === want));
+            require("fs").writeFileSync("want.txt", hit ? hit[0] : "");
+            console.log(hit ? `matched ${hit[0]}` : `no discord player matches ${want}`);
+          '
+          [ -s want.txt ] || exit 0
+          ID=$(cat want.txt)
+          [[ "$ID" =~ ^discord-[0-9]{5,24}$ ]] || { echo "bad id"; exit 1; }
+          npx wrangler kv key list --namespace-id="$NS" --prefix="roll:$ID:" --remote > mine.json
+          node -e 'require("./mine.json").forEach((k) => console.log(k.name))' > keys.txt
+          echo "=== $(wc -l < keys.txt) rolls for $ID ==="
+          while read -r KEY; do
+            printf 'ROLL %s\n' "$(npx wrangler kv key get "$KEY" --namespace-id="$NS" --remote --text 2>/dev/null)"
+          done < keys.txt

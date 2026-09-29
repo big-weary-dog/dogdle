@@ -11,13 +11,18 @@ standing, and a handful of traits that are each an asset or a liability; they ad
 score, and the score lands it in one of nine quality tiers. **One roll per person per day,
 no rerolls** — the day rolls over at midnight US Eastern.
 
-The bot does three things:
+The bot does these things:
 
 1. **`/dogdle`** — rolls the caller's dog and posts it.
 2. **A daily digest** — one message summarising everyone's dogs, modelled on the Wordle
    bot's morning post: a compact leaderboard, then a card per player, then a button.
 3. **`/dogdle kennel`** — the caller's collection: every breed, place and trait their
-   dogs have turned up, as one image.
+   dogs have turned up, and a year of days coloured by how good each dog was, as one image.
+4. **`/dogdle best`** — the caller's hall of fame: their best dogs and their worst.
+5. **`/dogdle day <date>`** — the dog the caller got on a given day.
+
+Every one of these can link to the player's **album page** on the website, which shows
+every dog they've ever rolled.
 
 The server renders the card image, including a sidebar listing every trait with its emoji
 and point value. **The image carries the detail; the text stays short.**
@@ -63,12 +68,14 @@ aren't sure whether someone has rolled.
   ],
   "image": "https://dogdle.swampkat.com/i/discord-185432.../2026-09-22.gif",
   "link": "https://dogdle.swampkat.com/",
+  "kennel": "https://dogdle.swampkat.com/kennel/discord-185432...",
   "text": "Steve the Coonhound — Exceptional Animal (+16)",
   "replayed": false
 }
 ```
 
 `image` is a plain animated GIF, 560×320, ~250–480KB. Put it straight in an embed.
+`kennel` is the player's album page on the website: every dog they've rolled.
 
 About one day in forty, a player's roll isn't a dog: **a frog has got in**. The payload
 then carries `"frog": true`, `breed` is `"Intruder"`, `rarity` is `"Not a Dog"`, and the
@@ -79,7 +86,8 @@ you ignore the flag, but a frog deserves a reaction (🐸, or a line of sympathy
 ### `GET /api/bot/dog?discordId=…&date=…`
 
 The same payload **without dealing a dog**. Returns `{ "pending": true, "date": "…" }` if
-they haven't rolled. Use it for "you already rolled today" and for filling in the digest.
+they haven't rolled. Use it for "you already rolled today", for filling in the digest, and
+for `/dogdle day`.
 
 ### `GET /api/bot/leaderboard?guildId=…&date=…`
 
@@ -124,14 +132,36 @@ never deals a dog. A player with no dogs yet gets `{ "empty": true, "days": 0 }`
   "rarest": [{ "kind": "background", "name": "Deep Space", "emoji": "🪐",
                "rarity": "legendary", "rarityLabel": "Legendary", "rarityColor": "#fbbf24" }],
   "image": "https://dogdle.swampkat.com/k/discord-1234.../2026-09-29-40.gif",
+  "link":  "https://dogdle.swampkat.com/kennel/discord-1234...",
   "text": "40 dogs · 32/131 breeds · 30/101 places · 168/377 traits"
 }
 ```
 
-`image` is a still 560×320 album: the counts and highlights on the left, and a grid of every
-place in the game on the right, lit where the player has been. Its URL changes whenever a
+`image` is a still 560×420 album: the counts and highlights on the left, a grid of every
+place in the game on the right, lit where the player has been, and along the bottom a year
+of squares, one a day, coloured by that day's quality tier (frogs are green). `best` and
+`worst` never count frogs. `link` is the album page on the website. Its URL changes whenever a
 dog is added, so Discord never shows a stale one — always use the `image` from the latest
 call rather than keeping one.
+
+### `GET /api/bot/best?discordId=…`
+
+The player's hall of fame, read-only. Frogs are left out of both lists: a frog is a bad
+day by design and would crowd out the real disasters.
+
+```json
+{
+  "best":  [{ "name": "Marmalade", "breed": "Coton de Tulear", "score": 17, "date": "2026-08-26",
+              "quality": "Exceptional Animal", "qualityEmoji": "🌟",
+              "image": "https://dogdle.swampkat.com/i/discord-1234.../2026-08-26.gif" }],
+  "worst": [{ "name": "Pesto", "…": "…" }],
+  "link":  "https://dogdle.swampkat.com/kennel/discord-1234..."
+}
+```
+
+`best` is up to six dogs, highest first; `worst` is up to three, lowest first, and never
+repeats a dog from `best` (a player with seven dogs has one worst). A player with no dogs
+gets `{ "empty": true, "best": [], "worst": [] }`.
 
 ---
 
@@ -155,6 +185,7 @@ a one-line title. The traits are already in the image; do not repeat them as tex
   at a glance.
 - If `replayed` is `true`, make it ephemeral and say "you already rolled today — here's
   your dog again." Never imply they can roll again.
+- Add a link button, **"Kennel"**, pointing at `kennel`.
 
 ## Message 2 — the daily digest
 
@@ -205,6 +236,23 @@ Discord display name when `name` is empty.
   the same call with their id, and nothing on it is private.
 - `empty: true` → an ephemeral "no dogs yet — `/dogdle` to get your first."
 - Don't list the counts as fields; they're in the image. One line under it is plenty.
+- Add a link button, **"See every dog"**, pointing at `link`.
+
+## Message 4 — `/dogdle best`
+
+One message: a title line (`🏆 {name}'s best dogs`), then **one embed per dog**, the best
+first and then the worst, each with the card `image` and a one-line title like
+`🌟 Marmalade the Coton de Tulear +17 · Aug 26`. That's at most nine embeds. Put a
+`Worst` divider in the title of the first worst embed (`💀 Worst: Pesto …`) so the turn
+reads. End with a **"See every dog"** button pointing at `link`. Same `user` option and
+`empty` handling as the kennel.
+
+## Message 5 — `/dogdle day <date>`
+
+`date` is `YYYY-MM-DD` (accept "yesterday" too, computed in US Eastern). Call
+`GET /api/bot/dog` and reply exactly like Message 1, minus the "already rolled" wording.
+`pending: true` → an ephemeral "no dog that day." Never roll for a missed day: the past
+is closed.
 
 ---
 

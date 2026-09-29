@@ -12,9 +12,9 @@
 // Every route needs `Authorization: Bearer <BOT_TOKEN>`. An unauthenticated roll endpoint
 // would let anyone burn someone else's day.
 
-import { rollDailyDog, today } from "./roll.js";
+import { rollDailyDog, today, qualityFor } from "./roll.js";
 import { renderCardGif } from "./card.js";
-import { buildKennel, renderKennelGif } from "./kennel.js";
+import { buildKennel, renderKennelGif, summary, albumLayout } from "./kennel.js";
 import { photoFor, fetchPhotoBytes, backfillPhoto } from "./photo.js";
 import { cardKey, rollKey, dayKey, guildKey, kennelKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
 import { log } from "./log.js";
@@ -30,6 +30,8 @@ const KENNEL_TTL_SECONDS = 60 * 60 * 24 * 7;
 export const botPlayerId = (discordId) => `discord-${discordId}`;
 const cardUrl = (origin, player, date) => `${origin}/i/${player}/${date}.gif`;
 const kennelUrl = (origin, player, stamp) => `${origin}/k/${player}/${stamp}.gif`;
+// The album page on the website: every dog the player has, not just the counts.
+export const kennelPage = (origin, player) => `${origin}/kennel/${player}`;
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 const json = (body, status = 200) =>
@@ -57,7 +59,7 @@ function authorize(request, env) {
 
 // What the bot needs to post: the traits are already drawn into the card's sidebar, so
 // the text is a one-liner and the image carries the rest.
-function present(dog, imageUrl, origin) {
+function present(dog, imageUrl, origin, player) {
   return {
     name: dog.name,
     breed: dog.breed,
@@ -79,6 +81,7 @@ function present(dog, imageUrl, origin) {
     traits: dog.modifiers.map((m) => ({ text: m.text, emoji: m.emoji, value: m.value })),
     image: imageUrl,
     link: `${origin}/`,
+    kennel: kennelPage(origin, player),
     text: `${dog.name} the ${dog.breed} — ${dog.qualityLabel} (${signed(dog.score)})`,
   };
 }
@@ -159,10 +162,10 @@ const kennelName = (dogs) => [...dogs].reverse().find((d) => d.player)?.player |
 // past it, the album counts the newest ones.
 const KENNEL_MAX_READS = 950;
 
-// Draws a player's album as it stands and stores it under its stamp. Returns null for a
-// player with no dogs, or when `want` names a state the album is no longer in -- which is
-// settled from the list alone, before reading a single roll.
-export async function kennelFor(env, player, want) {
+// Every dog a player has, oldest first, and the stamp naming that state. Null for a player
+// with no dogs, or when `want` names a state they're no longer in -- which is settled from
+// the list alone, before reading a single roll.
+export async function playerDogs(env, player, want) {
   const keys = await rollKeys(env, player);
   if (!keys.length) return null;
   const stamp = kennelStamp(keys);
@@ -170,7 +173,39 @@ export async function kennelFor(env, player, want) {
 
   const dogs = (await Promise.all(keys.slice(-KENNEL_MAX_READS).map((k) => env.STORE.get(k, "json"))))
     .filter((d) => d?.date && d.background);
-  if (!dogs.length) return null;
+  return dogs.length ? { stamp, dogs } : null;
+}
+
+// Everything the website's album page shows, for GET /api/kennel. Unauthenticated, so it
+// only ever holds what the Discord embeds already show publicly.
+export async function kennelPageData(env, player, origin) {
+  const loaded = await playerDogs(env, player);
+  if (!loaded) return { empty: true };
+  const { stamp, dogs } = loaded;
+  const { placesFound, tiersFound, ...kennel } = buildKennel(dogs);
+  return {
+    name: kennelName(dogs),
+    ...kennel,
+    ...albumLayout({ placesFound, tiersFound }),
+    image: kennelUrl(origin, player, stamp),
+    // Newest first, each with its card: the page is a scrapbook of every day.
+    dogs: [...dogs].reverse().map((d) => ({
+      ...summary(d),
+      qualityColor: qualityFor(d.score).color,
+      rarityLabel: d.rarityLabel,
+      rarityColor: d.rarityColor,
+      background: { name: d.background.name, emoji: d.background.emoji, value: d.background.value },
+      traits: (d.modifiers ?? []).map((m) => ({ text: m.text, emoji: m.emoji, value: m.value })),
+      image: cardUrl(origin, player, d.date),
+    })),
+  };
+}
+
+// Draws a player's album as it stands and stores it under its stamp.
+export async function kennelFor(env, player, want) {
+  const loaded = await playerDogs(env, player, want);
+  if (!loaded) return null;
+  const { stamp, dogs } = loaded;
 
   const kennel = buildKennel(dogs);
   const name = kennelName(dogs);
@@ -254,7 +289,7 @@ export async function handleBot(request, url, env) {
     log.info("bot.roll", { player, date, guildId: guildId || null, replayed: Boolean(saved), repaired, card, test: isTest });
 
     return json({
-      ...present(dog, cardUrl(url.origin, player, date), url.origin),
+      ...present(dog, cardUrl(url.origin, player, date), url.origin, player),
       replayed: Boolean(saved),
     });
   }
@@ -272,7 +307,7 @@ export async function handleBot(request, url, env) {
     if (!saved) return json({ pending: true, date });
 
     return json({
-      ...present(saved, cardUrl(url.origin, player, date), url.origin),
+      ...present(saved, cardUrl(url.origin, player, date), url.origin, player),
       replayed: true,
     });
   }
@@ -320,16 +355,36 @@ export async function handleBot(request, url, env) {
     const album = await kennelFor(env, player);
     if (!album) return json({ empty: true, days: 0 });
 
-    const { placesFound, tiersFound, ...kennel } = album.kennel;
+    const { placesFound, tiersFound, calendar, ...kennel } = album.kennel;
     const { breeds, backgrounds, traits } = kennel;
     log.info("bot.kennel", { player, days: kennel.days, bytes: album.gif.byteLength });
     return json({
       name: album.name,
       ...kennel,
       image: kennelUrl(url.origin, player, album.stamp),
-      link: `${url.origin}/`,
+      link: kennelPage(url.origin, player),
       text: `${kennel.days} ${kennel.days === 1 ? "dog" : "dogs"} · ${breeds.found}/${breeds.total} breeds · ` +
         `${backgrounds.found}/${backgrounds.total} places · ${traits.found}/${traits.total} traits`,
+    });
+  }
+
+  // The hall of fame: a player's six best dogs and three worst, each with its card. Frogs
+  // are neither -- one is a bad day by design and would crowd out the real disasters.
+  if (route === "best" && request.method === "GET") {
+    const discordId = url.searchParams.get("discordId") || "";
+    if (!SNOWFLAKE_RE.test(discordId)) return json({ error: "invalid discordId" }, 400);
+
+    const player = botPlayerId(discordId);
+    const loaded = await playerDogs(env, player);
+    const ranked = (loaded?.dogs ?? []).filter((d) => !d.frog).sort((a, b) => b.score - a.score);
+    if (!ranked.length) return json({ empty: true, best: [], worst: [] });
+
+    const row = (dog) => ({ ...summary(dog), image: cardUrl(url.origin, player, dog.date) });
+    return json({
+      best: ranked.slice(0, 6).map(row),
+      // Worst first, and never a dog that's already on the best list.
+      worst: ranked.slice(6).slice(-3).reverse().map(row),
+      link: kennelPage(url.origin, player),
     });
   }
 
