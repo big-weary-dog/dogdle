@@ -22,7 +22,7 @@ Every dog is four independent rolls, combined:
 | **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
 | **Background** | `src/content/backgrounds.js` | 101 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
 | **Name** | `src/content/names.js` | Flat pick from 150. |
-| **Traits** | `src/content/traits/` | 405 of them; 4–8 per dog, averaging 6, drawn without replacement. 150 belong to a **group** — see below. |
+| **Traits** | `src/content/traits/` | 407 of them; 4–8 per dog, averaging 6, drawn without replacement. 151 belong to a **group** — see below. |
 
 **Score** = the breed's value + the background's value + every trait's value. The content
 is balanced so the average dog scores **0** — see [Balance](#balance).
@@ -144,7 +144,7 @@ smells of one thing. A trait carrying a `group` blocks every other trait in that
 { text: "Starved", emoji: "🍽️", value: -5, category: "condition", group: "build", ... },
 ```
 
-Twenty-four groups, 150 traits: `build` (13), `fame` (11), `job` (11), `voice` (11),
+Twenty-four groups, 151 traits: `build` (14), `fame` (11), `job` (11), `voice` (11),
 `pedigree` (10), `loyalty` (8), `mind` (7), `smell` (7), `money` (6), `nose` (6), `tail` (6),
 `age` (5), `coat` (5), `fetch` (5), `homes` (5), `speed` (5), `weather` (5), `camera` (4),
 `car` (4), `diet` (4), `training` (4), `omen` (3), `sleep` (3), `cats` (2). A blocked trait

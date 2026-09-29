@@ -213,4 +213,6 @@ export const CIRCUMSTANCE = [
   { text: "Sent back in time to protect you", emoji: "⏳", value: 2, category: "circumstance",
     effect: { type: "lightning", layer: "front", params: { color: "#bfdbfe", frequency: 0.02 } } },
   { text: "Backed up to the cloud. Twice.", emoji: "💾", value: 1, category: "circumstance", effect: null },
+  { text: "First dog in orbit", emoji: "🛰️", value: -2, category: "circumstance",
+    effect: { type: "rise", layer: "back", params: { color: "#e0e7ff", count: 16, speed: 0.3, sway: 0.4, size: 2 } } },
 ];

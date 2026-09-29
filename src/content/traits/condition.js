@@ -40,6 +40,8 @@ export const CONDITION = [
     effect: { type: "drain", layer: "subject", params: { amount: 0.6 } } },
   { text: "Thick boy", emoji: "🧈", value: 2, category: "condition", group: "build",
     effect: { type: "bounce", layer: "subject", params: { period: 1200 } } },
+  { text: "Heckin' chonker", emoji: "🍩", value: 1, category: "condition", group: "build",
+    effect: { type: "squish", layer: "subject", params: { period: 2000 } } },
   { text: "Grotesque figure", emoji: "👹", value: -4, category: "condition", group: "build",
     effect: { type: "chromatic", layer: "subject", params: { offset: 4 } } },
   { text: "Alarmingly long", emoji: "📏", value: -1, category: "condition", group: "build",
