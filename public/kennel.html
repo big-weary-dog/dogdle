@@ -8,7 +8,8 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🐾</text></svg>" />
   <link rel="stylesheet" href="/style.css" />
   <style>
-    .wrap.kennel { max-width: 920px; }
+    /* Three cards a row at their own 560px: 3 x 560 + 2 gaps. */
+    .wrap.kennel { max-width: 1708px; }
     .kennel header { margin-bottom: 22px; }
     .kennel h1 { font-size: 2rem; overflow-wrap: anywhere; }
     .kennel h2 { font-size: 1rem; margin: 0 0 10px; color: var(--muted); font-weight: 600; }
@@ -31,6 +32,8 @@
     .calendar { display: grid; grid-template-rows: repeat(7, 12px); grid-auto-flow: column; grid-auto-columns: 12px; gap: 3px; }
     .calendar i { border-radius: 2px; background: #1a1f29; }
     .calendar i.gone { visibility: hidden; }
+    .calendar i.has { cursor: pointer; }
+    .calendar i.has:hover, .calendar i.has:focus-visible { outline: 2px solid #f8fafc; outline-offset: 1px; }
     .legend { display: flex; align-items: center; gap: 3px; font-size: 0.72rem; color: var(--muted); margin-top: 8px; flex-wrap: wrap; }
     .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
     .legend .gap { width: 10px; }
@@ -44,6 +47,10 @@
     .places span { aspect-ratio: 1; display: grid; place-items: center; font-size: 1.15rem; border-radius: 6px;
       background: #1a1f29; border-bottom: 3px solid; }
     .places span.no { background: #12151c; font-size: 0; }
+    .places span { transition: transform 0.1s; }
+    .places span:hover, .places span:focus-visible { transform: translateY(-2px); outline: 2px solid #f8fafc55; outline-offset: 1px; }
+    .places span[role="button"] { cursor: pointer; }
+    .place-info { margin-top: 10px; font-size: 0.9rem; min-height: 1.4em; color: var(--text); }
 
     .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
     .toolbar h2 { margin: 0; }
@@ -51,9 +58,12 @@
     .sort button { background: #1a1f29; color: var(--text); border: 1px solid var(--line); border-radius: 999px;
       padding: 5px 12px; font: inherit; font-size: 0.85rem; cursor: pointer; }
     .sort button[aria-pressed="true"] { background: #334155; border-color: #475569; }
-    .dogs { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
-    .dog { margin: 0; }
-    .dog img { width: 100%; height: auto; aspect-ratio: 560 / 320; display: block; border-radius: 10px; border: 1px solid var(--line); background: #11141b; }
+    .dogs { display: grid; grid-template-columns: repeat(auto-fill, 560px); justify-content: center; gap: 14px; }
+    .dog { margin: 0; border-radius: 12px; scroll-margin: 80px; transition: box-shadow 0.3s; }
+    .dog.lit { box-shadow: 0 0 0 3px #f8fafc, 0 0 28px 6px #f8fafc55; }
+    /* A phone can't fit one 560px card: shrink to its width instead of scrolling sideways. */
+    @media (max-width: 620px) { .dogs { grid-template-columns: 1fr; } }
+    .dog img { width: 100%; height: auto; aspect-ratio: 560 / 320; display: block; border-radius: 10px; box-shadow: 0 0 0 1px var(--line); background: #11141b; }
     .dog figcaption { display: flex; justify-content: space-between; gap: 8px; font-size: 0.85rem; margin-top: 6px; }
     .dog .when { color: var(--muted); white-space: nowrap; }
     .dog .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

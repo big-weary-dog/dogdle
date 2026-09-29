@@ -390,7 +390,8 @@ redraws a missing album like `/i/` redraws a missing card, but only for the curr
 which the roll list settles before a single roll is read.
 
 The same collection is public on the website at `/kennel/discord-<id>`: the counts, the
-calendar and every card the player has rolled, sortable by date or score. It reads
+calendar (click a day to jump to its dog) and every card the player has rolled, sortable
+by date or score. It reads
 `/api/kennel?player=`, which needs no token — nothing in a kennel is private — and only
 answers for Discord players, since a web player's id is their secret roll key.
 

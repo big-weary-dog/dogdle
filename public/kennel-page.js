@@ -38,6 +38,26 @@ function stat(emoji, label, { found, total }, color) {
     el("div", { className: "bar" }, el("i", { style: { width: `${pct}%`, background: color } })));
 }
 
+// Scrolls the dog grid to one dog and lights it up, until another is picked.
+function showDog(date) {
+  const card = document.getElementById(`dog-${date}`);
+  if (!card) return;
+  content.querySelector(".dog.lit")?.classList.remove("lit");
+  card.classList.add("lit");
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+// Buttons that aren't <button>s: squares and place tiles, which a grid lays out better.
+function pressable(node, action) {
+  node.tabIndex = 0;
+  node.setAttribute("role", "button");
+  node.addEventListener("click", action);
+  node.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); action(); }
+  });
+  return node;
+}
+
 // A year of squares, a column a week, coloured by how good that day's dog was.
 function calendar(dogs, tierList) {
   const byDate = new Map(dogs.map((d) => [d.date, d]));
@@ -64,6 +84,9 @@ function calendar(dogs, tierList) {
       else if (dog) {
         cell.style.background = dog.frog ? FROG_GREEN : dog.qualityColor;
         cell.title = `${prettyDate(iso)}: ${dog.name}${dog.frog ? " (a frog)" : ""}, ${dog.quality} ${signed(dog.score)}`;
+        cell.ariaLabel = cell.title;
+        cell.className = "has";
+        pressable(cell, () => showDog(iso));
       } else cell.title = prettyDate(iso);
       grid.append(cell);
     }
@@ -88,7 +111,7 @@ function highlight(label, dog) {
 }
 
 function dogCard(d) {
-  return el("figure", { className: "dog" },
+  return el("figure", { className: "dog", id: `dog-${d.date}` },
     el("a", { href: d.image, target: "_blank", rel: "noopener" },
       el("img", { src: d.image, loading: "lazy", decoding: "async", width: 560, height: 320,
         alt: `${d.name} the ${d.breed}: ${d.quality}, ${signed(d.score)}` })),
@@ -111,12 +134,32 @@ function render(k) {
   const full = (s) => s && k.dogs.find((d) => d.date === s.date);
   const rare = k.rarest[0];
 
+  // Hovering (or focusing) a place names it underneath; a found one jumps to its first dog.
+  const rarityName = (r) => r[0].toUpperCase() + r.slice(1);
+  const placeInfo = el("div", { className: "place-info", ariaLive: "polite" });
+  const idleInfo = "Point at a place to see what it is.";
+  placeInfo.textContent = idleInfo;
   const places = el("div", { className: "places" });
   for (const p of k.places) {
-    places.append(p.found
-      ? el("span", { textContent: p.emoji, title: p.name, style: { borderColor: k.rarityColors[p.rarity] } })
-      : el("span", { className: "no", title: `Not found yet (${p.rarity})`, style: { borderColor: `${k.rarityColors[p.rarity]}55` } }));
+    const color = k.rarityColors[p.rarity];
+    const visits = p.found ? k.dogs.filter((d) => d.background.name === p.name).sort((a, b) => a.date.localeCompare(b.date)) : [];
+    const info = () => {
+      const tag = el("span", { textContent: rarityName(p.rarity), style: { color } });
+      if (!p.found) return placeInfo.replaceChildren("❔ Not found yet · ", tag);
+      const value = visits[0] ? ` ${signed(visits[0].background.value)}` : "";
+      const who = visits.map((d) => d.name).join(", ");
+      placeInfo.replaceChildren(`${p.emoji} ${p.name}${value} · `, tag, who ? ` · ${who}` : "");
+    };
+    const tile = p.found
+      ? el("span", { textContent: p.emoji, ariaLabel: p.name, style: { borderColor: color } })
+      : el("span", { className: "no", ariaLabel: `Not found yet (${p.rarity})`, style: { borderColor: `${color}55` } });
+    tile.addEventListener("mouseenter", info);
+    tile.addEventListener("focus", info);
+    if (visits.length) pressable(tile, () => showDog(visits[0].date));
+    else tile.addEventListener("click", info); // a tap on a phone, where there's no hover
+    places.append(tile);
   }
+  places.addEventListener("mouseleave", () => { placeInfo.textContent = idleInfo; });
 
   const dogsGrid = el("div", { className: "dogs" });
   const sorts = {
@@ -152,7 +195,7 @@ function render(k) {
           el("span", { textContent: `${rare.emoji} ${rare.name}` }),
           el("span", { textContent: rare.rarityLabel, style: { color: rare.rarityColor } })),
         el("div", { className: "sub", textContent: rare.kind === "breed" ? "A breed" : "A place" })) : null)),
-    el("section", {}, el("h2", { textContent: `Places · ${k.backgrounds.found} of ${k.backgrounds.total}` }), el("div", { className: "panel" }, places)),
+    el("section", {}, el("h2", { textContent: `Places · ${k.backgrounds.found} of ${k.backgrounds.total}` }), el("div", { className: "panel" }, places, placeInfo)),
     el("section", {},
       el("div", { className: "toolbar" }, el("h2", { textContent: "Every dog" }), el("div", { className: "sort" }, ...buttons)),
       dogsGrid),
