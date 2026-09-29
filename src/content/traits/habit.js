@@ -94,4 +94,8 @@ export const HABIT = [
   { text: "KING OF DA HIGHWAY", emoji: "🛣️", value: 1, category: "habit",
     effect: { type: "halo", layer: "subject", params: { color: "#fbbf24", size: 12 } } },
   { text: "Tips the Ubereats Driver", emoji: "🛵", value: 1, category: "habit", effect: null },
+  { text: "$1.50 hot dog superfan", emoji: "🌭", value: 1, category: "habit", effect: null },
+  { text: "Keeps a burner phone", emoji: "📱", value: -2, category: "habit", effect: null },
+  { text: "Sold you an NFT of himself", emoji: "🖼️", value: -3, category: "habit", effect: null },
+  { text: "Ate the homework. Did it first.", emoji: "📝", value: 2, category: "habit", effect: null },
 ];

@@ -154,4 +154,8 @@ export const TEMPERAMENT = [
   { text: "Merges at the last second", emoji: "🚦", value: -3, category: "temperament", effect: null },
   { text: "Cuts the line at the water bowl", emoji: "🚰", value: -3, category: "temperament", effect: null },
   { text: "Never tips", emoji: "🧾", value: -3, category: "temperament", effect: null },
+  { text: "Unionized the other dogs", emoji: "✊", value: 2, category: "temperament", effect: null },
+  { text: "Quiet-quit being a good boy", emoji: "🪫", value: -2, category: "temperament", effect: null },
+  { text: "Unspoken rizz", emoji: "😏", value: 2, category: "temperament", effect: null },
+  { text: "Knows the Wi-Fi password. Won't share.", emoji: "📶", value: -1, category: "temperament", effect: null },
 ];

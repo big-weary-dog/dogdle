@@ -186,4 +186,5 @@ export const CONDITION = [
     effect: { type: "chromatic", layer: "subject", params: { offset: 2 } } },
   { text: "Replaced a leg with a better leg", emoji: "🦿", value: 1, category: "condition", effect: null },
   { text: "Needs charging overnight", emoji: "🔋", value: -1, category: "condition", effect: null },
+  { text: "Two corgis in a trench coat", emoji: "🧥", value: -1, category: "condition", effect: null },
 ];
