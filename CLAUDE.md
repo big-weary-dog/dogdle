@@ -11,6 +11,7 @@ npm test          # the whole suite, ~5s. Run it before every commit.
 npm run balance   # where the average dog sits, tier spread, and what to nudge if it drifted
 npm run sheet -- out.png beach,volcano   # contact sheet of backgrounds (omit keys for all)
 npm run card -- alice,bob 2026-09-22     # render Discord cards offline -> card-<player>.gif
+npm run kennel -- alice 40               # render a 40-day kennel album -> kennel-<player>.gif
 npm run bake      # re-record test/golden.json and test/content-inventory.json
 npm run atlas     # rebuild src/generated/atlas.js after adding an emoji (needs Chromium)
 npm run dev       # wrangler dev with local KV

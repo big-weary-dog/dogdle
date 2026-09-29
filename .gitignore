@@ -2,6 +2,7 @@ node_modules/
 .wrangler/
 .dev.vars
 cards/
-# Previews from npm run sheet / npm run card
+# Previews from npm run sheet / npm run card / npm run kennel
 /sheet*.png
 /card-*.gif
+/kennel-*.gif
