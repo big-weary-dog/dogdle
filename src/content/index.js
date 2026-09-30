@@ -3,7 +3,7 @@
 //
 // This file is only a barrel. The tables live next to it, one file per kind:
 //
-//   names.js          the name pool
+//   names.js          the name pool (plus dog-names.js, real names off dog licences)
 //   backgrounds.js    scenes and their rarity weights
 //   tiers.js          the nine quality tiers
 //   traits/<kind>.js  one file per trait category

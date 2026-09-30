@@ -4,10 +4,16 @@
 // Three registers, deliberately mixed: names a dog would actually have, food, and the
 // name of a man who does your taxes.
 //
+// The hand-picked pool below is joined by DOG_NAMES (dog-names.js): a few thousand names
+// off real licensed dogs, so a kennel rarely holds the same name twice. Real dogs are
+// already called Gary and Meatball, so the registers survive the dilution.
+//
 // Sorted on export, like the traits and the scenes: a name is picked by index, so without
 // this the order they happen to sit in below decides which dog is called what, and adding
 // one in the middle re-deals every future name. Grouped here for reading, not for the
 // generator.
+
+import { DOG_NAMES } from "./dog-names.js";
 
 const POOL = [
   "Bailey", "Maple", "Kevin", "Biscuit", "Pickle", "Waffles", "Moose", "Nugget",
@@ -37,4 +43,4 @@ const POOL = [
   "Denise", "Roger", "Sheila", "Norman", "Lorraine", "Keith", "Yvonne", "Craig",
 ];
 
-export const NAMES = [...POOL].sort((a, b) => a.localeCompare(b));
+export const NAMES = [...POOL, ...DOG_NAMES].sort((a, b) => a.localeCompare(b));
