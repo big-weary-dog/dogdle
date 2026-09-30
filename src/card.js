@@ -29,6 +29,7 @@ const PANEL = [17, 20, 27];
 const ROW = [26, 31, 41];
 const MUTED = [152, 161, 179];
 const WHITE = [243, 244, 246];
+const PUPPY = [249, 168, 212];
 const GREEN = [74, 222, 128];
 const RED = [248, 113, 113];
 
@@ -67,7 +68,10 @@ export function paintSidebar(surface, dog, x, width, height) {
 
   // Header: the dog, its breed, and the verdict.
   drawText(surface, "lg", dog.name, left, 26, WHITE, inner - 4);
-  drawText(surface, "sm", `${dog.breed} · ${dog.rarityLabel}`, left, 42, MUTED, inner - 4);
+  // A puppy names its parents where the rarity would go (src/litter.js).
+  const [ma, pa] = dog.puppy?.parents ?? [];
+  drawText(surface, "sm", dog.puppy ? `${dog.breed} pup of ${ma.name} x ${pa.name}` : `${dog.breed} · ${dog.rarityLabel}`,
+    left, 42, dog.puppy ? PUPPY : MUTED, inner - 4);
 
   const quality = hexToRgb(dog.qualityColor);
   const scoreText = signed(dog.score);

@@ -123,6 +123,81 @@ export function rollDailyDog(playerId, dateStr = today(), { frog = isFrogDay(pla
   }, background, modifiers);
 }
 
+// ---------- puppies ----------
+//
+// About one pull in twenty is a puppy: your last dog and a dog from yesterday's board, the
+// pair picked by chance (src/litter.js), never by the player -- which is what keeps the
+// average dog at 0 without tuning: random parents carry traits drawn just like fresh ones.
+// Its own hash again, so puppies arriving re-dealt no day that stayed a plain dog; a frog
+// day stays a frog.
+export const PUPPY_CHANCE = 1 / 20;
+const MUTT_CHANCE = 0.25; // two different breeds make a mutt this often
+const INHERITED_PER_PARENT = 2;
+const MUTT = BREEDS.find((b) => b.slug === "mix");
+const SPAWNABLE_BY_TEXT = new Map(SPAWNABLE_MODIFIERS.map((m) => [m.text, m]));
+
+export function isPuppyDay(playerId, dateStr) {
+  return !isFrogDay(playerId, dateStr) && mulberry32(hashString(`puppy:${playerId}:${dateStr}`))() < PUPPY_CHANCE;
+}
+
+// A stored dog's breed, as the table has it now; one since renamed keeps its own fields.
+const breedOf = (dog) => BREEDS.find((b) => b.slug === dog.breedSlug && b.name === dog.breed)
+  ?? BREEDS.find((b) => b.name === dog.breed)
+  ?? { slug: dog.breedSlug, name: dog.breed, rarity: RARITIES[dog.rarity] ? dog.rarity : "common" };
+
+// `parents` is two { dog, owner, kennel }: the stored dogs, and how to show whose they
+// were (a board name, and a public kennel path or null -- never a private id).
+export function rollPuppy(playerId, dateStr, parents) {
+  const rng = mulberry32(hashString(`litter:${playerId}:${dateStr}`));
+  const [a, b] = parents.map((p) => breedOf(p.dog));
+  const breed = a.name !== b.name && rng() < MUTT_CHANCE ? MUTT : pick(rng, [a, b]);
+  const background = pickBackground(rng);
+  const name = pick(rng, NAMES);
+  const count = pickCount(rng, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX);
+
+  // Two traits from each parent (still spawnable ones, as they read today), then fresh
+  // ones -- always at least one -- up to the count. Groups stay exclusive across all of it.
+  const chosen = [];
+  const texts = new Set();
+  const groups = new Set();
+  const take = (m, from) => {
+    if (texts.has(m.text) || (m.group && groups.has(m.group))) return false;
+    texts.add(m.text);
+    if (m.group) groups.add(m.group);
+    chosen.push({ m, from });
+    return true;
+  };
+  parents.forEach((p, from) => {
+    const pool = (p.dog.modifiers ?? []).map((x) => SPAWNABLE_BY_TEXT.get(x.text)).filter(Boolean);
+    let got = 0;
+    while (got < INHERITED_PER_PARENT && pool.length && chosen.length < count - 1) {
+      const [m] = pool.splice(Math.floor(rng() * pool.length), 1);
+      if (take(m, from)) got++;
+    }
+  });
+  const fresh = SPAWNABLE_MODIFIERS.slice();
+  while (chosen.length < count && fresh.length) take(fresh.splice(Math.floor(rng() * fresh.length), 1)[0], null);
+
+  const rarity = RARITIES[breed.rarity];
+  const dog = dealt(dateStr, {
+    name,
+    breed: breed.name,
+    breedSlug: breed.slug,
+    rarity: breed.rarity,
+    rarityLabel: rarity.label,
+    rarityColor: rarity.color,
+    rarityGlow: rarity.glow,
+    breedValue: breedValue(breed),
+  }, background, chosen.map((c) => c.m));
+  chosen.forEach((c, i) => { if (c.from !== null) dog.modifiers[i].from = c.from; });
+  dog.puppy = {
+    parents: parents.map(({ dog: p, owner, kennel }) => ({
+      name: p.name, breed: p.breed, score: p.score, date: p.date, owner: owner || "", kennel: kennel ?? null,
+    })),
+  };
+  return dog;
+}
+
 // No breed, no photo, and its own traits. The scene is the one thing it shares with dogs.
 function rollFrog(rng, dateStr) {
   const background = pickBackground(rng);

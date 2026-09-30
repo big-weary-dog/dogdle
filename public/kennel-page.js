@@ -116,8 +116,26 @@ function dogCard(d) {
       el("img", { src: d.image, loading: "lazy", decoding: "async", width: 560, height: 320,
         alt: `${d.name} the ${d.breed}: ${d.quality}, ${signed(d.score)}` })),
     el("figcaption", {},
-      el("span", { className: "who", textContent: `${d.qualityEmoji} ${d.name} ${signed(d.score)}` }),
+      el("span", { className: "who", textContent: `${d.qualityEmoji} ${d.puppy ? "🍼 " : ""}${d.name} ${signed(d.score)}` }),
       el("span", { className: "when", textContent: prettyDate(d.date) })));
+}
+
+// Puppies this kennel's dogs have had, each with who raised it -- linked when that
+// kennel is public.
+function puppyShelf(puppies) {
+  if (!puppies?.length) return null;
+  const rows = puppies.map((p) => {
+    const owner = p.owner || "someone";
+    return el("li", {},
+      el("span", { className: "what", textContent: `${p.qualityEmoji} ${p.dog} the ${p.breed}` }),
+      el("span", { className: "sub" }, `pup of ${p.parent} · raised by `,
+        p.kennel ? el("a", { href: p.kennel, textContent: owner }) : owner,
+        ` · ${prettyDate(p.date)}`),
+      el("span", { className: "pts", textContent: signed(p.score) }));
+  });
+  return el("section", {},
+    el("h2", { textContent: `🍼 Puppies · ${puppies.length}` }),
+    el("ul", { className: "panel puppies" }, ...rows));
 }
 
 function render(k) {
@@ -205,6 +223,7 @@ function render(k) {
     el("section", {},
       el("div", { className: "toolbar" }, el("h2", { textContent: "Every dog" }), el("div", { className: "sort" }, ...buttons)),
       dogsGrid),
+    ...[puppyShelf(k.puppies)].filter(Boolean),
   );
   // On a phone the year doesn't fit: start at the recent end, where the dogs are.
   const scroller = content.querySelector(".calendar-scroll");

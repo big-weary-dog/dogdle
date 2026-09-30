@@ -30,6 +30,7 @@ the Read tool; don't guess at how a visual looks from its data.
 | `src/worker.js` | Web routes. `src/bot.js` is the Discord bot API (`/api/bot/*`). |
 | `src/kennel.js` | A player's collection (`/api/bot/kennel`) and its album image. |
 | `src/keys.js` | KV key layout and leaderboard rows, shared by web and bot. |
+| `src/litter.js` | Puppy Day: picks a puppy's parents (your last dog × someone's dog from yesterday's board) and keeps `litter:` records for kennels. `rollPuppy` in `src/roll.js` deals it. |
 | `src/progress.js` | The board's progress % per player: `seen:<player>` records, updated on each roll, backfilled on first board view. Shares the kennel's denominators. |
 | `src/accounts.js` | Web accounts (`/api/account*`): public username + emoji PIN over a private player id, `playsAs`, and Discord linking. |
 | `src/photo.js` | Dog CEO lookup, frog photo pick, photo bytes, `backfillPhoto` repair. |

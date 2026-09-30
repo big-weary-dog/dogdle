@@ -48,6 +48,15 @@ its **score**.
 A few traits can't be stacked: a dog has one build, one job, one voice, so it will never
 be both *Starved* and *Thick boy*.
 
+### 🍼 Puppy Day
+
+About one pull in twenty, your dog is a **puppy**: the child of your last dog and a
+dog someone else rolled yesterday, picked at random. It takes one parent's breed (or,
+sometimes, comes out a Mutt), inherits two traits from each parent, and gets at least
+one brand-new trait of its own. Its place and name are its own too. The result names
+both parents and their owners, with links to their kennels, and marks each inherited trait
+with the parent it came from. The puppy also turns up in both parents' kennels.
+
 Breed rarity is kept small on purpose. A Legendary breed is a nice start, not a win: six
 traits easily outweigh six points, so a Common pug can be a Platonic Ideal and a Legendary
 Dhole can be a disaster.
@@ -185,6 +194,7 @@ Every dog you roll goes into your **kennel**, a public album of your collection:
 - your **best dog**, **worst dog**, **average dog** and **rarest find**
 - a map of every place in the game, lit up where your dogs have been
 - **every dog** you've rolled, with its card, sortable by newest, best or worst
+- 🍼 **puppies** your dogs have had with other players' dogs
 
 Kennels live at `/kennel/<username>` for web accounts (the account bar has a **My
 kennel** link) and `/kennel/discord-<id>` for Discord players. Paste a kennel link into

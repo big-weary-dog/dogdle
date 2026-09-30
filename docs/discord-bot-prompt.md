@@ -84,6 +84,24 @@ name is something like `"Slimy Frog"`. The score is usually around −30, and th
 a real frog photo, hopping, where the dog would be. The shape is otherwise identical, so nothing breaks if
 you ignore the flag, but a frog deserves a reaction (🐸, or a line of sympathy).
 
+About one pull in twenty, the dog is a **puppy** of the player's last dog and someone
+else's dog from yesterday's board. The payload then carries a `puppy` object, and each
+trait it inherited carries `from`, the parent's name:
+
+```json
+"puppy": {
+  "parents": [
+    { "name": "Ebony", "breed": "Belgian Malinois", "owner": "Felfox",
+      "kennel": "https://dogdle.swampkat.com/kennel/discord-185432..." },
+    { "name": "Zizou", "breed": "English Bulldog", "owner": "Sam", "kennel": null }
+  ]
+},
+"traits": [{ "text": "Unwashed", "emoji": "🧼", "value": -3, "from": "Ebony" }, ...]
+```
+
+`kennel` is null when that parent's owner has no public kennel. Worth a 🍼 and a shout
+to the other parent's owner. Board rows for a puppy carry `"puppy": true`.
+
 ### `GET /api/bot/dog?discordId=…&date=…`
 
 The same payload **without dealing a dog**. Returns `{ "pending": true, "date": "…" }` if

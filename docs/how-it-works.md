@@ -292,6 +292,7 @@ One KV namespace, separated by key prefix:
 | `card:<player>:<date>` | The rendered share GIF, 30-day TTL |
 | `kennel:<player>:<stamp>` | A rendered kennel album, 7-day TTL |
 | `seen:<player>` | What a player's dogs have turned up, for the board's progress %; the counts are in **list metadata** |
+| `litter:<parent>:<date>:<puppy>` | A puppy one of this player's dogs had, for the kennel's Puppies shelf; the row is in **list metadata** |
 | `user:<username>` | A web account: its handle, private player id, hashed PIN, linked Discord id |
 | `owner:<player>` | Private id → username (also in list metadata, for the mega-kennel) |
 | `discordlink:<snowflake>` | Which account a Discord player is linked to |
@@ -425,6 +426,29 @@ player from before this, or one left short, is counted from their stored rolls o
 board view, within a budget of 500 reads a request, and finished on the view after if they
 need more. A dog that joins a history later (a Discord link, a meld) is counted the next
 time that player rolls. Nothing is re-dealt: it only reads rolls.
+
+### Puppy Day
+
+About one pull in twenty (`isPuppyDay`, its own `puppy:` hash, never on a frog day) is a
+puppy. `src/litter.js` picks the parents when the lever is pulled: the player's latest
+stored dog before today, and one dog off yesterday's global board that belongs to someone
+else, chosen by a `mate:` hash over the board sorted by key. Frogs and test rolls are
+never parents. With no dog of your own yet, or nobody else yesterday, it's a plain dog.
+
+`rollPuppy` (`src/roll.js`) deals it from its own `litter:` seed: one parent's breed, or
+a Mutt a quarter of the time when the breeds differ; up to two traits from each parent
+(ones that can still spawn, groups still exclusive), then fresh traits to the usual count,
+always at least one; a fresh place and name. Each inherited trait carries `from` (0 or 1),
+and `dog.puppy.parents` holds each parent's name, breed, score, date, owner (a board name)
+and public kennel path, or null for an anonymous web player. Never a private id.
+
+Parents are random, so their traits are drawn just as fresh ones are and puppies don't
+tilt the average dog; `test/litter.test.js` checks it. Yesterday's board is closed, so the
+pick is the same however often it's asked, and once stored the puppy replays like any
+roll. Because the pick reads KV, `rollDailyDog` itself never deals a puppy: the golden
+snapshot is untouched. `recordLitter` writes a `litter:` row for both parents, which
+their kennels list as a Puppies shelf. `/api/dev-roll?puppy=1` (the 🍼 button on `/dev`)
+deals one from two made-up parents.
 
 ### The mega-kennel
 

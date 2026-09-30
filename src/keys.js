@@ -35,6 +35,7 @@ export const boardRow = (name, dog) => ({
   quality: dog.qualityLabel,
   qualityEmoji: dog.qualityEmoji ?? qualityFor(dog.score).emoji,
   emoji: dog.background.emoji,
+  ...(dog.puppy ? { puppy: true } : {}),
   // Smoke-test rolls are real rolls -- same generator, same card -- they just don't count.
   ...(dog.test ? { test: true } : {}),
 });

@@ -1,9 +1,10 @@
-import { rollDailyDog, today } from "./roll.js";
+import { rollDailyDog, rollPuppy, today } from "./roll.js";
 import { handleBot, renderCard, kennelFor, kennelPageData, kennelPreview, kennelPage } from "./bot.js";
 import { photoFor, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
 import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, kennelKey, cleanName, boardRow, visibleRows } from "./keys.js";
 import { megaKennel } from "./mega.js";
 import { recordRoll, boardProgress } from "./progress.js";
+import { dealDog, recordLitter } from "./litter.js";
 import { handleAccount, playsAs, publicAccount, webRow } from "./accounts.js";
 import { log } from "./log.js";
 
@@ -81,17 +82,19 @@ async function route(request, url, env) {
       return Response.json({ pending: true }, { headers: { "cache-control": "no-store" } });
     }
 
-    const dog = rollDailyDog(player, date);
+    // Now and then a puppy (src/litter.js).
+    const { dog, parents } = await dealDog(env, player, date);
     dog.photo = await photoFor(dog);
     dog.player = name;
 
     await env.STORE.put(rollKey(player, date), JSON.stringify(dog), {
-      metadata: { date, score: dog.score, breed: dog.breed, name: dog.name },
+      metadata: { date, score: dog.score, breed: dog.breed, name: dog.name, ...(dog.puppy ? { puppy: true } : {}) },
     });
     // The leaderboard reads entirely from list metadata, so it never fetches values.
     await env.STORE.put(dayKey(date, player), "", { metadata: webRow(boardRow(name, dog), player) });
     // The board's progress number: this dog's finds join the player's record (src/progress.js).
     await recordRoll(env, player, dog);
+    await recordLitter(env, player, date, dog, parents, { name });
 
     return Response.json(dog, { headers: { "cache-control": "no-store" } });
   }
@@ -153,11 +156,15 @@ async function route(request, url, env) {
 
   // Unlimited rerolls for playtesting. Everything it can reach is already public in the
   // client bundle, so there's nothing to gate -- it just skips the once-a-day lock.
-  // `frog=1` forces a frog, which otherwise turns up once in forty.
+  // `frog=1` forces a frog, which otherwise turns up once in forty; `puppy=1` a puppy of
+  // two made-up parents, which otherwise needs yesterday's board.
   if (url.pathname === "/api/dev-roll") {
     const seed = url.searchParams.get("seed") || crypto.randomUUID();
     const force = url.searchParams.get("frog") ? { frog: true } : {};
-    const dog = rollDailyDog(`dev-${seed}`, today(), force);
+    const dog = url.searchParams.get("puppy")
+      ? rollPuppy(`dev-${seed}`, today(), ["ma", "pa"].map((who) => ({
+        dog: rollDailyDog(`dev-${seed}-${who}`, today(), { frog: false }), owner: who, kennel: null })))
+      : rollDailyDog(`dev-${seed}`, today(), force);
     dog.photo = await photoFor(dog);
     dog.devSeed = seed;
 

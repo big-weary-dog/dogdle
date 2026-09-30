@@ -12,7 +12,7 @@
 // Every route needs `Authorization: Bearer <BOT_TOKEN>`. An unauthenticated roll endpoint
 // would let anyone burn someone else's day.
 
-import { rollDailyDog, today, qualityFor } from "./roll.js";
+import { today, qualityFor } from "./roll.js";
 import { renderCardGif } from "./card.js";
 import { buildKennel, renderKennelGif, summary, albumLayout } from "./kennel.js";
 import { photoFor, fetchPhotoBytes, backfillPhoto } from "./photo.js";
@@ -20,6 +20,7 @@ import { cardKey, rollKey, dayKey, guildKey, kennelKey, cleanName, boardRow, vis
 import { linkDiscord } from "./accounts.js";
 import { meldPlan, meldApply } from "./meld.js";
 import { recordRoll } from "./progress.js";
+import { dealDog, recordLitter, puppiesOf } from "./litter.js";
 import { log } from "./log.js";
 
 const SNOWFLAKE_RE = /^\d{5,24}$/;
@@ -74,6 +75,11 @@ function present(dog, imageUrl, origin, player) {
     breed: dog.breed,
     // Once in forty days it isn't a dog at all (content/frogs.js). Worth a reaction.
     ...(dog.frog ? { frog: true } : {}),
+    // About one pull in twenty is a puppy of two dogs (src/litter.js). Worth a shout.
+    ...(dog.puppy ? { puppy: {
+      parents: dog.puppy.parents.map((p) => ({ name: p.name, breed: p.breed, owner: p.owner,
+        kennel: p.kennel ? `${origin}${p.kennel}` : null })),
+    } } : {}),
     rarity: dog.rarityLabel,
     rarityColor: dog.rarityColor,
     score: dog.score,
@@ -87,7 +93,8 @@ function present(dog, imageUrl, origin, player) {
       emoji: dog.background.emoji,
       value: dog.background.value,
     },
-    traits: dog.modifiers.map((m) => ({ text: m.text, emoji: m.emoji, value: m.value })),
+    traits: dog.modifiers.map((m) => ({ text: m.text, emoji: m.emoji, value: m.value,
+      ...(m.from !== undefined && dog.puppy ? { from: dog.puppy.parents[m.from]?.name } : {}) })),
     image: imageUrl,
     link: `${origin}/`,
     kennel: kennelPage(origin, player),
@@ -214,8 +221,11 @@ export async function kennelPageData(env, player, origin, face = discordFace(pla
       rarityColor: d.rarityColor,
       background: { name: d.background.name, emoji: d.background.emoji, value: d.background.value },
       traits: (d.modifiers ?? []).map((m) => ({ text: m.text, emoji: m.emoji, value: m.value })),
+      ...(d.puppy ? { puppy: { parents: d.puppy.parents.map((p) => ({ name: p.name, owner: p.owner, kennel: p.kennel })) } } : {}),
       image: face.card(origin, d.date),
     })),
+    // Puppies this kennel's dogs have had with other players' dogs (src/litter.js).
+    puppies: await puppiesOf(env, player),
   };
 }
 
@@ -269,7 +279,8 @@ export async function handleBot(request, url, env) {
     // One dog per person per day. A stored roll is replayed verbatim, so editing the
     // content tables never re-deals a dog somebody has already been shown.
     const saved = await env.STORE.get(rollKey(player, date), "json");
-    const dog = saved ?? rollDailyDog(player, date);
+    // Now and then a puppy (src/litter.js).
+    const { dog, parents } = saved ? { dog: saved } : await dealDog(env, player, date);
     // Same repair as the web route: a photo that never resolved is filled in on read.
     // The card was rendered without it and cached for a month, so it's drawn again.
     const repaired = Boolean(saved) && (await backfillPhoto(env, rollKey(player, date), dog));
@@ -280,10 +291,12 @@ export async function handleBot(request, url, env) {
       if (isTest) dog.test = true;
       await env.STORE.put(rollKey(player, date), JSON.stringify(dog), {
         ...expiry,
-        metadata: { date, score: dog.score, breed: dog.breed, name: dog.name, test: dog.test },
+        metadata: { date, score: dog.score, breed: dog.breed, name: dog.name, test: dog.test,
+          ...(dog.puppy ? { puppy: true } : {}) },
       });
       // The website board's progress number (src/progress.js). A test roll adds nothing.
       await recordRoll(env, player, dog);
+      await recordLitter(env, player, date, dog, parents, { name });
     }
 
     // discordId rides along so a digest can @mention the player and find their card

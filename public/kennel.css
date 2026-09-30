@@ -59,3 +59,11 @@
 .dog .when { color: var(--muted); white-space: nowrap; }
 .dog .who { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 footer { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 36px; }
+
+/* 🍼 Puppies: dogs this kennel's dogs had with other players' (src/litter.js). */
+.puppies { list-style: none; margin: 0; display: grid; gap: 8px; }
+.puppies li { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; }
+.puppies .what { font-weight: 600; }
+.puppies .sub { grid-column: 1; font-size: 0.82rem; color: var(--muted); }
+.puppies .sub a { color: #f9a8d4; }
+.puppies .pts { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-weight: 700; }

@@ -83,8 +83,8 @@ function fillBoard(rows, mode) {
     const what = document.createElement("span");
     what.className = "what";
     what.textContent = mode === "today"
-      ? `${row.emoji || ""} ${row.dog} the ${row.breed}`
-      : `${row.name} the ${row.breed}`;
+      ? `${row.emoji || ""} ${row.puppy ? "🍼 " : ""}${row.dog} the ${row.breed}`
+      : `${row.puppy ? "🍼 " : ""}${row.name} the ${row.breed}`;
 
     const pts = document.createElement("span");
     pts.className = "pts";
@@ -160,9 +160,32 @@ function applyScene(dog) {
   }
 }
 
+// "🍼 Puppy of Rex (sam) × Biscuit (jo)", each parent linked to its owner's kennel when
+// that kennel is public. Built from text nodes: the names are player-supplied.
+function renderPuppy(dog) {
+  const line = el("puppyLine");
+  line.replaceChildren();
+  line.hidden = !dog.puppy;
+  if (!dog.puppy) return;
+  line.append("🍼 Puppy of ");
+  dog.puppy.parents.forEach((p, i) => {
+    if (i) line.append(" × ");
+    const label = p.owner ? `${p.name} (${p.owner})` : p.name;
+    if (p.kennel) {
+      const a = document.createElement("a");
+      a.href = p.kennel;
+      a.textContent = label;
+      line.append(a);
+    } else {
+      line.append(label);
+    }
+  });
+}
+
 function renderResult(dog) {
   el("dogName").textContent = dog.name;
   el("breedName").textContent = dog.breed;
+  renderPuppy(dog);
 
   const badge = el("rarityBadge");
   badge.textContent = dog.rarityLabel;
@@ -188,7 +211,8 @@ function renderResult(dog) {
     ...(dog.frog ? [{ label: "🐸 Is a frog", value: dog.breedValue }]
       : dog.breedValue ? [{ label: `🧬 ${dog.breed}`, value: dog.breedValue }] : []),
     { label: `${dog.background.emoji} ${dog.background.name}`, value: dog.background.value, scene: true },
-    ...dog.modifiers.map((m) => ({ label: `${m.emoji} ${m.text}`, value: m.value })),
+    ...dog.modifiers.map((m) => ({ label: `${m.emoji} ${m.text}`, value: m.value,
+      from: dog.puppy?.parents[m.from]?.name })),
   ];
 
   rows.forEach((row, i) => {
@@ -199,6 +223,12 @@ function renderResult(dog) {
     const label = document.createElement("div");
     label.className = "mod-label";
     label.textContent = row.label;
+    if (row.from) {
+      const from = document.createElement("span");
+      from.className = "mod-from";
+      from.textContent = `🍼 from ${row.from}`;
+      label.appendChild(from);
+    }
 
     const value = document.createElement("span");
     value.className = `mod-value ${row.value > 0 ? "pos" : row.value < 0 ? "neg" : ""}`;
@@ -223,6 +253,7 @@ function renderResult(dog) {
     const text = [
       `Dogdle ${dog.date}`,
       `${dog.name} the ${dog.breed} (${dog.rarityLabel})`,
+      ...(dog.puppy ? [`🍼 Puppy of ${dog.puppy.parents.map((p) => p.owner ? `${p.name} (${p.owner})` : p.name).join(" × ")}`] : []),
       `${dog.background.emoji} ${dog.background.name} (${signed(dog.background.value)})`,
       ...dog.modifiers.map((m) => `${m.emoji} ${m.text} (${signed(m.value)})`),
       `Score: ${signed(dog.score)} — ${dog.qualityLabel}`,

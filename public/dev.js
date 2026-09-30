@@ -63,7 +63,8 @@ function render(dog) {
   }
 
   el("dogName").textContent = dog.name;
-  el("breedName").textContent = `${dog.breed} · ${dog.breedSlug ?? "frog"}`;
+  el("breedName").textContent = `${dog.breed} · ${dog.breedSlug ?? "frog"}` +
+    (dog.puppy ? ` · 🍼 pup of ${dog.puppy.parents.map((p) => `${p.name} the ${p.breed}`).join(" × ")}` : "");
   el("rarityBadge").textContent = dog.rarityLabel;
   el("rarityBadge").style.background = dog.rarityColor;
   el("qualityLabel").textContent = dog.qualityLabel;
@@ -88,7 +89,8 @@ function render(dog) {
     ...(dog.frog ? [{ label: "🐸 Is a frog", category: "intruder", value: dog.breedValue }] : []),
     { label: `${dog.background.emoji} ${dog.background.name}`, category: "background", value: dog.background.value, scene: true },
     ...dog.modifiers.map((m) => ({
-      label: `${m.emoji} ${m.text}`, category: `${m.category}${m.effect ? ` · ${m.effect.type}/${m.effect.layer}` : ""}`,
+      label: `${m.emoji} ${m.text}`,
+      category: `${m.category}${m.effect ? ` · ${m.effect.type}/${m.effect.layer}` : ""}${m.from !== undefined ? ` · 🍼 from ${dog.puppy.parents[m.from].name}` : ""}`,
       value: m.value,
     })),
   ];
@@ -108,13 +110,14 @@ function render(dog) {
   el("result").hidden = false;
 }
 
-async function reroll(seed = crypto.randomUUID(), { frog = false } = {}) {
-  const res = await fetch(`/api/dev-roll?seed=${encodeURIComponent(seed)}${frog ? "&frog=1" : ""}`);
+async function reroll(seed = crypto.randomUUID(), { frog = false, puppy = false } = {}) {
+  const res = await fetch(`/api/dev-roll?seed=${encodeURIComponent(seed)}${frog ? "&frog=1" : ""}${puppy ? "&puppy=1" : ""}`);
   render(await res.json());
 }
 
 el("rerollBtn").onclick = () => reroll();
 el("frogBtn").onclick = () => reroll(undefined, { frog: true });
+el("puppyBtn").onclick = () => reroll(undefined, { puppy: true });
 
 // Cycles quickly so you can eyeball a lot of combinations in a few seconds.
 let spinning = null;
