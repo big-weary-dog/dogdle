@@ -1,7 +1,7 @@
 # Working on Dogdle
 
 A once-a-day dog slot machine: one Cloudflare Worker with KV, live at
-https://dogdle.swampkat.com. The README explains *why* things are the way they are; this
+https://dogdle.swampkat.com. `docs/how-it-works.md` explains *why* things are the way they are; this
 file is the short version of how to work here without breaking anything.
 
 ## Commands
@@ -87,7 +87,7 @@ the Read tool; don't guess at how a visual looks from its data.
    New traits skew generous: aim a batch's values to sum to about `−0.3 × count` so
    the correction stays small.
 3. `npm run atlas` if you used a new emoji.
-4. Update the counts in the README (traits, groups, backgrounds) if they moved.
+4. Update the counts in `docs/how-it-works.md` (traits, groups, backgrounds) if they moved.
 
 ## Working in parallel
 
@@ -109,7 +109,7 @@ Several agents can work at once if each stays in a lane. Lanes are by file owner
 
 - `test/golden.json`, `test/content-inventory.json`: take either side, then `npm run bake`.
 - `src/generated/atlas.js`: take either side, then `npm run atlas`.
-- `README.md` counts: recount from the code after merging.
+- `docs/how-it-works.md` counts: recount from the code after merging.
 
 **Balance is global.** Two content PRs can each pass alone and fail together. Whoever
 merges second rebalances (rule 3) as part of their merge. Two content lanes at once is
