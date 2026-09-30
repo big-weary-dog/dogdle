@@ -19,6 +19,7 @@ import { photoFor, fetchPhotoBytes, backfillPhoto } from "./photo.js";
 import { cardKey, rollKey, dayKey, guildKey, kennelKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
 import { linkDiscord } from "./accounts.js";
 import { meldPlan, meldApply } from "./meld.js";
+import { recordRoll } from "./progress.js";
 import { log } from "./log.js";
 
 const SNOWFLAKE_RE = /^\d{5,24}$/;
@@ -281,6 +282,8 @@ export async function handleBot(request, url, env) {
         ...expiry,
         metadata: { date, score: dog.score, breed: dog.breed, name: dog.name, test: dog.test },
       });
+      // The website board's progress number (src/progress.js). A test roll adds nothing.
+      await recordRoll(env, player, dog);
     }
 
     // discordId rides along so a digest can @mention the player and find their card

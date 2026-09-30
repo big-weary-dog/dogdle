@@ -7,8 +7,9 @@
 import { RasterSurface } from "./raster.js";
 import { GIFEncoder, quantize, applyPalette } from "../public/vendor/gifenc.js";
 import { BREEDS, RARITIES, RARITY_ORDER } from "./breeds.js";
-import { BACKGROUNDS, MODIFIERS, QUALITY_TIERS, FROG } from "./content/index.js";
+import { BACKGROUNDS, QUALITY_TIERS, FROG } from "./content/index.js";
 import { qualityFor } from "./roll.js";
+import { LIVE_TRAITS } from "./progress.js";
 import { drawText, drawEmoji, fillRect, hexToRgb, textWidth, fitText } from "./draw.js";
 
 // The top 320px match a card; the calendar strip runs underneath.
@@ -25,8 +26,8 @@ const MUTED = [152, 161, 179];
 const WHITE = [243, 244, 246];
 
 // Only what can still turn up is worth collecting: an obsolete trait never spawns again,
-// so counting it would leave every album permanently short of complete.
-const LIVE_TRAITS = new Set(MODIFIERS.filter((m) => !m.obsolete).map((m) => m.text));
+// so counting it would leave every album permanently short of complete. LIVE_TRAITS is
+// shared with the board's progress number (src/progress.js), so the two always agree.
 const BREED_RARITY = new Map(BREEDS.map((b) => [b.name, b.rarity]));
 const BACKGROUND = new Map(BACKGROUNDS.map((b) => [b.key, b]));
 const rank = (rarity) => RARITY_ORDER.indexOf(rarity);
