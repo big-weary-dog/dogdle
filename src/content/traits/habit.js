@@ -109,4 +109,10 @@ export const HABIT = [
   { text: "Same ball. Same hill. Every day.", emoji: "⛰️", value: -1, category: "habit", effect: null },
   { text: "Paid the fake UPS text. Twice.", emoji: "📦", value: -3, category: "habit", effect: null },
   { text: "Removes squeakers like a bomb tech", emoji: "💣", value: 1, category: "habit", effect: null },
+  // The boring writers' room: extremely mundane, some suspiciously so.
+  { text: "Nothing in his mouth. Look.", emoji: "😮", value: -1, category: "habit", effect: null },
+  { text: "Goes for a walk. Comes back.", emoji: "🚶", value: 0, category: "habit", effect: null },
+  { text: "Has a mat. Uses the mat.", emoji: "🧺", value: 1, category: "habit", effect: null },
+  { text: "Has a side of the sofa", emoji: "🛋️", value: -1, category: "habit", effect: null },
+  { text: "Sits", emoji: "🪑", value: 1, category: "habit", effect: null },
 ];

@@ -78,4 +78,9 @@ export const HEALTH = [
   { text: "Farts, then leaves the room offended", emoji: "💨", value: -2, category: "health", effect: null },
   { text: "Hears cheese unwrapped two floors up", emoji: "🧀", value: 2, category: "health", effect: null },
   { text: "Poisoned, shot, drowned. Still here.", emoji: "☠️", value: 1, category: "health", effect: null },
+  // The boring writers' room: extremely mundane, some suspiciously so.
+  { text: "Dental records match", emoji: "🦷", value: -1, category: "health", effect: null },
+  { text: "Pulse steady under questioning", emoji: "💓", value: -1, category: "health", effect: null },
+  { text: "Stool sample: unremarkable", emoji: "🧪", value: 0, category: "health", effect: null },
+  { text: "Blinks at a normal rate", emoji: "👁️", value: 0, category: "health", effect: null },
 ];

@@ -193,4 +193,12 @@ export const CONDITION = [
   { text: "Hollow. Full of Greeks.", emoji: "🐴", value: -3, category: "condition", effect: null },
   { text: "Left the woods in a nicer collar", emoji: "🌲", value: 1, category: "condition", effect: null },
   { text: "Smiles. People call animal control.", emoji: "😬", value: -1, category: "condition", effect: null },
+  // The boring writers' room: extremely mundane, some suspiciously so.
+  { text: "Has always been this colour", emoji: "🖌️", value: -1, category: "condition", effect: null },
+  { text: "Filed under D", emoji: "🗂️", value: -1, category: "condition", effect: null },
+  { text: "Dog", emoji: "🐾", value: 0, category: "condition", effect: null },
+  { text: "Matches the couch", emoji: "🟫", value: 0, category: "condition", effect: null },
+  { text: "Mostly fur", emoji: "🧶", value: 0, category: "condition", effect: null },
+  { text: "Has a collar. It's blue.", emoji: "🔵", value: 0, category: "condition", effect: null },
+  { text: "Was fed. Is fine.", emoji: "🍚", value: 1, category: "condition", effect: null },
 ];

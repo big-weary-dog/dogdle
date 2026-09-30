@@ -172,4 +172,8 @@ export const TEMPERAMENT = [
   { text: "Forgave you for something you forgot", emoji: "🕊️", value: 2, category: "temperament", effect: null },
   { text: "Told a king to stand out of his sun", emoji: "🛢️", value: 1, category: "temperament", effect: null },
   { text: "Throws a homecoming after the bins", emoji: "🎉", value: 3, category: "temperament", effect: null },
+  // The boring writers' room: extremely mundane, some suspiciously so.
+  { text: "Seemed like a nice dog", emoji: "🗣️", value: 0, category: "temperament", effect: null },
+  { text: "Neither agrees nor disagrees", emoji: "☑️", value: -1, category: "temperament", effect: null },
+  { text: "The neighbor waves. He nods.", emoji: "👋", value: 1, category: "temperament", effect: null },
 ];

@@ -238,4 +238,16 @@ export const CIRCUMSTANCE = [
   { text: "Two Patreon backers. Both you.", emoji: "💳", value: -1, category: "circumstance", effect: null },
   { text: "Named in a will. Not as the dog.", emoji: "📜", value: 3, category: "circumstance", effect: null },
   { text: "Ohio still sets a place for him", emoji: "🍽️", value: 2, category: "circumstance", effect: null },
+  // The boring writers' room: extremely mundane, some suspiciously so.
+  { text: "Has never been in the shed", emoji: "🔒", value: -1, category: "circumstance", effect: null },
+  { text: "Fence was already like that", emoji: "🚧", value: -2, category: "circumstance", effect: null },
+  { text: "Nothing happened on Tuesday", emoji: "📅", value: -1, category: "circumstance", effect: null },
+  { text: "Was at Dave's. Ask Dave.", emoji: "🍕", value: 0, category: "circumstance", effect: null },
+  { text: "Never seen that man before", emoji: "🤷", value: -1, category: "circumstance", effect: null },
+  { text: "Was not near the lake", emoji: "🦆", value: -1, category: "circumstance", effect: null },
+  { text: "Nothing to declare", emoji: "🛃", value: -1, category: "circumstance", effect: null },
+  { text: "N/A", emoji: "📋", value: -1, category: "circumstance", effect: null },
+  { text: "Present", emoji: "✋", value: 1, category: "circumstance", effect: null },
+  { text: "Just a dog, officer", emoji: "👮", value: -1, category: "circumstance", effect: null },
+  { text: "No priors", emoji: "📁", value: 1, category: "circumstance", effect: null },
 ];
