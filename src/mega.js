@@ -5,11 +5,12 @@
 // read. The key name carries the date and the player; the metadata carries the rest.
 //
 // Public, so it follows the leaderboard's rules: a web player's id is the key to their
-// daily roll and never leaves the server. Only a Discord player's dogs carry an id, as
-// the card and kennel links their Discord embeds already show publicly.
+// daily roll and never leaves the server. A Discord player's dogs link by id, as their
+// embeds already do publicly; a web account's link by its username (src/accounts.js).
 
 import { qualityFor } from "./roll.js";
 import { FROG } from "./content/index.js";
+import { accountOwners } from "./accounts.js";
 import { log } from "./log.js";
 
 // A thousand keys a page. Past this many pages the oldest dogs drop off, with a warning.
@@ -33,7 +34,13 @@ const brief = (d) => d && { name: d.name, breed: d.breed, score: d.score, date: 
   qualityEmoji: d.qualityEmoji, qualityColor: d.qualityColor, ...(d.image ? { image: d.image } : {}) };
 
 export async function megaKennelData(env, origin) {
-  const { keys, truncated } = await allRows(env);
+  const [{ keys, truncated }, owners] = await Promise.all([allRows(env), accountOwners(env)]);
+  // A web player with an account is shown under their public username instead.
+  const links = (player, date) => {
+    if (isDiscord(player)) return { image: `${origin}/i/${player}/${date}.gif`, kennel: `${origin}/kennel/${player}` };
+    const username = owners.get(player);
+    return username ? { image: `${origin}/u/${username}/${date}.gif`, kennel: `${origin}/kennel/${username}` } : {};
+  };
 
   // Player ids stay in here, as a grouping key. Only Discord ones are ever sent.
   const players = new Map();
@@ -54,7 +61,7 @@ export async function megaKennelData(env, origin) {
       place: row.emoji,
       owner: row.player || "",
       ...(frog ? { frog: true } : {}),
-      ...(isDiscord(player) ? { image: `${origin}/i/${player}/${date}.gif`, kennel: `${origin}/kennel/${player}` } : {}),
+      ...links(player, date),
     };
     dogs.push(dog);
 
@@ -67,7 +74,7 @@ export async function megaKennelData(env, origin) {
       p.total += dog.score;
       if (!p.best || dog.score > p.best.score) p.best = dog;
     }
-    if (isDiscord(player)) p.kennel = dog.kennel;
+    if (dog.kennel) p.kennel = dog.kennel;
     players.set(player, p);
   }
   if (truncated) log.warn("mega.truncated", { rows: keys.length });

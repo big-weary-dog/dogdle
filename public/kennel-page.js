@@ -1,5 +1,5 @@
-// The album page: one Discord player's whole collection, from /api/kennel. The player is
-// the last part of the path (/kennel/discord-<id>). Everything shown is set as text --
+// The album page: one player's whole collection, from /api/kennel. The player is the last
+// part of the path: /kennel/discord-<id>, or /kennel/<username> for a website account. Everything shown is set as text --
 // names come from players.
 
 const player = location.pathname.split("/").filter(Boolean).pop() || "";
@@ -212,9 +212,10 @@ function render(k) {
 }
 
 async function load() {
-  if (!/^discord-\d{5,24}$/.test(player)) return notice("There's no kennel at this address.");
+  if (!/^(discord-\d{5,24}|[A-Za-z0-9_]{3,20})$/.test(player)) return notice("There's no kennel at this address.");
   try {
     const res = await fetch(`/api/kennel?player=${encodeURIComponent(player)}`);
+    if (res.status === 404) return notice("There's no kennel at this address.");
     if (!res.ok) throw new Error(`status ${res.status}`);
     const k = await res.json();
     if (k.empty) return notice("No dogs here yet.");

@@ -251,6 +251,7 @@ src/
   bot.js       the Discord bot API (/api/bot/*)
   kennel.js    a player's collection and its album image
   mega.js      the mega-kennel: every dog ever, from the board index
+  accounts.js  web accounts: username + emoji PIN, and linking one to Discord
   roll.js      the deterministic generator and the Eastern day boundary
   content/     the content tables, one file per kind:
                  names.js, backgrounds.js, tiers.js, traits/<category>.js
@@ -265,8 +266,10 @@ src/
 public/
   index.html   the game
   app.js       roll, render, capture the GIF, leaderboard
+  account.js   the sign-up / sign-in / sync-with-Discord screens and the account bar
+  pin-emoji.js the PIN keypad, shared with the Worker
   dev.js/html  /dev — unlimited rerolls for playtesting
-  kennel.html  /kennel/<player> — a Discord player's album, every dog they've rolled
+  kennel.html  /kennel/<player> — a player's album (Discord id or username), every dog
   mega.html    /kennels — the mega-kennel, every dog anyone has ever rolled
   kennel.css   styles shared by both
   effects.js   the canvas renderer: effect types, layers, props, subject CSS
@@ -292,6 +295,11 @@ One KV namespace, separated by key prefix:
 | `guild:<guild>:<date>:<player>` | The same row, scoped to one Discord server |
 | `card:<player>:<date>` | The rendered share GIF, 30-day TTL |
 | `kennel:<player>:<stamp>` | A rendered kennel album, 7-day TTL |
+| `user:<username>` | A web account: its handle, private player id, hashed PIN, linked Discord id |
+| `owner:<player>` | Private id → username (also in list metadata, for the mega-kennel) |
+| `discordlink:<snowflake>` | Which account a Discord player is linked to |
+| `linkcode:<CODE>` | A "Sync with Discord" code, 10-minute TTL |
+| `pinfail:<username>` | Failed PIN count, 15-minute TTL |
 
 **Rolls are immutable.** The first roll of a day is stored; every later load replays it.
 Without that, editing the content tables would silently re-deal every dog already shown.
@@ -414,8 +422,32 @@ cache for a minute, shared by the page and the API. Test rolls are left out, and
 are listed but kept out of the numbers.
 
 It's public, so it follows the leaderboard's rule: a web player's id never leaves the
-server. Their dogs are listed by name only. A Discord dog links to its card and its
-player's kennel, which the Discord embeds already show publicly.
+server. An anonymous web player's dogs are listed by name only. A Discord dog links to
+its card and its player's kennel, which the Discord embeds already show publicly, and an
+account holder's dog links to its `/u/<username>/` card and `/kennel/<username>`.
+
+### Accounts
+
+A web player's id is a random UUID in `localStorage`, and it is the only key to their
+dogs: lose the browser, lose the dogs. An **account** puts a public username in front of
+that private id. `src/accounts.js` holds it; `public/account.js` is the UI.
+
+- **Claiming.** A browser with no account is asked once a day ("Not now" snoozes it) to
+  pick a username and an emoji PIN (4–6 taps on a 16-key pad). Its existing dogs stay
+  where they are; the account just points at them.
+- **Signing in.** A browser with no id at all asks "new here, or played before?" A
+  username and PIN hand the private id back, so a second device gets the same dog. PINs
+  are PBKDF2-hashed; five misses lock the username for 15 minutes.
+- **Public by username.** The username is public; the private id never is. An account's
+  kennel is `/kennel/<username>`, its cards `/u/<username>/<date>.gif`, and its share
+  text uses those.
+- **Sync with Discord.** The account bar's button makes a 10-minute code; the player sends
+  `/dogdle link <code>` in Discord, and the bot calls `POST /api/bot/link`. From then on
+  the website rolls as `discord-<id>`, so web and bot deal the same dog. Web dogs move to
+  the Discord player on every day Discord hadn't rolled (as they were — never re-dealt);
+  on a day both rolled, the Discord dog wins and the web one stays stored but off the board.
+
+There's no PIN reset yet: a forgotten PIN means deleting `user:<name>` by hand.
 
 ### Test rolls
 

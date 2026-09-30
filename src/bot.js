@@ -17,6 +17,7 @@ import { renderCardGif } from "./card.js";
 import { buildKennel, renderKennelGif, summary, albumLayout } from "./kennel.js";
 import { photoFor, fetchPhotoBytes, backfillPhoto } from "./photo.js";
 import { cardKey, rollKey, dayKey, guildKey, kennelKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
+import { linkDiscord } from "./accounts.js";
 import { log } from "./log.js";
 
 const SNOWFLAKE_RE = /^\d{5,24}$/;
@@ -32,6 +33,12 @@ const cardUrl = (origin, player, date) => `${origin}/i/${player}/${date}.gif`;
 const kennelUrl = (origin, player, stamp) => `${origin}/k/${player}/${stamp}.gif`;
 // The album page on the website: every dog the player has, not just the counts.
 export const kennelPage = (origin, player) => `${origin}/kennel/${player}`;
+// Where a player's cards and album are shown. A Discord player's id is already public; a
+// web account passes its own (src/accounts.js), so its private id never reaches a URL.
+const discordFace = (player) => ({
+  card: (origin, date) => cardUrl(origin, player, date),
+  album: (origin, stamp) => kennelUrl(origin, player, stamp),
+});
 
 const signed = (n) => (n > 0 ? `+${n}` : `${n}`);
 const json = (body, status = 200) =>
@@ -178,16 +185,16 @@ export async function playerDogs(env, player, want) {
 
 // Just enough to name the album page in a link preview: who, how many, and the album
 // image. One list and one read, since every unfurl and every page view lands here.
-export async function kennelPreview(env, player, origin) {
+export async function kennelPreview(env, player, origin, face = discordFace(player)) {
   const keys = await rollKeys(env, player);
   if (!keys.length) return null;
   const newest = await env.STORE.get(keys.at(-1), "json");
-  return { name: newest?.player || "", days: keys.length, image: kennelUrl(origin, player, kennelStamp(keys)) };
+  return { name: newest?.player || "", days: keys.length, image: face.album(origin, kennelStamp(keys)) };
 }
 
 // Everything the website's album page shows, for GET /api/kennel. Unauthenticated, so it
 // only ever holds what the Discord embeds already show publicly.
-export async function kennelPageData(env, player, origin) {
+export async function kennelPageData(env, player, origin, face = discordFace(player)) {
   const loaded = await playerDogs(env, player);
   if (!loaded) return { empty: true };
   const { stamp, dogs } = loaded;
@@ -196,7 +203,7 @@ export async function kennelPageData(env, player, origin) {
     name: kennelName(dogs),
     ...kennel,
     ...albumLayout({ placesFound, tiersFound }),
-    image: kennelUrl(origin, player, stamp),
+    image: face.album(origin, stamp),
     // Newest first, each with its card: the page is a scrapbook of every day.
     dogs: [...dogs].reverse().map((d) => ({
       ...summary(d),
@@ -205,7 +212,7 @@ export async function kennelPageData(env, player, origin) {
       rarityColor: d.rarityColor,
       background: { name: d.background.name, emoji: d.background.emoji, value: d.background.value },
       traits: (d.modifiers ?? []).map((m) => ({ text: m.text, emoji: m.emoji, value: m.value })),
-      image: cardUrl(origin, player, d.date),
+      image: face.card(origin, d.date),
     })),
   };
 }
@@ -397,6 +404,25 @@ export async function handleBot(request, url, env) {
       worst: ranked.slice(6).slice(-3).reverse().map(row),
       link: kennelPage(url.origin, player),
     });
+  }
+
+  // `/dogdle link <code>`: ties a website account to the caller's Discord player. The code
+  // comes from the website's "Sync with Discord" button and lasts ten minutes.
+  if (route === "link" && request.method === "POST") {
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json({ error: "body must be json" }, 400);
+    }
+    const discordId = String(body?.discordId ?? "");
+    if (!SNOWFLAKE_RE.test(discordId)) return json({ error: "invalid discordId" }, 400);
+    const { status, body: out } = await linkDiscord(env, discordId, body?.code);
+    const player = botPlayerId(discordId);
+    return json(status === 200
+      ? { ...out, kennel: kennelPage(url.origin, player), text: `Linked to ${out.handle} on the website.` +
+          (out.moved ? ` ${out.moved} ${out.moved === 1 ? "dog" : "dogs"} joined your kennel.` : "") }
+      : out, status);
   }
 
   return json({ error: "no such bot route" }, 404);

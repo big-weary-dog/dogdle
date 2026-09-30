@@ -3,6 +3,7 @@ import { handleBot, renderCard, kennelFor, kennelPageData, kennelPreview, kennel
 import { photoFor, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
 import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, kennelKey, cleanName, boardRow, visibleRows } from "./keys.js";
 import { megaKennel } from "./mega.js";
+import { handleAccount, playsAs, publicAccount, webRow } from "./accounts.js";
 import { log } from "./log.js";
 
 const MAX_CARD_BYTES = 8_000_000; // animated cards are far heavier than a still
@@ -49,11 +50,17 @@ async function route(request, url, env) {
     return handleBot(request, url, env);
   }
 
+  if (url.pathname === "/api/account" || url.pathname.startsWith("/api/account/")) {
+    return handleAccount(request, url, env);
+  }
+
   if (url.pathname === "/api/roll") {
-    const player = url.searchParams.get("player") || "";
-    if (!PLAYER_ID_RE.test(player)) {
+    const browser = url.searchParams.get("player") || "";
+    if (!PLAYER_ID_RE.test(browser)) {
       return Response.json({ error: "invalid player id" }, { status: 400 });
     }
+    // A browser's id, or the Discord player its account is linked to (src/accounts.js).
+    const player = await playsAs(env, browser);
     const date = today();
     const name = cleanName(url.searchParams.get("name"));
 
@@ -81,24 +88,25 @@ async function route(request, url, env) {
       metadata: { date, score: dog.score, breed: dog.breed, name: dog.name },
     });
     // The leaderboard reads entirely from list metadata, so it never fetches values.
-    await env.STORE.put(dayKey(date, player), "", { metadata: boardRow(name, dog) });
+    await env.STORE.put(dayKey(date, player), "", { metadata: webRow(boardRow(name, dog), player) });
 
     return Response.json(dog, { headers: { "cache-control": "no-store" } });
   }
 
   // A name entered after rolling still needs to reach the board.
   if (url.pathname === "/api/name" && request.method === "POST") {
-    const player = url.searchParams.get("player") || "";
+    const browser = url.searchParams.get("player") || "";
     const name = cleanName(url.searchParams.get("name"));
-    if (!PLAYER_ID_RE.test(player)) {
+    if (!PLAYER_ID_RE.test(browser)) {
       return Response.json({ error: "invalid player id" }, { status: 400 });
     }
+    const player = await playsAs(env, browser);
 
     const date = today();
     const saved = await env.STORE.get(rollKey(player, date), "json");
     if (!saved) return Response.json({ ok: false });
 
-    await env.STORE.put(dayKey(date, player), "", { metadata: boardRow(name, saved) });
+    await env.STORE.put(dayKey(date, player), "", { metadata: webRow(boardRow(name, saved), player) });
     return Response.json({ ok: true });
   }
 
@@ -117,10 +125,11 @@ async function route(request, url, env) {
 
   // Every dog this player has been dealt, newest first.
   if (url.pathname === "/api/history") {
-    const player = url.searchParams.get("player") || "";
-    if (!PLAYER_ID_RE.test(player)) {
+    const browser = url.searchParams.get("player") || "";
+    if (!PLAYER_ID_RE.test(browser)) {
       return Response.json({ error: "invalid player id" }, { status: 400 });
     }
+    const player = await playsAs(env, browser);
 
     const listed = await env.STORE.list({ prefix: `roll:${player}:`, limit: 200 });
     const rows = listed.keys
@@ -184,11 +193,12 @@ async function route(request, url, env) {
   // and posts the PNG here, so the embed shows exactly what the player saw, effects and
   // all. Keyed by player+date, so a given dog has at most one card.
   if (url.pathname === "/api/card" && request.method === "PUT") {
-    const player = url.searchParams.get("player") || "";
+    const browser = url.searchParams.get("player") || "";
     const date = url.searchParams.get("date") || "";
-    if (!PLAYER_ID_RE.test(player) || !DATE_RE.test(date)) {
+    if (!PLAYER_ID_RE.test(browser) || !DATE_RE.test(date)) {
       return Response.json({ error: "bad params" }, { status: 400 });
     }
+    const player = await playsAs(env, browser);
 
     const body = await request.arrayBuffer();
     if (body.byteLength > MAX_CARD_BYTES) {
@@ -213,52 +223,43 @@ async function route(request, url, env) {
     if (!PLAYER_ID_RE.test(player || "") || !DATE_RE.test(date)) {
       return new Response("not found", { status: 404 });
     }
-
-    let card = await env.STORE.get(cardKey(player, date), "arrayBuffer");
-
-    // A Discord card is drawn server-side, so a missing one can be drawn again from the
-    // stored roll rather than leaving a blank embed: the render failed, or it expired, or
-    // this location hasn't seen the write yet. Bounded to rolls that exist, and stored once
-    // drawn, so this can't become a render-anything-on-demand route.
-    if (!card && player.startsWith("discord-")) {
-      const dog = await env.STORE.get(rollKey(player, date), "json");
-      if (dog) {
-        card = await renderCard(env, player, dog);
-        log.warn("card.rendered_on_read", { player, date, ok: Boolean(card), colo: request.cf?.colo });
-      }
-    }
-
-    if (!card) {
-      log.warn("card.missing", { player, date, colo: request.cf?.colo, ua: request.headers.get("user-agent") });
-      // Never let a proxy (Discord's included) hold on to a miss.
-      return new Response("not found", { status: 404, headers: { "cache-control": "no-store" } });
-    }
-
-    return new Response(card, {
-      headers: {
-        "content-type": sniffImageType(card) ?? "image/png",
-        "cache-control": "public, max-age=86400",
-      },
-    });
+    // A Discord card is drawn server-side, so a missing one can be drawn again.
+    return serveCard(request, env, player, date, player.startsWith("discord-"));
   }
 
-  // A Discord player's whole collection, for the album page. Discord players only: a web
-  // player's id is the key to their daily roll, so it must never appear in a shareable URL.
-  if (url.pathname === "/api/kennel") {
-    const player = url.searchParams.get("player") || "";
-    if (!PLAYER_ID_RE.test(player) || !player.startsWith("discord-")) {
-      return Response.json({ error: "invalid player id" }, { status: 400 });
+  // A web account's cards and album, under its public username. The private id behind it
+  // is looked up here and never appears in the URL. Every account's cards can be drawn on
+  // demand, like a Discord player's: a browser may never have uploaded one.
+  if (url.pathname.startsWith("/u/")) {
+    const [, , username, file, extra] = url.pathname.split("/");
+    const account = await publicAccount(env, username);
+    if (!account) return new Response("not found", { status: 404 });
+    if (file === "album") {
+      const stamp = (extra || "").replace(/\.gif$/, "");
+      if (!KENNEL_STAMP_RE.test(stamp)) return new Response("not found", { status: 404 });
+      return serveAlbum(request, env, account.player, stamp);
     }
-    const data = await kennelPageData(env, player, url.origin);
+    const date = (file || "").replace(/\.(png|gif)$/, "");
+    if (extra !== undefined || !DATE_RE.test(date)) return new Response("not found", { status: 404 });
+    return serveCard(request, env, account.player, date, true);
+  }
+
+  // A player's whole collection, for the album page: a Discord player, or a web account by
+  // username. Never by a web player's private id -- that's the key to their daily roll.
+  if (url.pathname === "/api/kennel") {
+    const owner = await kennelOwner(env, url.searchParams.get("player") || "");
+    if (!owner) return Response.json({ error: "no such kennel" }, { status: 404 });
+    const data = await kennelPageData(env, owner.player, url.origin, owner.face);
     return Response.json(data, { headers: { "cache-control": "public, max-age=60" } });
   }
 
   // The album page is static and reads the player from its own path. Its head is filled in
   // here, so a link pasted into Discord unfurls as "<name>'s Kennel" with the album image.
-  const kennelPath = url.pathname.match(/^\/kennel\/(discord-\d{5,24})\/?$/);
+  const kennelPath = url.pathname.match(/^\/kennel\/(discord-\d{5,24}|[A-Za-z0-9_]{3,20})\/?$/);
   if (kennelPath) {
     const page = await env.ASSETS.fetch(new Request(new URL("/kennel", url)));
-    const preview = page.ok ? await kennelPreview(env, kennelPath[1], url.origin) : null;
+    const owner = page.ok ? await kennelOwner(env, kennelPath[1]) : null;
+    const preview = owner ? await kennelPreview(env, owner.player, url.origin, owner.face) : null;
     if (!preview) return page;
     const title = `${preview.name ? `${preview.name}'s Kennel` : "Kennel"} · Dogdle`;
     const about = `${preview.days} ${preview.days === 1 ? "dog" : "dogs"} rolled on Dogdle.`;
@@ -267,7 +268,7 @@ async function route(request, url, env) {
   <meta property="og:site_name" content="Dogdle" />
   <meta property="og:title" content="${esc(title)}" />
   <meta property="og:description" content="${esc(about)}" />
-  <meta property="og:url" content="${esc(kennelPage(url.origin, kennelPath[1]))}" />
+  <meta property="og:url" content="${esc(kennelPage(url.origin, owner.page))}" />
   <meta property="og:image" content="${esc(preview.image)}" />
   <meta property="og:image:width" content="560" />
   <meta property="og:image:height" content="420" />
@@ -311,26 +312,14 @@ async function route(request, url, env) {
     });
   }
 
-  // A Discord player's album, as named by /api/bot/kennel. Like a card, a missing one is
-  // drawn again -- but only if the stamp is the album's current state, so this can't be
-  // used to render anything on demand.
+  // A Discord player's album, as named by /api/bot/kennel.
   if (url.pathname.startsWith("/k/")) {
     const [, , player, file] = url.pathname.split("/");
     const stamp = (file || "").replace(/\.gif$/, "");
     if (!PLAYER_ID_RE.test(player || "") || !player.startsWith("discord-") || !KENNEL_STAMP_RE.test(stamp)) {
       return new Response("not found", { status: 404 });
     }
-
-    let gif = await env.STORE.get(kennelKey(player, stamp), "arrayBuffer");
-    if (!gif) {
-      gif = (await kennelFor(env, player, stamp))?.gif ?? null;
-      log.warn("kennel.rendered_on_read", { player, stamp, ok: Boolean(gif), colo: request.cf?.colo });
-    }
-    if (!gif) return new Response("not found", { status: 404, headers: { "cache-control": "no-store" } });
-
-    return new Response(gif, {
-      headers: { "content-type": "image/gif", "cache-control": "public, max-age=86400" },
-    });
+    return serveAlbum(request, env, player, stamp);
   }
 
   // Clears the local save and bounces back to the game. The roll is deterministic from
@@ -406,4 +395,54 @@ ${photo ? `<meta property="og:image" content="${esc(photo)}" />` : ""}
   }
 
   return env.ASSETS.fetch(request);
+}
+
+// Whose kennel a public address names: a Discord player by id, or a web account by its
+// username. `face` says which URLs show it; left undefined, they're the Discord ones.
+async function kennelOwner(env, id) {
+  if (/^discord-\d{5,24}$/.test(id)) return { player: id, face: undefined, page: id };
+  const account = await publicAccount(env, id);
+  return account && { player: account.player, face: account, page: account.username };
+}
+
+// A stored card, or -- where `render` allows -- one drawn again from the stored roll: the
+// render failed, or it expired, or this location hasn't seen the write yet. Bounded to
+// rolls that exist, and stored once drawn, so this can't become a render-anything route.
+async function serveCard(request, env, player, date, render) {
+  let card = await env.STORE.get(cardKey(player, date), "arrayBuffer");
+  if (!card && render) {
+    const dog = await env.STORE.get(rollKey(player, date), "json");
+    if (dog) {
+      card = await renderCard(env, player, dog);
+      log.warn("card.rendered_on_read", { player, date, ok: Boolean(card), colo: request.cf?.colo });
+    }
+  }
+
+  if (!card) {
+    log.warn("card.missing", { player, date, colo: request.cf?.colo, ua: request.headers.get("user-agent") });
+    // Never let a proxy (Discord's included) hold on to a miss.
+    return new Response("not found", { status: 404, headers: { "cache-control": "no-store" } });
+  }
+
+  return new Response(card, {
+    headers: {
+      "content-type": sniffImageType(card) ?? "image/png",
+      "cache-control": "public, max-age=86400",
+    },
+  });
+}
+
+// An album image. Like a card, a missing one is drawn again -- but only if the stamp is
+// the album's current state, so this can't be used to render anything on demand.
+async function serveAlbum(request, env, player, stamp) {
+  let gif = await env.STORE.get(kennelKey(player, stamp), "arrayBuffer");
+  if (!gif) {
+    gif = (await kennelFor(env, player, stamp))?.gif ?? null;
+    log.warn("kennel.rendered_on_read", { player, stamp, ok: Boolean(gif), colo: request.cf?.colo });
+  }
+  if (!gif) return new Response("not found", { status: 404, headers: { "cache-control": "no-store" } });
+
+  return new Response(gif, {
+    headers: { "content-type": "image/gif", "cache-control": "public, max-age=86400" },
+  });
 }

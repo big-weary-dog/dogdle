@@ -30,11 +30,13 @@ the Read tool; don't guess at how a visual looks from its data.
 | `src/worker.js` | Web routes. `src/bot.js` is the Discord bot API (`/api/bot/*`). |
 | `src/kennel.js` | A player's collection (`/api/bot/kennel`) and its album image. |
 | `src/keys.js` | KV key layout and leaderboard rows, shared by web and bot. |
+| `src/accounts.js` | Web accounts (`/api/account*`): public username + emoji PIN over a private player id, `playsAs`, and Discord linking. |
 | `src/photo.js` | Dog CEO lookup, frog photo pick, photo bytes, `backfillPhoto` repair. |
 | `src/card.js` + `raster.js` + `draw.js` | Headless GIF card renderer (no canvas in Workers). |
 | `public/effects.js` | **Shared** effect engine: the web page *and* the card both run it. |
 | `public/app.js` | The web game. `public/dev.html` is `/dev`, unlimited rerolls. |
-| `public/kennel.html` + `kennel-page.js` | `/kennel/discord-<id>`, a player's public album, from `/api/kennel`. |
+| `public/account.js` | Sign-up / sign-in / Sync-with-Discord screens and the account bar. `pin-emoji.js` is the keypad, shared with the Worker: never reorder it. |
+| `public/kennel.html` + `kennel-page.js` | `/kennel/<discord-id or username>`, a player's public album, from `/api/kennel`. |
 | `src/mega.js`, `public/mega.html` + `mega-page.js` | `/kennels`, the mega-kennel: every dog ever, from the `day:` index via `/api/kennels`. Web player ids never leave it. |
 | `scripts/` | The npm scripts above. `scripts/lib/` is shared helpers. |
 | `test/` | `node:test`, no dependencies. `golden.json` and `content-inventory.json` are snapshots. |
@@ -72,6 +74,8 @@ the Read tool; don't guess at how a visual looks from its data.
 8. **Never log, echo or commit `BOT_TOKEN`.** It lives in the `DOGDLE_BOT_TOKEN` repo
    secret and is synced by `deploy.yml`.
 9. **`/img` stays locked to `images.dog.ceo`.** It must never become a general proxy.
+   Likewise a web player's private id never goes in anything public: use the username
+   (`/u/<username>/`, `/kennel/<username>`) or leave the dog unlinked.
 10. Don't add Playwright (or any browser) to `package.json`; `npm run atlas` installs it
     unsaved. Don't create speculative idea/backlog docs.
 
@@ -96,7 +100,7 @@ Several agents can work at once if each stays in a lane. Lanes are by file owner
 | Names / tiers | `src/content/names.js`, `tiers.js` | Snapshots |
 | Frogs | `src/content/frogs.js`, `public/frogs/` | Snapshots, maybe atlas |
 | Discord bot API | `src/bot.js`, `src/kennel.js`, `docs/discord-bot-prompt.md`, `test/bot.test.js` | `src/keys.js` if rows change |
-| Web UI | `public/app.js`, `public/index.html`, `public/dev.*`, `public/kennel*`, `public/mega*`, `src/mega.js` | — |
+| Web UI | `public/app.js`, `public/index.html`, `public/dev.*`, `public/kennel*`, `public/mega*`, `public/account.js`, `src/mega.js`, `src/accounts.js` | `src/bot.js` for `/api/bot/link` |
 | Card renderer | `src/card.js`, `src/draw.js`, `src/raster.js` | — |
 | Effects engine | `public/effects.js`, `test/effects.test.js` | Affects web *and* card |
 | Ops / CI | `.github/workflows/`, `wrangler.toml` | — |

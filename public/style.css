@@ -416,3 +416,41 @@ footer a { color: #7dd3fc; }
   .stage.shaking { animation: none; }
   #dogPhoto, #dogPhoto.frog, .modifiers li, .spinner.frog { animation: none; }
 }
+
+/* ---------- accounts ---------- */
+
+.account { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 14px;
+  margin-top: 8px; font-size: 0.82rem; color: var(--muted); }
+.account .who { color: var(--text); font-weight: 650; }
+.account a, .account .linked { color: #7dd3fc; }
+.link { background: none; border: 0; padding: 0; font: inherit; color: #7dd3fc; cursor: pointer; text-decoration: underline; }
+
+.account-modal { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 16px;
+  padding: 20px 18px; width: min(360px, calc(100vw - 32px)); text-align: center; }
+.account-modal::backdrop { background: #000c; }
+.account-modal h2 { margin: 0 0 6px; font-size: 1.3rem; }
+.account-modal .blurb { margin: 0 0 14px; color: var(--muted); font-size: 0.88rem; line-height: 1.4; }
+.account-modal .label { margin: 12px 0 6px; font-size: 0.78rem; color: var(--muted); }
+.account-input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line);
+  background: #0f1219; color: var(--text); font-size: 1rem; }
+.account-go { width: 100%; margin-top: 12px; padding: 13px 16px; border: 0; border-radius: 12px; cursor: pointer;
+  font-size: 1rem; font-weight: 650; color: #fff; background: linear-gradient(135deg, #16a34a, #65a30d); }
+.account-go.alt { background: linear-gradient(135deg, #334155, #475569); }
+.account-go:disabled { opacity: 0.4; cursor: default; }
+.account-choices { display: grid; gap: 2px; }
+.account-links { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; font-size: 0.85rem; }
+.account-links:has(> :only-child) { justify-content: center; }
+.account-status { min-height: 1.2em; margin: 10px 0 0; font-size: 0.82rem; color: #4ade80; }
+.account-status.bad { color: #f87171; }
+
+.pin-slots { display: flex; justify-content: center; gap: 8px; min-height: 40px; margin: 10px 0; }
+.pin-slots span { width: 36px; height: 40px; display: grid; place-items: center; border-radius: 10px;
+  background: #0f1219; border: 1px solid var(--line); font-size: 1.2rem; color: var(--muted); }
+.pin-slots span.on { border-color: #65a30d; color: var(--text); }
+.pin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.pin-grid button { aspect-ratio: 1.25; font-size: 1.6rem; border-radius: 12px; border: 1px solid var(--line);
+  background: #1a1f29; cursor: pointer; }
+.pin-grid button:active { transform: scale(0.94); background: #273043; }
+.pin-tools { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85rem; }
+.link-code { font-family: ui-monospace, Menlo, monospace; font-size: 1.15rem; letter-spacing: 0.04em;
+  background: #0f1219; border: 1px dashed #475569; border-radius: 10px; padding: 12px; margin: 4px 0 0; user-select: all; }

@@ -505,7 +505,7 @@ test("the album page's data has every dog and hides places not found", async () 
 test("the album page only exists for Discord players", async () => {
   const e = { ...env(), ASSETS: { fetch: async (req) => new Response(new URL(req.url).pathname) } };
   const web = await siteRequest(e, "/api/kennel?player=0b7f4a9e-1c2d-4e5f-8a9b-0c1d2e3f4a5b");
-  assert.equal(web.status, 400, "a web player's id is their roll key; it never goes in a link");
+  assert.equal(web.status, 404, "a web player's id is their roll key; it never goes in a link");
 
   const page = await siteRequest(e, `/kennel/${botPlayerId(USER)}`);
   assert.equal(await page.text(), "/kennel", "served from the static page, untouched while it's empty");

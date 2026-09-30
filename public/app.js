@@ -1,4 +1,5 @@
 import { Scene, subjectStyle } from "/effects.js";
+import { accountGate, username } from "/account.js";
 
 const PLAYER_KEY = "dogdle-player-id";
 const NAME_KEY = "dogdle-name";
@@ -201,7 +202,11 @@ function renderResult(dog) {
     // Link the PNG itself, not the /s/ page: a direct image URL unfurls in Discord as a
     // bare image with no title/description chrome. The angle brackets around the game link
     // stop it unfurling a second embed underneath.
-    const imageUrl = `${location.origin}/i/${encodeURIComponent(getPlayerId())}/${dog.date}.gif`;
+    // An account's card is shown under its username; the player id is the key to the
+    // daily roll and has no business in a message anyone can read.
+    const imageUrl = username()
+      ? `${location.origin}/u/${encodeURIComponent(username())}/${dog.date}.gif`
+      : `${location.origin}/i/${encodeURIComponent(getPlayerId())}/${dog.date}.gif`;
     const text = [
       `Dogdle ${dog.date}`,
       `${dog.name} the ${dog.breed} (${dog.rarityLabel})`,
@@ -395,6 +400,9 @@ function showDog(dog, { animate }) {
 }
 
 async function init() {
+  // Who's playing comes first: signing in can change which player this browser is.
+  await accountGate();
+
   for (const key of Object.keys(localStorage)) {
     if (key.startsWith(RESULT_PREFIX) && key !== cacheKey()) localStorage.removeItem(key);
   }

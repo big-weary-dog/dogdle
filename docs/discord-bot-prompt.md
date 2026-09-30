@@ -20,6 +20,7 @@ The bot does these things:
    dogs have turned up, and a year of days coloured by how good each dog was, as one image.
 4. **`/dogdle best`** — the caller's hall of fame: their best dogs and their worst.
 5. **`/dogdle day <date>`** — the dog the caller got on a given day.
+6. **`/dogdle link <code>`** — ties the caller to their account on the website.
 
 Every one of these can link to the player's **album page** on the website, which shows
 every dog they've ever rolled.
@@ -167,6 +168,26 @@ day by design and would crowd out the real disasters.
 repeats a dog from `best` (a player with seven dogs has one worst). A player with no dogs
 gets `{ "empty": true, "best": [], "worst": [] }`.
 
+### `POST /api/bot/link`
+
+```json
+{ "discordId": "185432...", "code": "K7QX2M" }
+```
+
+A website player presses **"Sync with Discord"** and gets a six-character code (letters
+and digits, no 0/O/1/I; case doesn't matter; good for ten minutes, once). This ties their
+website account to the caller: from now on both deal the same dog, and their website
+dogs join the caller's kennel.
+
+```json
+{ "username": "molossus", "handle": "Molossus", "moved": 12, "kept": 1,
+  "kennel": "https://dogdle.swampkat.com/kennel/discord-185432...",
+  "text": "Linked to Molossus on the website. 12 dogs joined your kennel." }
+```
+
+Errors: `400` bad code format, `404` unknown or expired code, `409` already linked (either
+side). Each has an `error` string safe to show.
+
 ---
 
 ## Message 1 — `/dogdle`
@@ -263,6 +284,12 @@ reads. End with a **"See every dog"** button pointing at `link`. Same `user` opt
 `GET /api/bot/dog` and reply exactly like Message 1, minus the "already rolled" wording.
 `pending: true` → an ephemeral "no dog that day." Never roll for a missed day: the past
 is closed.
+
+## Message 6 — `/dogdle link <code>`
+
+A required string option `code`. Call `POST /api/bot/link` and reply **ephemerally**
+with `text` and a **"Kennel"** link button to `kennel`. On an error, reply ephemerally
+with the `error` string. Don't post anything public: it's account plumbing.
 
 ---
 
