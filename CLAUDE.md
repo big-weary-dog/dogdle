@@ -35,6 +35,7 @@ the Read tool; don't guess at how a visual looks from its data.
 | `public/effects.js` | **Shared** effect engine: the web page *and* the card both run it. |
 | `public/app.js` | The web game. `public/dev.html` is `/dev`, unlimited rerolls. |
 | `public/kennel.html` + `kennel-page.js` | `/kennel/discord-<id>`, a player's public album, from `/api/kennel`. |
+| `src/mega.js`, `public/mega.html` + `mega-page.js` | `/kennels`, the mega-kennel: every dog ever, from the `day:` index via `/api/kennels`. Web player ids never leave it. |
 | `scripts/` | The npm scripts above. `scripts/lib/` is shared helpers. |
 | `test/` | `node:test`, no dependencies. `golden.json` and `content-inventory.json` are snapshots. |
 | `src/generated/atlas.js` | Baked glyphs and emoji. Built, committed, never hand-edited. |
@@ -95,7 +96,7 @@ Several agents can work at once if each stays in a lane. Lanes are by file owner
 | Names / tiers | `src/content/names.js`, `tiers.js` | Snapshots |
 | Frogs | `src/content/frogs.js`, `public/frogs/` | Snapshots, maybe atlas |
 | Discord bot API | `src/bot.js`, `src/kennel.js`, `docs/discord-bot-prompt.md`, `test/bot.test.js` | `src/keys.js` if rows change |
-| Web UI | `public/app.js`, `public/index.html`, `public/dev.*`, `public/kennel*` | — |
+| Web UI | `public/app.js`, `public/index.html`, `public/dev.*`, `public/kennel*`, `public/mega*`, `src/mega.js` | — |
 | Card renderer | `src/card.js`, `src/draw.js`, `src/raster.js` | — |
 | Effects engine | `public/effects.js`, `test/effects.test.js` | Affects web *and* card |
 | Ops / CI | `.github/workflows/`, `wrangler.toml` | — |

@@ -2,6 +2,7 @@ import { rollDailyDog, today } from "./roll.js";
 import { handleBot, renderCard, kennelFor, kennelPageData, kennelPreview, kennelPage } from "./bot.js";
 import { photoFor, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
 import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, kennelKey, cleanName, boardRow, visibleRows } from "./keys.js";
+import { megaKennel } from "./mega.js";
 import { log } from "./log.js";
 
 const MAX_CARD_BYTES = 8_000_000; // animated cards are far heavier than a still
@@ -271,6 +272,38 @@ async function route(request, url, env) {
   <meta property="og:image:width" content="560" />
   <meta property="og:image:height" content="420" />
   <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#65a30d" />`;
+    const html = (await page.text()).replace(/<title>[^<]*<\/title>/, head);
+    return new Response(html, {
+      headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=60" },
+    });
+  }
+
+  // Every dog anyone has ever rolled, from the board index alone. Public, and built so
+  // a web player's id never appears in it (see src/mega.js).
+  if (url.pathname === "/api/kennels") {
+    const data = await megaKennel(env, url.origin);
+    return Response.json(data, { headers: { "cache-control": "public, max-age=60" } });
+  }
+
+  // The mega-kennel page. Its file is mega.html, not kennels.html: an asset at this path
+  // would be served before the Worker runs, and the head would never be filled in.
+  if (url.pathname === "/kennels" || url.pathname === "/kennels/") {
+    const page = await env.ASSETS.fetch(new Request(new URL("/mega", url)));
+    if (!page.ok) return page;
+    const mega = await megaKennel(env, url.origin);
+    const title = "The Mega-Kennel · Dogdle";
+    const about = `${mega.dogs} ${mega.dogs === 1 ? "dog" : "dogs"} from ${mega.players} ${mega.players === 1 ? "player" : "players"}, all of them, all time.`;
+    const head = `<title>${esc(title)}</title>
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Dogdle" />
+  <meta property="og:title" content="${esc(title)}" />
+  <meta property="og:description" content="${esc(about)}" />
+  <meta property="og:url" content="${esc(`${url.origin}/kennels`)}" />
+  ${mega.cover ? `<meta property="og:image" content="${esc(mega.cover)}" />
+  <meta property="og:image:width" content="560" />
+  <meta property="og:image:height" content="320" />
+  <meta name="twitter:card" content="summary_large_image" />` : ""}
   <meta name="theme-color" content="#65a30d" />`;
     const html = (await page.text()).replace(/<title>[^<]*<\/title>/, head);
     return new Response(html, {

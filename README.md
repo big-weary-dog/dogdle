@@ -246,9 +246,11 @@ A single Cloudflare Worker serves both the API and the static assets.
 
 ```
 src/
-  worker.js    routes: roll, leaderboard, history, card upload/serve, image proxy, share page
+  worker.js    routes: roll, leaderboard, history, card upload/serve, image proxy, share page,
+               kennel pages
   bot.js       the Discord bot API (/api/bot/*)
   kennel.js    a player's collection and its album image
+  mega.js      the mega-kennel: every dog ever, from the board index
   roll.js      the deterministic generator and the Eastern day boundary
   content/     the content tables, one file per kind:
                  names.js, backgrounds.js, tiers.js, traits/<category>.js
@@ -265,6 +267,8 @@ public/
   app.js       roll, render, capture the GIF, leaderboard
   dev.js/html  /dev — unlimited rerolls for playtesting
   kennel.html  /kennel/<player> — a Discord player's album, every dog they've rolled
+  mega.html    /kennels — the mega-kennel, every dog anyone has ever rolled
+  kennel.css   styles shared by both
   effects.js   the canvas renderer: effect types, layers, props, subject CSS
   vendor/      gifenc, vendored (see package.json devDependencies for the source)
 scripts/
@@ -399,6 +403,19 @@ head is filled in by the Worker (one list, one read), so its link unfurls in Dis
 
 A kennel also has a **total** (every dog's score added up) and an **average dog**, both
 leaving frogs out.
+
+### The mega-kennel
+
+`/kennels` is every dog anyone has ever rolled, web and Discord together: the best and
+worst dogs ever, the all-time average, every player's kennel, and a searchable wall of
+every dog. `/api/kennels` builds it from the global board index (`day:<date>:<player>`)
+alone — list calls and metadata, never a value read — and the answer sits in the edge
+cache for a minute, shared by the page and the API. Test rolls are left out, and frogs
+are listed but kept out of the numbers.
+
+It's public, so it follows the leaderboard's rule: a web player's id never leaves the
+server. Their dogs are listed by name only. A Discord dog links to its card and its
+player's kennel, which the Discord embeds already show publicly.
 
 ### Test rolls
 

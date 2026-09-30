@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Mega-Kennel · Dogdle</title>
+  <meta name="description" content="Every dog anyone has ever rolled on Dogdle." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🐾</text></svg>" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/kennel.css" />
+  <style>
+    .roster { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .roster th { text-align: left; color: var(--muted); font-weight: 600; font-size: 0.78rem; padding: 0 8px 8px; }
+    .roster td { padding: 7px 8px; border-top: 1px solid var(--line); }
+    .roster .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .roster .rank { color: var(--muted); width: 2em; }
+    .roster .name { overflow-wrap: anywhere; }
+    .roster .top { color: var(--muted); font-size: 0.82rem; }
+    .roster-scroll { max-height: 440px; overflow-y: auto; }
+    @media (max-width: 620px) { .roster .top, .roster th.top { display: none; } }
+
+    .find { background: #1a1f29; color: var(--text); border: 1px solid var(--line); border-radius: 999px;
+      padding: 5px 12px; font: inherit; font-size: 0.85rem; width: 190px; }
+    .tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .wall { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+    .tile { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid; border-radius: 10px;
+      padding: 8px 10px; font-size: 0.84rem; min-width: 0; }
+    .tile .n { display: flex; justify-content: space-between; gap: 6px; font-weight: 600; }
+    .tile .n span:first-child, .tile .b, .tile .o { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tile .b { color: var(--text); opacity: 0.85; margin-top: 2px; }
+    .tile .o { color: var(--muted); font-size: 0.76rem; margin-top: 2px; }
+    .tile[role="button"] { cursor: pointer; transition: transform 0.1s; }
+    .tile[role="button"]:hover, .tile[role="button"]:focus-visible { transform: translateY(-2px); outline: 2px solid #f8fafc55; outline-offset: 1px; }
+    .tile .cam { float: right; opacity: 0.6; font-size: 0.72rem; }
+    .more { display: block; margin: 14px auto 0; }
+    .count-line { color: var(--muted); font-size: 0.85rem; margin: 0 0 10px; }
+    .highlight[role="button"] { cursor: pointer; }
+
+    dialog.peek { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 14px;
+      padding: 12px; width: min(584px, calc(100vw - 32px)); }
+    dialog.peek::backdrop { background: #000a; }
+    dialog.peek img { width: 100%; height: auto; aspect-ratio: 560 / 320; display: block; border-radius: 10px; background: #11141b; }
+    dialog.peek .cap { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 0.88rem; flex-wrap: wrap; }
+    dialog.peek .close { position: absolute; right: 18px; top: 18px; background: #000b; color: #fff; border: 0;
+      border-radius: 999px; width: 30px; height: 30px; font-size: 1rem; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <main class="wrap kennel">
+    <header>
+      <h1 id="title">🐾 The Mega-Kennel</h1>
+      <p class="tagline" id="subtitle">Every dog, ever.</p>
+    </header>
+    <div id="content"><p class="notice">Rounding up every dog ever…</p></div>
+    <footer>Every dog here was rolled once, on its day, and kept. <a href="/">Roll your own →</a></footer>
+  </main>
+  <dialog class="peek" id="peek"></dialog>
+  <script type="module" src="/mega-page.js"></script>
+</body>
+</html>

@@ -355,6 +355,8 @@ footer {
   font-size: 0.78rem;
 }
 
+footer a { color: #7dd3fc; }
+
 /* ---------- animations ---------- */
 
 @keyframes pop {
