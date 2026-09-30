@@ -433,7 +433,7 @@ dogs: lose the browser, lose the dogs. An **account** puts a public username in 
 that private id. `src/accounts.js` holds it; `public/account.js` is the UI.
 
 - **Claiming.** A browser with no account is asked once a day ("Not now" snoozes it) to
-  pick a username and an emoji PIN (4–6 taps on a 16-key pad). Its existing dogs stay
+  pick a username and an emoji PIN (3–6 taps on a 3×3 pad of nine). Its existing dogs stay
   where they are; the account just points at them.
 - **Signing in.** A browser with no id at all asks "new here, or played before?" A
   username and PIN hand the private id back, so a second device gets the same dog. PINs

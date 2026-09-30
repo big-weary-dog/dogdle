@@ -128,7 +128,15 @@ export async function accountOwners(env) {
   let cursor;
   do {
     const listed = await env.STORE.list({ prefix: "owner:", cursor });
-    for (const k of listed.keys) if (k.metadata?.username) owners.set(k.name.slice("owner:".length), k.metadata.username);
+    for (const k of listed.keys) {
+      const { username, plays } = k.metadata ?? {};
+      if (!username) continue;
+      const web = k.name.slice("owner:".length);
+      const linked = Boolean(plays) && plays !== web;
+      owners.set(web, { username, linked });
+      // A linked account's Discord player is the same person, under the same username.
+      if (linked) owners.set(plays, { username, linked });
+    }
     cursor = listed.list_complete === false ? listed.cursor : undefined;
   } while (cursor);
   return owners;

@@ -447,10 +447,10 @@ footer a { color: #7dd3fc; }
 .pin-slots span { width: 36px; height: 40px; display: grid; place-items: center; border-radius: 10px;
   background: #0f1219; border: 1px solid var(--line); font-size: 1.2rem; color: var(--muted); }
 .pin-slots span.on { border-color: #65a30d; color: var(--text); }
-.pin-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 260px; margin: 0 auto; }
 .pin-grid button { aspect-ratio: 1.25; font-size: 1.6rem; border-radius: 12px; border: 1px solid var(--line);
   background: #1a1f29; cursor: pointer; }
 .pin-grid button:active { transform: scale(0.94); background: #273043; }
-.pin-tools { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.85rem; }
+.pin-tools { display: flex; justify-content: space-between; max-width: 260px; margin: 8px auto 0; font-size: 0.85rem; }
 .link-code { font-family: ui-monospace, Menlo, monospace; font-size: 1.15rem; letter-spacing: 0.04em;
   background: #0f1219; border: 1px dashed #475569; border-radius: 10px; padding: 12px; margin: 4px 0 0; user-select: all; }

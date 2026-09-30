@@ -35,14 +35,19 @@ const brief = (d) => d && { name: d.name, breed: d.breed, score: d.score, date: 
 
 export async function megaKennelData(env, origin) {
   const [{ keys, truncated }, owners] = await Promise.all([allRows(env), accountOwners(env)]);
-  // A web player with an account is shown under their public username instead.
+  // Anyone with an account -- web, or Discord linked to one -- links by public username.
+  // A linked account's /u/ cards draw its Discord dogs, so a web dog left behind by the
+  // link (a day both had rolled) gets no card rather than the wrong one.
   const links = (player, date) => {
-    if (isDiscord(player)) return { image: `${origin}/i/${player}/${date}.gif`, kennel: `${origin}/kennel/${player}` };
-    const username = owners.get(player);
-    return username ? { image: `${origin}/u/${username}/${date}.gif`, kennel: `${origin}/kennel/${username}` } : {};
+    const account = owners.get(player);
+    const kennel = account ? `${origin}/kennel/${account.username}` : `${origin}/kennel/${player}`;
+    if (isDiscord(player)) return { image: `${origin}/i/${player}/${date}.gif`, kennel };
+    if (!account) return {};
+    return { ...(account.linked ? {} : { image: `${origin}/u/${account.username}/${date}.gif` }), kennel };
   };
 
-  // Player ids stay in here, as a grouping key. Only Discord ones are ever sent.
+  // Player ids stay in here, as a grouping key, never sent. One kennel is one row, even
+  // when its dogs were rolled under two ids (web, then Discord after a link).
   const players = new Map();
   const dogs = [];
   for (const { name: key, metadata: row } of keys) {
@@ -65,7 +70,8 @@ export async function megaKennelData(env, origin) {
     };
     dogs.push(dog);
 
-    const p = players.get(player) ?? { name: "", dogs: 0, frogs: 0, total: 0, best: null, last: "" };
+    const group = dog.kennel ?? player;
+    const p = players.get(group) ?? { name: "", dogs: 0, frogs: 0, total: 0, best: null, last: "" };
     p.dogs++;
     // The most recent name a player went by is the one they're listed under.
     if (date >= p.last) { p.last = date; if (dog.owner) p.name = dog.owner; }
@@ -75,7 +81,7 @@ export async function megaKennelData(env, origin) {
       if (!p.best || dog.score > p.best.score) p.best = dog;
     }
     if (dog.kennel) p.kennel = dog.kennel;
-    players.set(player, p);
+    players.set(group, p);
   }
   if (truncated) log.warn("mega.truncated", { rows: keys.length });
 

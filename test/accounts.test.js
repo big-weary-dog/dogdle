@@ -104,6 +104,10 @@ test("a username can't be taken twice, or pose as a Discord player", async () =>
   assert.equal(twice.status, 409, "one account per player id");
   const odd = await site(e, "/api/account/claim", { player: "aaaaaaaa-2222", username: "fine", pin: ["🐶", "A", "🎾", "🐸"] });
   assert.equal(odd.status, 400, "a PIN only uses the keypad");
+  const short = await site(e, "/api/account/claim", { player: "aaaaaaaa-3333", username: "shorty", pin: ["🐶", "🐶", "🌈"] });
+  assert.equal(short.status, 200, "three taps is enough");
+  const shorter = await site(e, "/api/account/claim", { player: "aaaaaaaa-4444", username: "shorter", pin: ["🐶", "🌈"] });
+  assert.equal(shorter.status, 400);
   assert.deepEqual(await (await site(e, "/api/account/check?username=Molossus")).json(), { available: false, problem: "taken" });
 });
 
@@ -167,6 +171,12 @@ test("linking to Discord moves the web dogs over and deals the same dog on both"
   const web = await (await site(e, `/api/roll?player=${WEB}`)).json();
   assert.equal(web.name, discordToday.name, "the website now deals the Discord dog");
   assert.equal((await (await site(e, `/api/account?player=${WEB}`)).json()).discord, true);
+
+  const mega = await (await site(e, "/api/kennels")).json();
+  assert.equal(mega.kennels.length, 1, "one person, one kennel row");
+  assert.equal(mega.kennels[0].kennel, `${ORIGIN}/kennel/molossus`, "linked, still listed by username");
+  assert.ok(mega.all.every((d) => d.kennel === `${ORIGIN}/kennel/molossus`));
+  assert.ok(!JSON.stringify(mega).includes(WEB));
 
   const reuse = await bot(e, "link", { discordId: SNOWFLAKE, code });
   assert.equal(reuse.status, 404, "a code works once");
