@@ -86,8 +86,23 @@ const getUser = (env, username) => env.STORE.get(userKey(username), "json");
 // The player id a browser's private id actually rolls as. One read, on every web route
 // that takes a player: a linked account plays its Discord dog.
 export async function playsAs(env, player) {
+  // Usually one hop. A browser folded into another web player (src/meld.js) follows that
+  // player on, e.g. to the Discord player it links to later.
+  let plays = player;
+  for (let hop = 0; hop < 3; hop++) {
+    const owner = await env.STORE.get(ownerKey(plays), "json");
+    if (!owner?.plays || owner.plays === plays) break;
+    plays = owner.plays;
+  }
+  return plays;
+}
+
+// A browser's owner record -- or, for a browser folded into another web player, that
+// player's, so both browsers show the same account.
+async function accountOwner(env, player) {
   const owner = await env.STORE.get(ownerKey(player), "json");
-  return owner?.plays || player;
+  if (owner?.username || !owner?.plays || owner.plays.startsWith("discord-")) return owner;
+  return (await env.STORE.get(ownerKey(owner.plays), "json")) ?? owner;
 }
 
 async function writeOwner(env, player, username, plays) {
@@ -166,9 +181,11 @@ export async function handleAccount(request, url, env) {
   if (route === "" && request.method === "GET") {
     const player = url.searchParams.get("player") || "";
     if (!PLAYER_ID_RE.test(player)) return json({ error: "invalid player id" }, 400);
-    const owner = await env.STORE.get(ownerKey(player), "json");
+    const owner = await accountOwner(env, player);
     const user = owner?.username && (await getUser(env, owner.username));
-    return json(user ? accountView(owner.username, user) : { username: null });
+    // `melded`: no account, but a player to roll as all the same (src/meld.js).
+    return json(user ? accountView(owner.username, user)
+      : { username: null, ...(owner?.plays && owner.plays !== player ? { melded: true } : {}) });
   }
 
   // Whether a username is free, as it's typed. Usernames are public, so this gives nothing away.
@@ -192,20 +209,24 @@ export async function handleAccount(request, url, env) {
     if (problem) return json({ error: problem }, 400);
 
     const username = canonical(handle);
-    const owner = await env.STORE.get(ownerKey(player), "json");
-    if (owner?.username) return json({ error: "this browser already has an account" }, 409);
+    const owner = await accountOwner(env, player);
+    if (owner?.username) return json({ error: `this browser already belongs to ${owner.username}: sign in` }, 409);
     if (await getUser(env, username)) return json({ error: "taken" }, 409);
-    // A browser melded into a Discord player already plays as it: its account is linked.
-    const discordId = owner?.plays?.startsWith("discord-") ? owner.plays.slice("discord-".length) : null;
+    // A browser melded by hand already plays as someone: the account is theirs. Into a
+    // Discord player, it comes out linked; into another web player, it owns that one's dogs.
+    const plays = await playsAs(env, player);
+    const discordId = plays.startsWith("discord-") ? plays.slice("discord-".length) : null;
+    const home = discordId ? player : plays;
     if (discordId && (await env.STORE.get(discordLinkKey(discordId)))) {
       return json({ error: "that Discord player already has an account: sign in to it instead" }, 409);
     }
 
-    const user = { handle, player, pin: await hashPin(b.pin), created: new Date().toISOString(),
+    const user = { handle, player: home, pin: await hashPin(b.pin), created: new Date().toISOString(),
       ...(discordId ? { discord: discordId } : {}) };
     await env.STORE.put(userKey(username), JSON.stringify(user));
     if (discordId) await env.STORE.put(discordLinkKey(discordId), username);
-    await writeOwner(env, player, username, owner?.plays || player);
+    await writeOwner(env, home, username, plays);
+    if (home !== player) await writeOwner(env, player, username, plays);
     log.info("account.claimed", { username });
     return json(accountView(username, user));
   }
@@ -261,14 +282,15 @@ async function listAll(env, prefix) {
   return keys;
 }
 
-// A web player's dogs join a Discord player's history, on every day the Discord player
-// hadn't rolled, each with its board row. Nothing is re-dealt: a moved dog is the stored
+// A web player's dogs join another player's history -- a Discord player's, or (melding by
+// hand) another web player's -- on every day that player hadn't rolled, each with its
+// board row. `rename` puts the new owner's name on the moved rows. Nothing is re-dealt: a moved dog is the stored
 // roll, byte for byte, and the web copy stays stored. A day both rolled keeps the Discord
 // dog; with `dropDuplicates` the web one comes off that day's board, so the day lists one
 // dog for the person. `only` limits it to one date; `dryRun` counts without writing.
-export async function moveRolls(env, web, discordId, { only, dropDuplicates = true, dryRun = false } = {}) {
-  const discord = `discord-${discordId}`;
-  const taken = new Set((await listAll(env, `roll:${discord}:`)).map((k) => k.name.split(":").at(-1)));
+export async function moveRolls(env, web, to, { only, dropDuplicates = true, dryRun = false, rename } = {}) {
+  const discordId = to.startsWith("discord-") ? to.slice("discord-".length) : null;
+  const taken = new Set((await listAll(env, `roll:${to}:`)).map((k) => k.name.split(":").at(-1)));
   const webRolls = (await listAll(env, `roll:${web}:`))
     .map((k) => ({ date: k.name.split(":").at(-1), metadata: k.metadata }))
     .filter((r) => !only || r.date === only);
@@ -286,10 +308,11 @@ export async function moveRolls(env, web, discordId, { only, dropDuplicates = tr
     if (dryRun) { moved++; continue; }
     const value = await env.STORE.get(rollKey(web, date));
     if (!value) continue;
-    await env.STORE.put(rollKey(discord, date), value, metadata ? { metadata } : {});
+    await env.STORE.put(rollKey(to, date), value, metadata ? { metadata } : {});
     const { metadata: row } = await env.STORE.getWithMetadata(dayKey(date, web));
     if (row) {
-      await env.STORE.put(dayKey(date, discord), "", { metadata: { ...row, discordId } });
+      await env.STORE.put(dayKey(date, to), "", { metadata: {
+        ...row, ...(discordId ? { discordId } : {}), ...(rename ? { player: rename } : {}) } });
       await env.STORE.delete(dayKey(date, web));
     }
     moved++;
@@ -297,10 +320,10 @@ export async function moveRolls(env, web, discordId, { only, dropDuplicates = tr
   return { moved, kept, skipped };
 }
 
-// An anonymous browser melded into a Discord player by hand (src/meld.js): it plays as
-// that player from now on, with no username yet. Claiming one later links the account.
-export async function bindToDiscord(env, web, discordId) {
-  await writeOwner(env, web, null, `discord-${discordId}`);
+// An anonymous browser melded by hand (src/meld.js) into a Discord player or another web
+// player: it plays as that player from now on, with no username yet.
+export async function bindTo(env, web, plays) {
+  await writeOwner(env, web, null, plays);
 }
 
 export const ownerRecord = (env, player) => env.STORE.get(ownerKey(player), "json");
@@ -322,7 +345,7 @@ export async function linkDiscord(env, discordId, rawCode) {
 
   const web = user.player;
   const discord = `discord-${discordId}`;
-  const { moved, kept, skipped } = await moveRolls(env, web, discordId);
+  const { moved, kept, skipped } = await moveRolls(env, web, discord);
   if (skipped) log.warn("account.link_truncated", { username, moved, skipped });
 
   user.discord = discordId;

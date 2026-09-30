@@ -8,6 +8,8 @@ name: Meld web players into Discord
 # Leave `apply` empty to only look. To meld, list pairs as `web name=discord id`, separated
 # by `;`. With `date`, each pair hands over that one day's dog instead and binds nothing;
 # write the left side as `dog:<dog name>` to pick it by the dog (for a nameless player).
+# Write the right side as `web:<name>` to fold into a web player instead (one person, two
+# browsers): the moved dogs take that player's name.
 on:
   workflow_dispatch:
     inputs:
@@ -78,7 +80,9 @@ jobs:
           for pair in filter(None, (s.strip() for s in os.environ["APPLY"].split(";"))):
               name, _, discord = pair.rpartition("=")
               name = name.strip()
-              body = {"discordId": discord.strip(), "dryRun": dry}
+              discord = discord.strip()
+              body = {"into": discord[4:].strip()} if discord.startswith("web:") else {"discordId": discord}
+              body["dryRun"] = dry
               if name.startswith("dog:"):
                   body["dog"] = name[4:].strip()
               else:

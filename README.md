@@ -433,8 +433,8 @@ A web player's id is a random UUID in `localStorage`, and it is the only key to 
 dogs: lose the browser, lose the dogs. An **account** puts a public username in front of
 that private id. `src/accounts.js` holds it; `public/account.js` is the UI.
 
-- **Claiming.** A browser with no account is asked once a day ("Not now" snoozes it) to
-  pick a username and an emoji PIN (3–6 taps on a 3×3 pad of nine). Its existing dogs stay
+- **Claiming.** A browser with no account is asked once a day ("Not now" snoozes it), and
+  again whenever it pulls the lever, to pick a username and an emoji PIN (3–6 taps on a 3×3 pad of nine). Its existing dogs stay
   where they are; the account just points at them.
 - **Signing in.** A browser with no id at all asks "new here, or played before?" A
   username and PIN hand the private id back, so a second device gets the same dog. PINs
@@ -454,7 +454,8 @@ There's no PIN reset yet: a forgotten PIN means deleting `user:<name>` by hand.
 who rolled on the web anonymously before accounts existed. A plan lists every anonymous
 web player by name beside the Discord names that sound closest; the pairs you approve
 move over (never onto a day Discord already has a dog for), and those browsers roll as
-the Discord player from then on. With a date, one historic dog changes hands instead.
+the Discord player from then on. With a date, one historic dog changes hands instead;
+with `web:<name>`, one person's two browsers fold into one web player and its name.
 
 ### Test rolls
 

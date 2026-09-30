@@ -438,7 +438,7 @@ export async function handleBot(request, url, env) {
       return json({ error: "body must be json" }, 400);
     }
     const discordId = String(body?.discordId ?? "");
-    if (!SNOWFLAKE_RE.test(discordId)) return json({ error: "invalid discordId" }, 400);
+    if (body?.into === undefined && !SNOWFLAKE_RE.test(discordId)) return json({ error: "invalid discordId" }, 400);
     const { status, body: out } = await meldApply(env, { ...body, discordId });
     return json(out, status);
   }

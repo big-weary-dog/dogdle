@@ -1,6 +1,7 @@
 // Accounts on the web page: a public username and an emoji PIN in front of the private
 // player id this browser keeps (src/accounts.js has the why). Three ways in:
-//   - a browser with dogs but no account is asked to claim them, once a day until it does;
+//   - a browser with dogs but no account is asked to claim them, once a day until it does,
+//     and before it pulls the lever -- a dog is always rolled by someone with a name;
 //   - a browser with nothing asks who you are: sign in, or start fresh;
 //   - an account without Discord gets a "Sync with Discord" button.
 // Everything shown is set as text -- usernames come from players.
@@ -15,6 +16,9 @@ const LATER_KEY = "dogdle-claim-later";
 const POLL_MS = 4000;
 
 const today = () => new Date().toISOString().slice(0, 10);
+
+// Whether this browser has a name to roll under: an account, or melded into a player by hand.
+let identified = false;
 
 function el(tag, props = {}, ...children) {
   const node = document.createElement(tag);
@@ -108,7 +112,7 @@ function usernameField() {
 }
 
 // Pick a username and PIN, confirm the PIN, and claim `player` -- or a fresh id.
-function createScreen(resolve, { player, claiming }) {
+function createScreen(resolve, { player, claiming, required }) {
   const name = usernameField();
   const note = status();
   let check = 0;
@@ -130,23 +134,26 @@ function createScreen(resolve, { player, claiming }) {
   next.onclick = () => {
     if (!name.value.trim()) return say(note, "Pick a username first");
     const first = pad.keys();
-    confirmScreen(resolve, { player, claiming, handle: name.value.trim(), first });
+    confirmScreen(resolve, { player, claiming, required, handle: name.value.trim(), first });
   };
 
-  screen(claiming ? "🐾 Claim your dogs" : "🐶 New player",
-    claiming
+  screen(required ? "🐾 Who's rolling?" : claiming ? "🐾 Claim your dogs" : "🐶 New player",
+    required
+      ? "Pick a username and an emoji PIN before you pull. Your dogs so far come with you."
+      : claiming
       ? "Pick a username and an emoji PIN. Your dogs so far come with you, and you can sign in on any device."
       : "Pick a username and an emoji PIN. It's how you sign in on another device.",
     name, el("p", { className: "label", textContent: `Your PIN: ${PIN_MIN} to ${PIN_MAX} emoji` }), pad.node, note, next,
     el("div", { className: "account-links" },
-      el("button", { type: "button", className: "link", textContent: "I already have a username", onclick: () => signInScreen(resolve, { claiming }) }),
-      claiming ? el("button", { type: "button", className: "link", textContent: "Not now", onclick: () => {
+      el("button", { type: "button", className: "link", textContent: "I already have a username", onclick: () => signInScreen(resolve, { claiming, required }) }),
+      required ? el("button", { type: "button", className: "link", textContent: "Cancel", onclick: () => { modal().close(); resolve(null); } })
+      : claiming ? el("button", { type: "button", className: "link", textContent: "Not now", onclick: () => {
         store.set(LATER_KEY, today()); modal().close(); resolve(null);
       } }) : el("button", { type: "button", className: "link", textContent: "← Back", onclick: () => welcomeScreen(resolve) })));
   name.focus();
 }
 
-function confirmScreen(resolve, { player, claiming, handle, first }) {
+function confirmScreen(resolve, { player, claiming, required, handle, first }) {
   const note = status();
   const done = el("button", { type: "button", className: "account-go", textContent: claiming ? "Claim my dogs" : "Start playing", disabled: true });
   const pad = pinPad({ onChange: (k) => { done.disabled = k.length !== first.length; } });
@@ -169,10 +176,10 @@ function confirmScreen(resolve, { player, claiming, handle, first }) {
   screen("🔁 Once more", `Tap the same PIN again, ${handle}. Remember it: it's the only way back in on a new device.`,
     pad.node, note, done,
     el("div", { className: "account-links" },
-      el("button", { type: "button", className: "link", textContent: "← Change it", onclick: () => createScreen(resolve, { player, claiming }) })));
+      el("button", { type: "button", className: "link", textContent: "← Change it", onclick: () => createScreen(resolve, { player, claiming, required }) })));
 }
 
-function signInScreen(resolve, { claiming }) {
+function signInScreen(resolve, { claiming, required }) {
   const name = usernameField();
   const note = status();
   const go = el("button", { type: "button", className: "account-go", textContent: "Sign in", disabled: true });
@@ -200,7 +207,7 @@ function signInScreen(resolve, { claiming }) {
     name, pad.node, note, go,
     el("div", { className: "account-links" },
       el("button", { type: "button", className: "link", textContent: "← Back",
-        onclick: () => (claiming ? createScreen(resolve, { player: store.get(PLAYER_KEY), claiming }) : welcomeScreen(resolve)) })));
+        onclick: () => (claiming ? createScreen(resolve, { player: store.get(PLAYER_KEY), claiming, required }) : welcomeScreen(resolve)) })));
   name.focus();
 }
 
@@ -276,16 +283,32 @@ function renderBar(account, { claim }) {
 
 // Settles who is playing before the game asks the server for a dog. Resolves with the
 // account, or null to carry on as an anonymous browser (offline, or "not now").
+async function claim() {
+  modal().dataset.locked = "1";
+  const account = await new Promise((resolve) => createScreen(resolve, { player: store.get(PLAYER_KEY), claiming: true }));
+  if (account) location.reload();
+}
+
+// The lever calls this first. Resolves true to roll, false if they backed out (or signed
+// in as someone else, which reloads the page as that player).
+export async function ensureIdentified() {
+  if (identified) return true;
+  const before = store.get(PLAYER_KEY);
+  modal().dataset.locked = "1";
+  const account = await new Promise((resolve) => createScreen(resolve, { player: before, claiming: true, required: true }));
+  delete modal().dataset.locked;
+  if (!account) return false;
+  if (store.get(PLAYER_KEY) !== before) { location.reload(); return false; }
+  identified = true;
+  renderBar(account, { claim });
+  return true;
+}
+
 export async function accountGate() {
   const player = store.get(PLAYER_KEY);
   const ask = (claiming) => new Promise((resolve) => (claiming
     ? createScreen(resolve, { player, claiming: true })
     : welcomeScreen(resolve)));
-  const claim = async () => {
-    modal().dataset.locked = "1";
-    const account = await new Promise((resolve) => createScreen(resolve, { player: store.get(PLAYER_KEY), claiming: true }));
-    if (account) location.reload();
-  };
 
   // Esc mustn't dismiss the question without an answer: the game is waiting on it.
   modal().dataset.locked = "1";
@@ -299,10 +322,12 @@ export async function accountGate() {
         account = data;
       } else {
         store.drop(USER_KEY);
+        identified = Boolean(data.melded);
         if (store.get(LATER_KEY) !== today()) account = await ask(true);
       }
     } catch {
       // Offline or the server's down: play on as this browser, and ask another day.
+      identified = true;
       return null;
     }
   } else {
@@ -310,6 +335,7 @@ export async function accountGate() {
   }
   if (modal().open) modal().close();
   delete modal().dataset.locked;
+  if (account) identified = true;
   renderBar(account, { claim });
   return account;
 }

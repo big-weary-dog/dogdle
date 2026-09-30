@@ -1,5 +1,5 @@
 import { Scene, subjectStyle } from "/effects.js";
-import { accountGate, username } from "/account.js";
+import { accountGate, ensureIdentified, username } from "/account.js";
 
 const PLAYER_KEY = "dogdle-player-id";
 const NAME_KEY = "dogdle-name";
@@ -498,8 +498,10 @@ async function init() {
     s.start();
   }
 
-  pullBtn.onclick = async () => {
+  pullBtn.onclick = async function pull() {
     pullBtn.onclick = null;
+    // No dog without a name: an unidentified browser picks a username (or signs in) first.
+    if (!(await ensureIdentified())) { pullBtn.onclick = pull; return; }
     try {
       const res = await fetch(
         `/api/roll?player=${encodeURIComponent(getPlayerId())}&name=${encodeURIComponent(getName())}`

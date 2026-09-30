@@ -109,6 +109,9 @@ test("a meld moves the web days Discord hadn't rolled, and binds the browser", a
 
   assert.equal((await bot(e, "meld", { name: "fel_fox", discordId: FEL })).status, 404, "nothing left under that name");
 
+  assert.deepEqual(await (await site(e, `/api/account?player=${FEL_WEB}`)).json(), { username: null, melded: true },
+    "it rolls as Discord without being asked who it is");
+
   // The melded browser can still claim a username, and comes out linked.
   const claim = await site(e, "/api/account/claim", { player: FEL_WEB, username: "Fel", pin: ["🐶", "🦴", "🎾"] });
   assert.equal(claim.status, 200);
@@ -137,6 +140,35 @@ test("one historic dog can be handed over by date, without binding its browser",
   const clash = await (await bot(e, "meld", { name: "fel_fox", discordId: FEL, date: "2026-09-02" })).json();
   assert.deepEqual([clash.moved, clash.kept], [0, 1]);
   assert.ok(e.STORE.store.has(dayKey("2026-09-02", FEL_WEB)));
+});
+
+test("one person on two browsers folds into one web player, and keeps that name", async () => {
+  const e = await world();
+  const MOL = "b0b0b0b0-1111-4a4a-9b9b-222233334444";
+  const RAEP = "c1c1c1c1-1111-4a4a-9b9b-222233334444";
+  await put(e, MOL, "Molossus", "2026-09-01");
+  await put(e, RAEP, "Raepdog", "2026-09-01");
+  await put(e, RAEP, "Raepdog", "2026-09-02");
+
+  const out = await (await bot(e, "meld", { name: "Raepdog", into: "Molossus" })).json();
+  assert.deepEqual([out.moved, out.kept, out.bound], [1, 1, 1]);
+  assert.equal(e.STORE.store.get(dayKey("2026-09-02", MOL)).metadata.player, "Molossus", "moved dogs take the name");
+  assert.equal(e.STORE.store.get(dayKey("2026-09-02", MOL)).metadata.discordId, undefined);
+
+  // Claiming on the folded browser claims Molossus's dogs; the other browser sees it too.
+  const claim = await site(e, "/api/account/claim", { player: RAEP, username: "Molossus", pin: ["🐶", "🦴", "🎾"] });
+  assert.equal(claim.status, 200);
+  assert.equal((await (await site(e, `/api/account?player=${MOL}`)).json()).username, "molossus");
+  const login = await (await site(e, "/api/account/login", { username: "molossus", pin: ["🐶", "🦴", "🎾"] })).json();
+  assert.equal(login.player, MOL);
+  const again = await site(e, "/api/account/claim", { player: MOL, username: "Other", pin: ["🐶", "🦴", "🎾"] });
+  assert.equal(again.status, 409);
+
+  // Later linked to Discord: the folded browser follows along.
+  const { code } = await (await site(e, "/api/account/link-code", { player: RAEP })).json();
+  assert.equal((await bot(e, "link", { discordId: FEL, code })).status, 200);
+  const { playsAs } = await import("../src/accounts.js");
+  assert.equal(await playsAs(e, RAEP), `discord-${FEL}`);
 });
 
 test("meld needs the bot token", async () => {
