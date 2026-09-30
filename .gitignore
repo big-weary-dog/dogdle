@@ -6,3 +6,5 @@ cards/
 /sheet*.png
 /card-*.gif
 /kennel-*.gif
+# Scratch git worktrees for parallel agents
+.claude/worktrees/
