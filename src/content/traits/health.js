@@ -72,4 +72,10 @@ export const HEALTH = [
     effect: { type: "tint", layer: "subject", params: { sepia: 0.25, hue: 340, saturate: 1.4 } } },
   { text: "Bitten on the nose by a bat. Unvaccinated.", emoji: "🦇", value: -4, category: "health", effect: null },
   { text: "Mummified once. Got better.", emoji: "⚱️", value: -2, category: "health", effect: null },
+  // The writers' room, round one: five angles, three reviewers, fifty keepers.
+  { text: "Grass sommelier. Throws up bad years.", emoji: "🍷", value: -1, category: "health", effect: null },
+  { text: "His X-ray shows a small key", emoji: "🩻", value: 0, category: "health", effect: null },
+  { text: "Farts, then leaves the room offended", emoji: "💨", value: -2, category: "health", effect: null },
+  { text: "Hears cheese unwrapped two floors up", emoji: "🧀", value: 2, category: "health", effect: null },
+  { text: "Poisoned, shot, drowned. Still here.", emoji: "☠️", value: 1, category: "health", effect: null },
 ];

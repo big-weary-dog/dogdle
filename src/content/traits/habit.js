@@ -98,4 +98,15 @@ export const HABIT = [
   { text: "Keeps a burner phone", emoji: "📱", value: -2, category: "habit", effect: null },
   { text: "Sold you an NFT of himself", emoji: "🖼️", value: -3, category: "habit", effect: null },
   { text: "Ate the homework. Did it first.", emoji: "📝", value: 2, category: "habit", effect: null },
+  // The writers' room, round one: five angles, three reviewers, fifty keepers.
+  { text: "Splits it evenly. Had the lobster.", emoji: "🦞", value: -2, category: "habit", effect: null },
+  { text: "Points at the fence before pooping", emoji: "⚾", value: 0, category: "habit", effect: null },
+  { text: "Has found the pill in 400 cheeses", emoji: "💊", value: -2, category: "habit", effect: null },
+  { text: "Puts the divider down for you", emoji: "🛍️", value: 2, category: "habit", effect: null },
+  { text: "Speedruns the walk. Any%.", emoji: "🏃", value: 1, category: "habit", effect: null },
+  { text: "Dug something up. Put it back.", emoji: "🕳️", value: -1, category: "habit", effect: null },
+  { text: "Left the vet a one-star review", emoji: "📝", value: -2, category: "habit", effect: null },
+  { text: "Same ball. Same hill. Every day.", emoji: "⛰️", value: -1, category: "habit", effect: null },
+  { text: "Paid the fake UPS text. Twice.", emoji: "📦", value: -3, category: "habit", effect: null },
+  { text: "Removes squeakers like a bomb tech", emoji: "💣", value: 1, category: "habit", effect: null },
 ];

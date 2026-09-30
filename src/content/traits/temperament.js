@@ -158,4 +158,18 @@ export const TEMPERAMENT = [
   { text: "Quiet-quit being a good boy", emoji: "🪫", value: -2, category: "temperament", effect: null },
   { text: "Unspoken rizz", emoji: "😏", value: 2, category: "temperament", effect: null },
   { text: "Knows the Wi-Fi password. Won't share.", emoji: "📶", value: -1, category: "temperament", effect: null },
+  // The writers' room, round one: five angles, three reviewers, fifty keepers.
+  { text: "Tilts his head. Charges dropped.", emoji: "🥺", value: 3, category: "temperament", effect: null },
+  { text: "Would prefer not to", emoji: "🗂️", value: -2, category: "temperament", effect: null },
+  { text: "Took the fall for the cat", emoji: "🐈", value: 3, category: "temperament", effect: null },
+  { text: "Never talks about Belgium", emoji: "🤐", value: -1, category: "temperament", effect: null },
+  { text: "Wants to talk about an opportunity", emoji: "💼", value: -3, category: "temperament", effect: null },
+  { text: "Spells walk. You've moved to French.", emoji: "📝", value: 1, category: "temperament", effect: null },
+  { text: "Reported your fence to the HOA", emoji: "📏", value: -3, category: "temperament", effect: null },
+  { text: "Mods a Discord server. Power-mad.", emoji: "🛡️", value: -2, category: "temperament", effect: null },
+  { text: "Not the same since the magician", emoji: "🎩", value: -2, category: "temperament", effect: null },
+  { text: "Took the credit for Togo's run", emoji: "🛷", value: -2, category: "temperament", effect: null },
+  { text: "Forgave you for something you forgot", emoji: "🕊️", value: 2, category: "temperament", effect: null },
+  { text: "Told a king to stand out of his sun", emoji: "🛢️", value: 1, category: "temperament", effect: null },
+  { text: "Throws a homecoming after the bins", emoji: "🎉", value: 3, category: "temperament", effect: null },
 ];

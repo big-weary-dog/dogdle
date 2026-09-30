@@ -187,4 +187,10 @@ export const CONDITION = [
   { text: "Replaced a leg with a better leg", emoji: "🦿", value: 1, category: "condition", effect: null },
   { text: "Needs charging overnight", emoji: "🔋", value: -1, category: "condition", effect: null },
   { text: "Two corgis in a trench coat", emoji: "🧥", value: -1, category: "condition", effect: null },
+  // The writers' room, round one: five angles, three reviewers, fifty keepers.
+  { text: "Gold tooth. Not his.", emoji: "🦷", value: 1, category: "condition", effect: null },
+  { text: "A spider wrote SOME DOG over him", emoji: "🕸️", value: 2, category: "condition", effect: null },
+  { text: "Hollow. Full of Greeks.", emoji: "🐴", value: -3, category: "condition", effect: null },
+  { text: "Left the woods in a nicer collar", emoji: "🌲", value: 1, category: "condition", effect: null },
+  { text: "Smiles. People call animal control.", emoji: "😬", value: -1, category: "condition", effect: null },
 ];
