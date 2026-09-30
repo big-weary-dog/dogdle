@@ -18,7 +18,7 @@ export const MEGA_MAX_PAGES = 20;
 
 const isDiscord = (player) => player.startsWith("discord-");
 
-async function allRows(env) {
+export async function allRows(env) {
   const keys = [];
   let cursor;
   let pages = 0;

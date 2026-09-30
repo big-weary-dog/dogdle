@@ -1,0 +1,86 @@
+name: Meld web players into Discord
+
+# Run by hand. Folds an anonymous web player into the Discord player they turned out to be
+# (src/meld.js), through the live bot API. Every run prints the plan first: web players by
+# name (never their private id), the Discord names that sound closest, and how many days
+# both rolled. A day the Discord player already has a dog for is never merged.
+#
+# Leave `apply` empty to only look. To meld, list pairs as `web name=discord id`, separated
+# by `;`. With `date`, each pair hands over that one day's dog instead and binds nothing.
+on:
+  workflow_dispatch:
+    inputs:
+      dog:
+        description: "Optional: also find dogs with this name"
+        default: ""
+        required: false
+      apply:
+        description: "Optional: pairs to meld, e.g. fel_fox=185432123456789012; Beth=..."
+        default: ""
+        required: false
+      date:
+        description: "Optional: hand over only this day's dog (YYYY-MM-DD)"
+        default: ""
+        required: false
+      dry_run:
+        description: "Count what would move without writing"
+        type: boolean
+        default: true
+
+jobs:
+  meld:
+    runs-on: ubuntu-latest
+    env:
+      TOKEN: ${{ secrets.DOGDLE_BOT_TOKEN }}
+      BASE: https://dogdle.swampkat.com
+      DOG: ${{ inputs.dog }}
+      APPLY: ${{ inputs.apply }}
+      DATE: ${{ inputs.date }}
+      DRY: ${{ inputs.dry_run }}
+    steps:
+      - name: Plan
+        run: |
+          set -euo pipefail
+          curl -sS --fail-with-body -G "$BASE/api/bot/meld" --data-urlencode "dog=$DOG" \
+            -H "authorization: Bearer $TOKEN" > plan.json
+          python3 - <<'PY'
+          import json
+          p = json.load(open("plan.json"))
+          print(f"=== anonymous web players ({len(p['anonymous'])}; {p['accounts']} more have accounts or are melded) ===")
+          for w in p["anonymous"]:
+              aka = f"  aka {', '.join(w['aka'])}" if w["aka"] else ""
+              same = f"  [{w['sharesName']} browsers share this name]" if w.get("sharesName") else ""
+              b = w["best"]
+              print(f"\n{w['name']}: {w['dogs']} dogs, {w['first']} to {w['last']}, best {b['name']} the {b['breed']} {b['score']:+d}{aka}{same}")
+              for m in w["matches"]:
+                  print(f"    {m['score']:.2f}  {m['name']:<24} {m['discordId']}  {m['dogs']} dogs, {m['overlap']} days both rolled")
+              if not w["matches"]:
+                  print("    (no Discord name sounds like this)")
+          print(f"\n=== Discord players ({len(p['discord'])}) ===")
+          for d in p["discord"]:
+              print(f"  {d['name']:<24} {d['discordId']}  {d['dogs']} dogs")
+          if "found" in p:
+              print("\n=== dogs found ===")
+              for d in p["found"]:
+                  who = f"discord {d['discordId']}" if "discordId" in d else ("web account " + d["account"] if d.get("account") else "anonymous web")
+                  print(f"  {d['date']}  {d['dog']} the {d['breed']} {d['score']:+d}  rolled by {d['owner'] or '(no name)'} ({who})")
+          PY
+
+      - name: Apply
+        if: ${{ inputs.apply != '' }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, subprocess
+          dry = os.environ["DRY"] == "true"
+          date = os.environ["DATE"].strip()
+          for pair in filter(None, (s.strip() for s in os.environ["APPLY"].split(";"))):
+              name, _, discord = pair.rpartition("=")
+              body = {"name": name.strip(), "discordId": discord.strip(), "dryRun": dry}
+              if date:
+                  body["date"] = date
+              out = subprocess.run(["curl", "-sS", "-X", "POST", f"{os.environ['BASE']}/api/bot/meld",
+                  "-H", f"authorization: Bearer {os.environ['TOKEN']}", "-H", "content-type: application/json",
+                  "-d", json.dumps(body)], capture_output=True, text=True, check=True).stdout
+              print(("DRY RUN " if dry else "") + f"{name} -> {discord}: {out}")
+          PY

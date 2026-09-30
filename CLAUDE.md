@@ -120,7 +120,8 @@ fine; don't run two *balance corrections* at once.
 - **No egress** to dog.ceo, Cloudflare or swampkat.com from cloud sessions. Tests stub
   `fetch`. For anything live, use the manual GitHub Actions workflows: `bot-smoke.yml`
   (hits the prod bot API with test users), `kv-peek.yml` (read-only KV dump),
-  `photo-audit.yml` (find/repair rolls missing photos), `card-audit.yml` (recent Discord
+  `photo-audit.yml` (find/repair rolls missing photos), `meld.yml` (plan, then fold
+  anonymous web players into Discord players; `src/meld.js`), `card-audit.yml` (recent Discord
   cards end to end, plus Worker error counts), `verify-breeds.yml` (weekly slug check),
   `frog-photos.yml` (openly licensed frog photos from Commons onto a scratch branch).
   Report blocked hosts rather than trying to route around them.

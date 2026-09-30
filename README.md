@@ -252,6 +252,7 @@ src/
   kennel.js    a player's collection and its album image
   mega.js      the mega-kennel: every dog ever, from the board index
   accounts.js  web accounts: username + emoji PIN, and linking one to Discord
+  meld.js      folding anonymous web players into Discord players, by hand (meld.yml)
   roll.js      the deterministic generator and the Eastern day boundary
   content/     the content tables, one file per kind:
                  names.js, backgrounds.js, tiers.js, traits/<category>.js
@@ -448,6 +449,12 @@ that private id. `src/accounts.js` holds it; `public/account.js` is the UI.
   on a day both rolled, the Discord dog wins and the web one stays stored but off the board.
 
 There's no PIN reset yet: a forgotten PIN means deleting `user:<name>` by hand.
+
+**Melding** (`src/meld.js`, run from `meld.yml`) is the same move done by hand for players
+who rolled on the web anonymously before accounts existed. A plan lists every anonymous
+web player by name beside the Discord names that sound closest; the pairs you approve
+move over (never onto a day Discord already has a dog for), and those browsers roll as
+the Discord player from then on. With a date, one historic dog changes hands instead.
 
 ### Test rolls
 

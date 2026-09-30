@@ -18,6 +18,7 @@ import { buildKennel, renderKennelGif, summary, albumLayout } from "./kennel.js"
 import { photoFor, fetchPhotoBytes, backfillPhoto } from "./photo.js";
 import { cardKey, rollKey, dayKey, guildKey, kennelKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
 import { linkDiscord } from "./accounts.js";
+import { meldPlan, meldApply } from "./meld.js";
 import { log } from "./log.js";
 
 const SNOWFLAKE_RE = /^\d{5,24}$/;
@@ -423,6 +424,23 @@ export async function handleBot(request, url, env) {
       ? { ...out, kennel: kennelPage(url.origin, player), text: `Linked to ${out.handle} on the website.` +
           (out.moved ? ` ${out.moved} ${out.moved === 1 ? "dog" : "dogs"} joined your kennel.` : "") }
       : out, status);
+  }
+
+  // Operator-only: fold anonymous web players into their Discord players. See src/meld.js.
+  if (route === "meld" && request.method === "GET") {
+    return json(await meldPlan(env, { dog: url.searchParams.get("dog") || "" }));
+  }
+  if (route === "meld" && request.method === "POST") {
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return json({ error: "body must be json" }, 400);
+    }
+    const discordId = String(body?.discordId ?? "");
+    if (!SNOWFLAKE_RE.test(discordId)) return json({ error: "invalid discordId" }, 400);
+    const { status, body: out } = await meldApply(env, { ...body, discordId });
+    return json(out, status);
   }
 
   return json({ error: "no such bot route" }, 404);

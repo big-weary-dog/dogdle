@@ -167,7 +167,7 @@ export async function handleAccount(request, url, env) {
     const player = url.searchParams.get("player") || "";
     if (!PLAYER_ID_RE.test(player)) return json({ error: "invalid player id" }, 400);
     const owner = await env.STORE.get(ownerKey(player), "json");
-    const user = owner && (await getUser(env, owner.username));
+    const user = owner?.username && (await getUser(env, owner.username));
     return json(user ? accountView(owner.username, user) : { username: null });
   }
 
@@ -192,12 +192,20 @@ export async function handleAccount(request, url, env) {
     if (problem) return json({ error: problem }, 400);
 
     const username = canonical(handle);
-    if (await env.STORE.get(ownerKey(player), "json")) return json({ error: "this browser already has an account" }, 409);
+    const owner = await env.STORE.get(ownerKey(player), "json");
+    if (owner?.username) return json({ error: "this browser already has an account" }, 409);
     if (await getUser(env, username)) return json({ error: "taken" }, 409);
+    // A browser melded into a Discord player already plays as it: its account is linked.
+    const discordId = owner?.plays?.startsWith("discord-") ? owner.plays.slice("discord-".length) : null;
+    if (discordId && (await env.STORE.get(discordLinkKey(discordId)))) {
+      return json({ error: "that Discord player already has an account: sign in to it instead" }, 409);
+    }
 
-    const user = { handle, player, pin: await hashPin(b.pin), created: new Date().toISOString() };
+    const user = { handle, player, pin: await hashPin(b.pin), created: new Date().toISOString(),
+      ...(discordId ? { discord: discordId } : {}) };
     await env.STORE.put(userKey(username), JSON.stringify(user));
-    await writeOwner(env, player, username, player);
+    if (discordId) await env.STORE.put(discordLinkKey(discordId), username);
+    await writeOwner(env, player, username, owner?.plays || player);
     log.info("account.claimed", { username });
     return json(accountView(username, user));
   }
@@ -229,7 +237,7 @@ export async function handleAccount(request, url, env) {
     const player = String(b?.player ?? "");
     if (!PLAYER_ID_RE.test(player)) return json({ error: "invalid player id" }, 400);
     const owner = await env.STORE.get(ownerKey(player), "json");
-    const user = owner && (await getUser(env, owner.username));
+    const user = owner?.username && (await getUser(env, owner.username));
     if (!user) return json({ error: "no account" }, 404);
     if (user.discord) return json({ error: "already linked" }, 409);
 
@@ -242,11 +250,64 @@ export async function handleAccount(request, url, env) {
   return json({ error: "no such account route" }, 404);
 }
 
+async function listAll(env, prefix) {
+  const keys = [];
+  let cursor;
+  do {
+    const listed = await env.STORE.list({ prefix, cursor });
+    keys.push(...listed.keys);
+    cursor = listed.list_complete === false ? listed.cursor : undefined;
+  } while (cursor);
+  return keys;
+}
+
+// A web player's dogs join a Discord player's history, on every day the Discord player
+// hadn't rolled, each with its board row. Nothing is re-dealt: a moved dog is the stored
+// roll, byte for byte, and the web copy stays stored. A day both rolled keeps the Discord
+// dog; with `dropDuplicates` the web one comes off that day's board, so the day lists one
+// dog for the person. `only` limits it to one date; `dryRun` counts without writing.
+export async function moveRolls(env, web, discordId, { only, dropDuplicates = true, dryRun = false } = {}) {
+  const discord = `discord-${discordId}`;
+  const taken = new Set((await listAll(env, `roll:${discord}:`)).map((k) => k.name.split(":").at(-1)));
+  const webRolls = (await listAll(env, `roll:${web}:`))
+    .map((k) => ({ date: k.name.split(":").at(-1), metadata: k.metadata }))
+    .filter((r) => !only || r.date === only);
+
+  let moved = 0;
+  let kept = 0;
+  let skipped = 0;
+  for (const { date, metadata } of webRolls) {
+    if (taken.has(date)) {
+      if (dropDuplicates && !dryRun) await env.STORE.delete(dayKey(date, web));
+      kept++;
+      continue;
+    }
+    if (moved >= LINK_MAX_MOVES) { skipped++; continue; }
+    if (dryRun) { moved++; continue; }
+    const value = await env.STORE.get(rollKey(web, date));
+    if (!value) continue;
+    await env.STORE.put(rollKey(discord, date), value, metadata ? { metadata } : {});
+    const { metadata: row } = await env.STORE.getWithMetadata(dayKey(date, web));
+    if (row) {
+      await env.STORE.put(dayKey(date, discord), "", { metadata: { ...row, discordId } });
+      await env.STORE.delete(dayKey(date, web));
+    }
+    moved++;
+  }
+  return { moved, kept, skipped };
+}
+
+// An anonymous browser melded into a Discord player by hand (src/meld.js): it plays as
+// that player from now on, with no username yet. Claiming one later links the account.
+export async function bindToDiscord(env, web, discordId) {
+  await writeOwner(env, web, null, `discord-${discordId}`);
+}
+
+export const ownerRecord = (env, player) => env.STORE.get(ownerKey(player), "json");
+export const discordLinkedTo = (env, discordId) => env.STORE.get(discordLinkKey(discordId));
+
 // `/dogdle link <code>`, called by the bot with the caller's Discord id. From here on the
-// account rolls as the Discord player, and its web dogs join that player's history -- on
-// every day the Discord player hadn't rolled. A day both had a dog keeps the Discord one;
-// the web dog stays where it was, on that day's board. Nothing is re-dealt: every moved
-// dog is the stored roll, byte for byte.
+// account rolls as the Discord player, and its web dogs join that player's history.
 export async function linkDiscord(env, discordId, rawCode) {
   const code = String(rawCode || "").trim().toUpperCase();
   if (!LINK_CODE_RE.test(code)) return { status: 400, body: { error: "invalid code" } };
@@ -261,42 +322,7 @@ export async function linkDiscord(env, discordId, rawCode) {
 
   const web = user.player;
   const discord = `discord-${discordId}`;
-  const listAll = async (prefix) => {
-    const keys = [];
-    let cursor;
-    do {
-      const listed = await env.STORE.list({ prefix, cursor });
-      keys.push(...listed.keys);
-      cursor = listed.list_complete === false ? listed.cursor : undefined;
-    } while (cursor);
-    return keys;
-  };
-  const taken = new Set((await listAll(`roll:${discord}:`)).map((k) => k.name.split(":").at(-1)));
-  const webRolls = (await listAll(`roll:${web}:`)).map((k) => ({ date: k.name.split(":").at(-1), metadata: k.metadata }));
-
-  let moved = 0;
-  let kept = 0;
-  let skipped = 0;
-  for (const { date, metadata } of webRolls) {
-    if (taken.has(date)) {
-      // Discord already has this day's dog: it wins, and the web roll stays behind off the
-      // board, so the day still shows one dog for this person.
-      await env.STORE.delete(dayKey(date, web));
-      kept++;
-      continue;
-    }
-    if (moved >= LINK_MAX_MOVES) { skipped++; continue; }
-    const value = await env.STORE.get(rollKey(web, date));
-    if (!value) continue;
-    await env.STORE.put(rollKey(discord, date), value, metadata ? { metadata } : {});
-    // The day's board row moves with it, so the day shows one dog for this person.
-    const { metadata: row } = await env.STORE.getWithMetadata(dayKey(date, web));
-    if (row) {
-      await env.STORE.put(dayKey(date, discord), "", { metadata: { ...row, discordId } });
-      await env.STORE.delete(dayKey(date, web));
-    }
-    moved++;
-  }
+  const { moved, kept, skipped } = await moveRolls(env, web, discordId);
   if (skipped) log.warn("account.link_truncated", { username, moved, skipped });
 
   user.discord = discordId;
