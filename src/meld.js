@@ -5,10 +5,11 @@
 //                                  their board rows, never their id), the Discord players
 //                                  whose names sound closest, and how many days overlap.
 //                                  `dog` also finds dogs by name, wherever they are.
-// POST /api/bot/meld { name, discordId, date?, dryRun? }
+// POST /api/bot/meld { name | dog, discordId, date?, dryRun? }
 //                                  moves every anonymous web player last seen as `name` to
 //                                  that Discord player, and binds their browsers to it. With
-//                                  `date`, moves that one day's dog only and binds nothing.
+//                                  `date`, moves that one day's dog only (picked by `name`,
+//                                  or by `dog` for a nameless player) and binds nothing.
 //
 // A day the Discord player already has a dog for is never merged: Discord's dog stays.
 
@@ -85,9 +86,10 @@ async function players(env) {
     if (!row || row.test || !date || !player) continue;
     dogs.push({ date, player, row });
     const side = isDiscord(player) ? discord : web;
-    const p = side.get(player) ?? { names: new Map(), dates: new Set(), dogs: 0, name: "", last: "", best: null };
+    const p = side.get(player) ?? { names: new Map(), dates: new Set(), dogNames: new Map(), dogs: 0, name: "", last: "", best: null };
     p.dogs++;
     p.dates.add(date);
+    p.dogNames.set(date, row.dog);
     if (row.player) p.names.set(row.player, Math.max(p.names.get(row.player) ?? 0, Date.parse(date)));
     if (date >= p.last) { p.last = date; if (row.player) p.name = row.player; }
     if (!p.best || row.score > p.best.score) p.best = { name: row.dog, breed: row.breed, score: row.score, date };
@@ -146,19 +148,24 @@ export async function meldPlan(env, { dog = "" } = {}) {
   };
 }
 
-export async function meldApply(env, { name, discordId, date, dryRun }) {
-  if (!canonical(name)) return { status: 400, body: { error: "name required" } };
+export async function meldApply(env, { name, dog, discordId, date, dryRun }) {
   if (date !== undefined && !DATE_RE.test(date)) return { status: 400, body: { error: "invalid date" } };
+  if (dog !== undefined && !date) return { status: 400, body: { error: "a dog is picked by date and name" } };
+  if (!canonical(name) && !canonical(dog)) return { status: 400, body: { error: "name or dog required" } };
   const [{ web, discord }, owned] = await Promise.all([players(env), owners(env)]);
   if (!discord.has(`discord-${discordId}`)) return { status: 404, body: { error: "no Discord player with that id has rolled" } };
 
-  // Whose dogs: web players last seen under `name`, or -- for one day -- whoever rolled
-  // under `name` that day.
+  // Whose dogs: web players last seen under `name`; or, for one day, whoever rolled under
+  // `name` that day, or rolled the dog called `dog` that day (players can be nameless).
   const want = canonical(name);
-  const from = [...web].filter(([, p]) => date
-    ? p.dates.has(date) && [...p.names.keys()].some((n) => canonical(n) === want)
-    : canonical(p.name) === want);
-  if (!from.length) return { status: 404, body: { error: `no web player ${date ? `on ${date} ` : ""}named ${name}` } };
+  const from = [...web].filter(([, p]) => {
+    if (!date) return canonical(p.name) === want;
+    if (!p.dates.has(date)) return false;
+    if (dog !== undefined) return canonical(p.dogNames.get(date)) === canonical(dog);
+    return [...p.names.keys()].some((n) => canonical(n) === want);
+  });
+  if (!from.length) return { status: 404, body: { error: `no web player ${date ? `on ${date} ` : ""}matches` } };
+  if (date && from.length > 1) return { status: 409, body: { error: `${from.length} web players match that day; name the dog` } };
   const blocked = from.filter(([player]) => owned.get(player)?.username || owned.get(player)?.plays);
   if (blocked.length && !date) {
     return { status: 409, body: { error: "an account or an already-melded browser has that name; it links itself" } };
@@ -177,7 +184,7 @@ export async function meldApply(env, { name, discordId, date, dryRun }) {
     skipped += r.skipped;
     if (!date && !dryRun && !(await ownerRecord(env, player))) await bindToDiscord(env, player, discordId);
   }
-  const out = { name, discordId, players: from.length, moved, kept, skipped, bound: date ? 0 : from.length, dryRun: Boolean(dryRun) };
+  const out = { name: name ?? null, ...(dog ? { dog } : {}), discordId, players: from.length, moved, kept, skipped, bound: date ? 0 : from.length, dryRun: Boolean(dryRun) };
   if (!dryRun) log.info("meld.applied", out);
   return { status: 200, body: out };
 }

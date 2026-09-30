@@ -125,6 +125,14 @@ test("one historic dog can be handed over by date, without binding its browser",
   assert.equal(e.STORE.store.get(dayKey("2026-09-05", `discord-${FEL}`)).metadata.discordId, FEL);
   assert.ok(!e.STORE.store.has(`owner:${RANDY_WEB}`), "Randy keeps his own browser");
 
+  // A nameless player's dog is picked by its own name.
+  await put(e, "c0c0c0c0-9999-4a4a-9b9b-000011112222", "", "2026-09-06", { name: "Steve", breed: "Coonhound", score: 44 });
+  await put(e, "d0d0d0d0-9999-4a4a-9b9b-000011112222", "", "2026-09-06", { name: "Chowder" });
+  assert.equal((await bot(e, "meld", { name: "", discordId: FEL, date: "2026-09-06" })).status, 400);
+  const byDog = await (await bot(e, "meld", { dog: "steve", discordId: FEL, date: "2026-09-06" })).json();
+  assert.equal(byDog.moved, 1);
+  assert.equal(JSON.parse(e.STORE.store.get(rollKey(`discord-${FEL}`, "2026-09-06")).value).name, "Steve");
+
   // A day Discord already has: counted as kept, and the web dog stays on the board.
   const clash = await (await bot(e, "meld", { name: "fel_fox", discordId: FEL, date: "2026-09-02" })).json();
   assert.deepEqual([clash.moved, clash.kept], [0, 1]);
