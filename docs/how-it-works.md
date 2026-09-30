@@ -15,7 +15,7 @@ Every dog is four independent rolls, combined:
 |---|---|---|
 | **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
 | **Background** | `src/content/backgrounds.js` | 101 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
-| **Name** | `src/content/names.js` | Flat pick from 150. |
+| **Name** | `src/content/names.js` | Flat pick from 3,006: 150 hand-picked, plus 2,856 real names off Seattle's dog licences (`dog-names.js`). |
 | **Traits** | `src/content/traits/` | 501 of them; 4–8 per dog, averaging 6, drawn without replacement. 151 belong to a **group** — see below. |
 
 **Score** = the breed's value + the background's value + every trait's value. The content
@@ -249,7 +249,7 @@ src/
   meld.js      folding anonymous web players into Discord players, by hand (meld.yml)
   roll.js      the deterministic generator and the Eastern day boundary
   content/     the content tables, one file per kind:
-                 names.js, backgrounds.js, tiers.js, traits/<category>.js
+                 names.js (+ dog-names.js), backgrounds.js, tiers.js, traits/<category>.js
   breeds.js    breed table, rarity weights and what a rarity is worth
   keys.js      the KV key layout, shared by the web routes and the bot
   photo.js     Dog CEO lookup and photo bytes
@@ -450,6 +450,10 @@ web player by name beside the Discord names that sound closest; the pairs you ap
 move over (never onto a day Discord already has a dog for), and those browsers roll as
 the Discord player from then on. With a date, one historic dog changes hands instead;
 with `web:<name>`, one person's two browsers fold into one web player and its name.
+With `user:<username>`, an anonymous web player who hasn't come back yet gets a username
+**reserved**: `user:<name>` with `pin: null`. Their kennel is live at once, and the next
+browser that plays as them is asked for a first PIN (`POST /api/account/pin`, allowed only
+while none is set; login refuses the account until then).
 
 ### Test rolls
 
