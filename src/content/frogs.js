@@ -86,7 +86,7 @@ export const FROG_TRAITS = [
 
 // Real frogs, since Dog CEO has none. Served from public/frogs/ and picked per frog in
 // src/photo.js. Every one is openly licensed on Wikimedia Commons and needs its credit
-// kept (the README lists them). Adding one is safe: a frog's photo is stored when it's
+// kept (docs/how-it-works.md lists them). Adding one is safe: a frog's photo is stored when it's
 // dealt, so only future frogs see the new set. Fetch candidates with frog-photos.yml.
 export const FROG_PHOTOS = [
   { file: "american-toad.jpg", by: "Cephas", license: "CC BY-SA 3.0",
