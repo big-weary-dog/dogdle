@@ -171,6 +171,42 @@ test("one person on two browsers folds into one web player, and keeps that name"
   assert.equal(await playsAs(e, RAEP), `discord-${FEL}`);
 });
 
+test("a reserved username gives an anonymous player a kennel now, and a PIN later", async () => {
+  const e = await world();
+  const MOL = "b0b0b0b0-1111-4a4a-9b9b-222233334444";
+  const RAEP = "c1c1c1c1-1111-4a4a-9b9b-222233334444";
+  await put(e, MOL, "Molossus", "2026-09-01");
+  await put(e, RAEP, "Raepdog", "2026-09-02");
+  await bot(e, "meld", { name: "Raepdog", into: "Molossus" });
+
+  const dry = await (await bot(e, "meld", { name: "molossus", reserve: "Molossus", dryRun: true })).json();
+  assert.deepEqual([dry.username, dry.dryRun], ["molossus", true]);
+  assert.equal((await site(e, "/api/kennel?player=molossus")).status, 404, "a dry run writes nothing");
+
+  const res = await bot(e, "meld", { name: "Molossus", reserve: "Molossus" });
+  assert.ok(!(await res.clone().text()).includes(MOL));
+  assert.equal((await res.json()).kennel, "/kennel/molossus");
+  const kennel = await (await site(e, "/api/kennel?player=molossus")).json();
+  assert.equal(kennel.dogs?.length ?? kennel.days, 2, "both browsers' dogs, by username");
+  const mega = await (await site(e, "/api/kennels")).json();
+  const mol = mega.kennels.find((k) => k.kennel === `${ORIGIN}/kennel/molossus`);
+  assert.equal(mol?.dogs, 2, "one linked row on the mega-kennel");
+
+  assert.equal((await bot(e, "meld", { name: "Molossus", reserve: "Other" })).status, 409, "only once");
+  assert.equal((await site(e, "/api/account/login", { username: "molossus", pin: ["🐶", "🦴", "🎾"] })).status, 401,
+    "no PIN, no sign-in");
+  assert.equal((await site(e, "/api/account/link-code", { player: MOL })).status, 409, "PIN before Discord");
+
+  // Either browser sees it and picks the PIN, once.
+  const seen = await (await site(e, `/api/account?player=${RAEP}`)).json();
+  assert.deepEqual([seen.username, seen.needsPin], ["molossus", true]);
+  assert.equal((await site(e, "/api/account/pin", { player: RAEP, pin: ["🐶", "🦴", "🎾"] })).status, 200);
+  assert.equal((await site(e, "/api/account/pin", { player: MOL, pin: ["🐸", "🐸", "🐸"] })).status, 409);
+  const login = await (await site(e, "/api/account/login", { username: "molossus", pin: ["🐶", "🦴", "🎾"] })).json();
+  assert.deepEqual([login.player, login.needsPin], [MOL, undefined]);
+  assert.equal((await site(e, "/api/account/pin", { player: RANDY_WEB, pin: ["🐶", "🦴", "🎾"] })).status, 404);
+});
+
 test("meld needs the bot token", async () => {
   const e = await world();
   const url = new URL(`${ORIGIN}/api/bot/meld`);

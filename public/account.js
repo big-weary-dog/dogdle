@@ -3,7 +3,8 @@
 //   - a browser with dogs but no account is asked to claim them, once a day until it does,
 //     and before it pulls the lever -- a dog is always rolled by someone with a name;
 //   - a browser with nothing asks who you are: sign in, or start fresh;
-//   - an account without Discord gets a "Sync with Discord" button.
+//   - an account without Discord gets a "Sync with Discord" button;
+//   - a username reserved for them by hand asks for its first PIN.
 // Everything shown is set as text -- usernames come from players.
 
 import { PIN_EMOJI, PIN_MIN, PIN_MAX } from "/pin-emoji.js";
@@ -219,6 +220,40 @@ function welcomeScreen(resolve) {
       el("button", { type: "button", className: "account-go alt", textContent: "👋 I've played before", onclick: () => signInScreen(resolve, { claiming: false }) })));
 }
 
+// A username reserved for them by hand: the kennel's already up, the PIN is theirs to pick.
+function setPinScreen(resolve, account, first) {
+  const note = status();
+  const go = el("button", { type: "button", className: "account-go", textContent: first ? "Save my PIN" : "Next", disabled: true });
+  const pad = pinPad({ onChange: (k) => { go.disabled = first ? k.length !== first.length : k.length < PIN_MIN; } });
+  go.onclick = async () => {
+    if (!first) return setPinScreen(resolve, account, pad.keys());
+    if (pad.keys().join("") !== first.join("")) { pad.clear(); return say(note, "That wasn't the same PIN. Try again."); }
+    go.disabled = true;
+    say(note, "Saving…", false);
+    try {
+      const { ok, data } = await api("/api/account/pin", { player: store.get(PLAYER_KEY), pin: first });
+      if (!ok) { go.disabled = false; return say(note, `Couldn't save: ${data.error}`); }
+      modal().close();
+      resolve(data);
+    } catch {
+      go.disabled = false;
+      say(note, "Couldn't reach Dogdle. Try again.");
+    }
+  };
+  screen(first ? "🔁 Once more" : `🐾 Hi, ${account.handle}!`,
+    first
+      ? "Tap the same PIN again. Remember it: it's the only way back in on a new device."
+      : `Your kennel is ready at dogdle.swampkat.com${account.kennel}. Pick an emoji PIN (${PIN_MIN} to ${PIN_MAX}) so you can sign in on any device.`,
+    pad.node, note, go,
+    el("div", { className: "account-links" }, first
+      ? el("button", { type: "button", className: "link", textContent: "← Change it", onclick: () => setPinScreen(resolve, account) })
+      : el("button", { type: "button", className: "link", textContent: "Not now", onclick: () => {
+        store.set(LATER_KEY, today()); modal().close(); resolve(null);
+      } })));
+}
+
+const askPin = (account) => new Promise((resolve) => setPinScreen(resolve, account));
+
 // ---------- Discord ----------
 
 async function syncScreen(onLinked) {
@@ -276,7 +311,11 @@ function renderBar(account, { claim }) {
   bar.replaceChildren(
     el("span", { className: "who", textContent: `🐾 ${account.handle}` }),
     el("a", { href: account.kennel, textContent: "My kennel" }),
-    account.discord ? el("span", { className: "linked", textContent: "🔗 Discord" })
+    account.needsPin ? el("button", { type: "button", className: "link", textContent: "🔑 Set your PIN", onclick: async () => {
+      delete modal().dataset.locked;
+      if (await askPin(account)) location.reload();
+    } })
+    : account.discord ? el("span", { className: "linked", textContent: "🔗 Discord" })
       : el("button", { type: "button", className: "link", textContent: "🔗 Sync with Discord", onclick: () => syncScreen(() => location.reload()) }),
     el("button", { type: "button", className: "link", textContent: "Sign out", onclick: signOut }));
 }
@@ -320,6 +359,7 @@ export async function accountGate() {
       if (data.username) {
         store.set(USER_KEY, data.username);
         account = data;
+        if (data.needsPin && store.get(LATER_KEY) !== today()) account = (await askPin(data)) ?? data;
       } else {
         store.drop(USER_KEY);
         identified = Boolean(data.melded);

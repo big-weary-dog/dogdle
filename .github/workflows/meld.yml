@@ -9,7 +9,9 @@ name: Meld web players into Discord
 # by `;`. With `date`, each pair hands over that one day's dog instead and binds nothing;
 # write the left side as `dog:<dog name>` to pick it by the dog (for a nameless player).
 # Write the right side as `web:<name>` to fold into a web player instead (one person, two
-# browsers): the moved dogs take that player's name.
+# browsers): the moved dogs take that player's name. Write it as `user:<username>` to
+# reserve that username for a web player who hasn't claimed one: their kennel goes live
+# now, and their browser asks for a PIN next visit.
 on:
   workflow_dispatch:
     inputs:
@@ -81,7 +83,12 @@ jobs:
               name, _, discord = pair.rpartition("=")
               name = name.strip()
               discord = discord.strip()
-              body = {"into": discord[4:].strip()} if discord.startswith("web:") else {"discordId": discord}
+              if discord.startswith("web:"):
+                  body = {"into": discord[4:].strip()}
+              elif discord.startswith("user:"):
+                  body = {"reserve": discord[5:].strip()}
+              else:
+                  body = {"discordId": discord}
               body["dryRun"] = dry
               if name.startswith("dog:"):
                   body["dog"] = name[4:].strip()

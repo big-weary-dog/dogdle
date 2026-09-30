@@ -12,11 +12,14 @@
 //                                  or by `dog` for a nameless player) and binds nothing.
 //                                  `into` names a web player to fold into instead of Discord
 //                                  (one person on two browsers): their dogs take its name.
+// POST /api/bot/meld { name, reserve, dryRun? }
+//                                  reserves the username `reserve` for the one anonymous
+//                                  web player last seen as `name`: a kennel with no PIN yet.
 //
 // A day the Discord player already has a dog for is never merged: Discord's dog stays.
 
 import { allRows } from "./mega.js";
-import { moveRolls, bindTo, ownerRecord, discordLinkedTo } from "./accounts.js";
+import { moveRolls, bindTo, ownerRecord, discordLinkedTo, reserveAccount } from "./accounts.js";
 import { DATE_RE } from "./keys.js";
 import { log } from "./log.js";
 
@@ -150,7 +153,20 @@ export async function meldPlan(env, { dog = "" } = {}) {
   };
 }
 
-export async function meldApply(env, { name, dog, discordId, into, date, dryRun }) {
+// A username for the one anonymous web player last seen as `name`: their kennel goes live
+// at /kennel/<username>, and their browser picks a PIN next visit.
+async function reserve(env, name, handle, dryRun) {
+  const [{ web }, owned] = await Promise.all([players(env), owners(env)]);
+  const matches = [...web].filter(([player, p]) => canonical(p.name) === canonical(name) && !owned.has(player));
+  if (matches.length !== 1) return { status: 409, body: { error: `${matches.length} anonymous web players are named ${name}; need exactly one` } };
+  const [[player, p]] = matches;
+  const r = await reserveAccount(env, player, handle, { dryRun: Boolean(dryRun) });
+  if (r.status !== 200) return r;
+  return { status: 200, body: { name, ...r.body, dogs: p.dogs } };
+}
+
+export async function meldApply(env, { name, dog, discordId, into, reserve: handle, date, dryRun }) {
+  if (handle !== undefined) return reserve(env, name, handle, dryRun);
   if (date !== undefined && !DATE_RE.test(date)) return { status: 400, body: { error: "invalid date" } };
   if (dog !== undefined && !date) return { status: 400, body: { error: "a dog is picked by date and name" } };
   if (!canonical(name) && !canonical(dog)) return { status: 400, body: { error: "name or dog required" } };

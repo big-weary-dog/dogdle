@@ -6,7 +6,8 @@
 // and what share links use); the player id behind it stays private, and signing in with
 // the username and PIN is how another browser gets it back.
 //
-//   user:<username>          { handle, player, pin, created, discord? }
+//   user:<username>          { handle, player, pin, created, discord?, reserved? }
+//                            (pin is null on a username reserved by hand, until it's set)
 //   owner:<player>           { username, plays } -- also as metadata, so a list reads it
 //   discordlink:<snowflake>  the username a Discord player is linked to
 //   linkcode:<code>          a username waiting for `/dogdle link <code>`, ten minutes
@@ -170,6 +171,8 @@ const accountView = (username, user) => ({
   handle: user.handle,
   discord: Boolean(user.discord),
   kennel: `/kennel/${username}`,
+  // Reserved for them by hand (reserveAccount): the kennel is live, the PIN is theirs to pick.
+  ...(user.pin ? {} : { needsPin: true }),
 });
 
 // /api/account and /api/account/*. None of it needs a token: the private id is itself the
@@ -241,7 +244,7 @@ export async function handleAccount(request, url, env) {
     if (fails >= PIN_FAIL_LIMIT) return json({ error: "too many tries, wait fifteen minutes" }, 429);
 
     const user = await getUser(env, username);
-    if (!user || !(await pinMatches(b.pin, user.pin))) {
+    if (!user?.pin || !(await pinMatches(b.pin, user.pin))) {
       // Counted for unknown names too, so a miss looks the same either way.
       await env.STORE.put(pinFailKey(username), String(fails + 1), { expirationTtl: PIN_LOCK_SECONDS });
       log.warn("account.login_failed", { username, fails: fails + 1 });
@@ -252,15 +255,34 @@ export async function handleAccount(request, url, env) {
     return json({ ...accountView(username, user), player: user.player });
   }
 
+  // The first PIN on an account reserved by hand, from a browser that plays as it.
+  if (route === "pin" && request.method === "POST") {
+    const b = await body(request);
+    const player = String(b?.player ?? "");
+    if (!PLAYER_ID_RE.test(player) || player.startsWith("discord-")) return json({ error: "invalid player id" }, 400);
+    const problem = pinProblem(b?.pin);
+    if (problem) return json({ error: problem }, 400);
+    const owner = await accountOwner(env, player);
+    const user = owner?.username && (await getUser(env, owner.username));
+    if (!user) return json({ error: "no account" }, 404);
+    if (user.pin) return json({ error: "this account already has a PIN: sign in" }, 409);
+    user.pin = await hashPin(b.pin);
+    delete user.reserved;
+    await env.STORE.put(userKey(owner.username), JSON.stringify(user));
+    log.info("account.pin_set", { username: owner.username });
+    return json(accountView(owner.username, user));
+  }
+
   // A short-lived code for `/dogdle link <code>` in Discord.
   if (route === "link-code" && request.method === "POST") {
     const b = await body(request);
     const player = String(b?.player ?? "");
     if (!PLAYER_ID_RE.test(player)) return json({ error: "invalid player id" }, 400);
-    const owner = await env.STORE.get(ownerKey(player), "json");
+    const owner = await accountOwner(env, player);
     const user = owner?.username && (await getUser(env, owner.username));
     if (!user) return json({ error: "no account" }, 404);
     if (user.discord) return json({ error: "already linked" }, 409);
+    if (!user.pin) return json({ error: "set a PIN first" }, 409);
 
     const bytes = crypto.getRandomValues(new Uint8Array(6));
     const code = [...bytes].map((n) => LINK_ALPHABET[n % LINK_ALPHABET.length]).join("");
@@ -324,6 +346,25 @@ export async function moveRolls(env, web, to, { only, dropDuplicates = true, dry
 // player: it plays as that player from now on, with no username yet.
 export async function bindTo(env, web, plays) {
   await writeOwner(env, web, null, plays);
+}
+
+// A username put on an anonymous web player by hand (src/meld.js), so their kennel has an
+// address before they come back. No PIN: the first browser that plays as them sets it.
+export async function reserveAccount(env, web, handle, { dryRun = false } = {}) {
+  const problem = usernameProblem(handle);
+  if (problem) return { status: 400, body: { error: problem } };
+  const username = canonical(handle);
+  if (await getUser(env, username)) return { status: 409, body: { error: `${username} is taken` } };
+  const owner = await env.STORE.get(ownerKey(web), "json");
+  if (owner?.username) return { status: 409, body: { error: `that player already has an account: ${owner.username}` } };
+  if (owner?.plays && owner.plays !== web) return { status: 409, body: { error: "that player is melded already" } };
+  if (!dryRun) {
+    const user = { handle: String(handle).trim(), player: web, pin: null, created: new Date().toISOString(), reserved: true };
+    await env.STORE.put(userKey(username), JSON.stringify(user));
+    await writeOwner(env, web, username, web);
+    log.info("account.reserved", { username });
+  }
+  return { status: 200, body: { username, kennel: `/kennel/${username}`, dryRun } };
 }
 
 export const ownerRecord = (env, player) => env.STORE.get(ownerKey(player), "json");
