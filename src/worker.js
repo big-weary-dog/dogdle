@@ -3,6 +3,7 @@ import { handleBot, renderCard, kennelFor, kennelPageData, kennelPreview, kennel
 import { photoFor, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
 import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, kennelKey, cleanName, boardRow, visibleRows } from "./keys.js";
 import { megaKennel } from "./mega.js";
+import { recordRoll, boardProgress } from "./progress.js";
 import { handleAccount, playsAs, publicAccount, webRow } from "./accounts.js";
 import { log } from "./log.js";
 
@@ -89,6 +90,8 @@ async function route(request, url, env) {
     });
     // The leaderboard reads entirely from list metadata, so it never fetches values.
     await env.STORE.put(dayKey(date, player), "", { metadata: webRow(boardRow(name, dog), player) });
+    // The board's progress number: this dog's finds join the player's record (src/progress.js).
+    await recordRoll(env, player, dog);
 
     return Response.json(dog, { headers: { "cache-control": "no-store" } });
   }
@@ -117,8 +120,16 @@ async function route(request, url, env) {
       : today();
 
     const listed = await env.STORE.list({ prefix: `day:${date}:`, limit: 200 });
+    // Each player's progress through the game rides on their row. The player id is only
+    // the lookup key, read off the key name here and never put on the row.
+    const playerOf = (k) => k.name.split(":").at(-1);
+    const progress = await boardProgress(env, listed.keys.filter((k) => k.metadata && !k.metadata.test).map(playerOf));
+    const keys = listed.keys.map((k) => {
+      const p = k.metadata && progress.get(playerOf(k));
+      return p ? { ...k, metadata: { ...k.metadata, progress: p } } : k;
+    });
     // Rows written by the bot carry the player's Discord id; this endpoint is public.
-    const rows = visibleRows(listed.keys, false).map(({ discordId, ...row }) => row);
+    const rows = visibleRows(keys, false).map(({ discordId, ...row }) => row);
 
     return Response.json({ date, rows }, { headers: { "cache-control": "no-store" } });
   }

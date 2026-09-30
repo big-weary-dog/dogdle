@@ -91,7 +91,20 @@ function fillBoard(rows, mode) {
     pts.textContent = signed(row.score);
     pts.style.color = row.score > 2 ? "#4ade80" : row.score < -5 ? "#f87171" : "#facc15";
 
-    li.append(rank, who, what, pts);
+    li.append(rank, who);
+    // How much of the game this player's dogs have turned up, all time (src/progress.js).
+    const p = mode === "today" ? row.progress : null;
+    if (p && Number.isFinite(p.percent)) {
+      const pct = document.createElement("span");
+      pct.className = "pct";
+      pct.textContent = `${p.percent}%`;
+      pct.title = `Seen ${p.percent}% of Dogdle: ${p.found} of ${p.total} breeds, places and traits ` +
+        `(${p.breeds.found}/${p.breeds.total} breeds, ${p.places.found}/${p.places.total} places, ` +
+        `${p.traits.found}/${p.traits.total} traits)`;
+      pct.setAttribute("aria-label", pct.title);
+      li.append(pct);
+    }
+    li.append(what, pts);
     list.appendChild(li);
   });
 }

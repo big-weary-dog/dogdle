@@ -20,7 +20,9 @@ Whatever you get, you keep. Tomorrow there's a new dog.
    standing, and its traits, each with an emoji and a point value.
 2. **That's your dog.** Refreshing won't change it. The same player on the same day always
    gets the same dog, and it's stored the moment it's dealt.
-3. **See how you did.** The **Today** tab shows everyone's dogs for the day, best first.
+3. **See how you did.** The **Today** tab shows everyone's dogs for the day, best first,
+   each with a **progress %**: how many of the game's breeds, places and traits that
+   player's dogs have turned up so far.
    **My dogdles** lists every dog you've had.
 4. **Share it.** **Copy share card** copies a short summary plus a link to an animated GIF
    of your dog, which pastes into Discord as the image itself.

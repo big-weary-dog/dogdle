@@ -242,6 +242,17 @@ header h1 {
 .board-list .who { font-weight: 650; }
 .board-list .what { color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .board-list .pts { font-weight: 800; font-variant-numeric: tabular-nums; }
+.board-list .pct {
+  flex: none;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: help;
+}
 .board-list .empty { color: var(--muted); justify-content: center; }
 
 /* ---------- result card ---------- */

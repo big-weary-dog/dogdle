@@ -245,6 +245,7 @@ src/
   bot.js       the Discord bot API (/api/bot/*)
   kennel.js    a player's collection and its album image
   mega.js      the mega-kennel: every dog ever, from the board index
+  progress.js  each player's progress %, the one number on the board
   accounts.js  web accounts: username + emoji PIN, and linking one to Discord
   meld.js      folding anonymous web players into Discord players, by hand (meld.yml)
   roll.js      the deterministic generator and the Eastern day boundary
@@ -290,6 +291,7 @@ One KV namespace, separated by key prefix:
 | `guild:<guild>:<date>:<player>` | The same row, scoped to one Discord server |
 | `card:<player>:<date>` | The rendered share GIF, 30-day TTL |
 | `kennel:<player>:<stamp>` | A rendered kennel album, 7-day TTL |
+| `seen:<player>` | What a player's dogs have turned up, for the board's progress %; the counts are in **list metadata** |
 | `user:<username>` | A web account: its handle, private player id, hashed PIN, linked Discord id |
 | `owner:<player>` | Private id → username (also in list metadata, for the mega-kennel) |
 | `discordlink:<snowflake>` | Which account a Discord player is linked to |
@@ -406,6 +408,23 @@ head is filled in by the Worker (one list, one read), so its link unfurls in Dis
 
 A kennel also has a **total** (every dog's score added up) and an **average dog**, both
 leaving frogs out.
+
+### Progress
+
+Every row on the website's board carries one number: how much of the game that player's
+dogs have turned up, all time. It's the kennel's three counts added together -- breeds,
+places and traits found, over every one that can still turn up (every breed and place,
+every trait not marked obsolete; nothing of a frog's but the place it was standing) --
+rounded down, so 100% means every last one. Hover it for the breakdown.
+
+The kennel counts from every roll on each view, which a board of thirty players can't
+afford. So `src/progress.js` keeps a `seen:<player>` record: the dates it has counted and
+what they turned up, with the counts in list metadata. The board reads every record with
+one `list`, never a value. A roll adds its own dog (one read, one list, one write); a
+player from before this, or one left short, is counted from their stored rolls on the next
+board view, within a budget of 500 reads a request, and finished on the view after if they
+need more. A dog that joins a history later (a Discord link, a meld) is counted the next
+time that player rolls. Nothing is re-dealt: it only reads rolls.
 
 ### The mega-kennel
 
