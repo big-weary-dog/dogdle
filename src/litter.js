@@ -1,4 +1,4 @@
-// Puppy days: about one pull in twenty, today's dog is a puppy of the player's last dog and
+// Puppy days: about one pull in ten, today's dog is a puppy of the player's last dog and
 // a dog off yesterday's board that belongs to someone else. src/roll.js deals the puppy
 // itself (rollPuppy); this picks its parents and keeps the record of who had puppies.
 //

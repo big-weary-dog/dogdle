@@ -50,7 +50,7 @@ be both *Starved* and *Thick boy*.
 
 ### 🍼 Puppy Day
 
-About one pull in twenty, your dog is a **puppy**: the child of your last dog and a
+About one pull in ten, your dog is a **puppy**: the child of your last dog and a
 dog someone else rolled yesterday, picked at random. It takes one parent's breed (or,
 sometimes, comes out a Mutt), inherits two traits from each parent, and gets at least
 one brand-new trait of its own. Its place and name are its own too. The result names

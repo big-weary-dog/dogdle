@@ -84,7 +84,7 @@ name is something like `"Slimy Frog"`. The score is usually around −30, and th
 a real frog photo, hopping, where the dog would be. The shape is otherwise identical, so nothing breaks if
 you ignore the flag, but a frog deserves a reaction (🐸, or a line of sympathy).
 
-About one pull in twenty, the dog is a **puppy** of the player's last dog and someone
+About one pull in ten, the dog is a **puppy** of the player's last dog and someone
 else's dog from yesterday's board. The payload then carries a `puppy` object, and each
 trait it inherited carries `from`, the parent's name:
 

@@ -429,7 +429,7 @@ time that player rolls. Nothing is re-dealt: it only reads rolls.
 
 ### Puppy Day
 
-About one pull in twenty (`isPuppyDay`, its own `puppy:` hash, never on a frog day) is a
+About one pull in ten (`isPuppyDay`, its own `puppy:` hash, never on a frog day) is a
 puppy. `src/litter.js` picks the parents when the lever is pulled: the player's latest
 stored dog before today, and one dog off yesterday's global board that belongs to someone
 else, chosen by a `mate:` hash over the board sorted by key. Frogs and test rolls are

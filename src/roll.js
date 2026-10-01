@@ -125,12 +125,12 @@ export function rollDailyDog(playerId, dateStr = today(), { frog = isFrogDay(pla
 
 // ---------- puppies ----------
 //
-// About one pull in twenty is a puppy: your last dog and a dog from yesterday's board, the
+// About one pull in ten is a puppy: your last dog and a dog from yesterday's board, the
 // pair picked by chance (src/litter.js), never by the player -- which is what keeps the
 // average dog at 0 without tuning: random parents carry traits drawn just like fresh ones.
 // Its own hash again, so puppies arriving re-dealt no day that stayed a plain dog; a frog
 // day stays a frog.
-export const PUPPY_CHANCE = 1 / 20;
+export const PUPPY_CHANCE = 1 / 10;
 const MUTT_CHANCE = 0.25; // two different breeds make a mutt this often
 const INHERITED_PER_PARENT = 2;
 const MUTT = BREEDS.find((b) => b.slug === "mix");

@@ -75,7 +75,7 @@ function present(dog, imageUrl, origin, player) {
     breed: dog.breed,
     // Once in forty days it isn't a dog at all (content/frogs.js). Worth a reaction.
     ...(dog.frog ? { frog: true } : {}),
-    // About one pull in twenty is a puppy of two dogs (src/litter.js). Worth a shout.
+    // About one pull in ten is a puppy of two dogs (src/litter.js). Worth a shout.
     ...(dog.puppy ? { puppy: {
       parents: dog.puppy.parents.map((p) => ({ name: p.name, breed: p.breed, owner: p.owner,
         kennel: p.kennel ? `${origin}${p.kennel}` : null })),
