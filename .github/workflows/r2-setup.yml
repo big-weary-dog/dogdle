@@ -1,0 +1,45 @@
+name: Set up R2 for images
+# One-time, and safe to re-run. Creates the R2 bucket the Worker keeps rendered images in
+# (share cards and kennel albums; src/images.js) and the lifecycle rules that expire them,
+# so the bucket stays the size of a month of cards. Reports plainly if R2 isn't enabled on
+# the account or the deploy token can't manage it: both are fixed in the Cloudflare
+# dashboard, not here.
+on:
+  workflow_dispatch:
+
+env:
+  BUCKET: dogdle-images
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Bucket and lifecycle rules
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -uo pipefail
+          if ! npx wrangler r2 bucket list > buckets.txt 2>&1; then
+            cat buckets.txt
+            echo "::error::Can't list R2 buckets. Either R2 isn't enabled on this account (Dashboard > R2 > enable it; the free tier is fine) or the API token lacks 'Workers R2 Storage: Edit'."
+            exit 1
+          fi
+          if grep -q "name:\s*$BUCKET\b" buckets.txt; then
+            echo "bucket $BUCKET already exists"
+          else
+            npx wrangler r2 bucket create "$BUCKET" --location enam || exit 1
+          fi
+          npx wrangler r2 bucket lifecycle list "$BUCKET" > rules.txt 2>&1 || true
+          add() { # name prefix days
+            if grep -q "$1" rules.txt; then echo "rule $1 already there"; return; fi
+            npx wrangler r2 bucket lifecycle add "$BUCKET" "$1" "$2" --expire-days "$3" --force || exit 1
+          }
+          add cards-30d cards/ 30
+          add albums-7d albums/ 7
+          add test-2d test/ 2
+          npx wrangler r2 bucket lifecycle list "$BUCKET"
