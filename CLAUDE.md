@@ -33,6 +33,7 @@ the Read tool; don't guess at how a visual looks from its data.
 | `src/litter.js` | Puppy Day: picks a puppy's parents (your last dog × someone's dog from yesterday's board) and keeps `litter:` records for kennels. `rollPuppy` in `src/roll.js` deals it. |
 | `src/progress.js` | The board's progress % per player: `seen:<player>` records, updated on each roll, backfilled on first board view. Shares the kennel's denominators. |
 | `src/accounts.js` | Web accounts (`/api/account*`): public username + emoji PIN over a private player id, `playsAs`, and Discord linking. |
+| `src/images.js` | Where rendered cards and albums live: R2 (`IMAGES`, bucket `dogdle-images`), KV as the fallback. |
 | `src/photo.js` | Dog CEO lookup, frog photo pick, photo bytes, `backfillPhoto` repair. |
 | `src/card.js` + `raster.js` + `draw.js` | Headless GIF card renderer (no canvas in Workers). |
 | `public/effects.js` | **Shared** effect engine: the web page *and* the card both run it. |
@@ -125,7 +126,8 @@ fine; don't run two *balance corrections* at once.
   `photo-audit.yml` (find/repair rolls missing photos), `meld.yml` (plan, then fold
   anonymous web players into Discord players; `src/meld.js`), `card-audit.yml` (recent Discord
   cards end to end, plus Worker error counts), `verify-breeds.yml` (weekly slug check),
-  `frog-photos.yml` (openly licensed frog photos from Commons onto a scratch branch).
+  `frog-photos.yml` (openly licensed frog photos from Commons onto a scratch branch),
+  `r2-setup.yml` (creates the images bucket and its expiry rules; safe to re-run).
   Report blocked hosts rather than trying to route around them.
 - **Log through `src/log.js`**, not bare `console.*`: one JSON object per event, which is
   what makes Workers Logs filterable. A failure you handle quietly still gets a `warn`.

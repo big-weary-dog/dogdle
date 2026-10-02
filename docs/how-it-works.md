@@ -289,8 +289,8 @@ One KV namespace, separated by key prefix:
 | `roll:<player>:<date>` | The full dog, written once and replayed forever after |
 | `day:<date>:<player>` | Leaderboard entry — summary lives in **list metadata**, so the board is one `list` call and never fetches values |
 | `guild:<guild>:<date>:<player>` | The same row, scoped to one Discord server |
-| `card:<player>:<date>` | The rendered share GIF, 30-day TTL |
-| `kennel:<player>:<stamp>` | A rendered kennel album, 7-day TTL |
+| `card:<player>:<date>` | A share card from before the move to R2 (below), 30-day TTL |
+| `kennel:<player>:<stamp>` | A kennel album from before the move to R2, 7-day TTL |
 | `seen:<player>` | What a player's dogs have turned up, for the board's progress %; the counts are in **list metadata** |
 | `litter:<parent>:<date>:<puppy>` | A puppy one of this player's dogs had, for the kennel's Puppies shelf; the row is in **list metadata** |
 | `user:<username>` | A web account: its handle, private player id, hashed PIN, linked Discord id |
@@ -298,6 +298,16 @@ One KV namespace, separated by key prefix:
 | `discordlink:<snowflake>` | Which account a Discord player is linked to |
 | `linkcode:<CODE>` | A "Sync with Discord" code, 10-minute TTL |
 | `pinfail:<username>` | Failed PIN count, 15-minute TTL |
+
+Rendered images live in **R2** instead (`src/images.js`, the `IMAGES` binding, bucket
+`dogdle-images`): `cards/<player>/<date>` (test rolls under `test/cards/`) and
+`albums/<player>/<stamp>`. KV takes up to a minute to reach other Cloudflare locations,
+and Discord's image proxy fetches a card from a different location than the one the
+bot's roll ran in, so a card could 404 there and the embed showed no dog. A retry worked
+because by then KV had caught up. R2 is consistent everywhere as soon as a write returns.
+R2 has no per-object TTL, so lifecycle rules expire the prefixes (30 days, 7 days, 2 days
+for test cards; `.github/workflows/r2-setup.yml` sets them up). Reads fall back to the old
+KV keys, and a write R2 refuses goes to KV.
 
 **Rolls are immutable.** The first roll of a day is stored; every later load replays it.
 Without that, editing the content tables would silently re-deal every dog already shown.

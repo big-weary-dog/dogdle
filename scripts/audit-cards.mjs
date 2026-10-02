@@ -89,8 +89,9 @@ for (const { key, value: dog } of rolls.sort((a, b) => a.key.localeCompare(b.key
   console.log(`  ${dog.name} the ${dog.breed}, score ${dog.score}`);
 
   const listed = cardKeys.get(`card:${player}:${date}`);
-  console.log(`  card in KV : ${listed ? `yes ${JSON.stringify(listed.metadata ?? {})}` : "NO"}`);
-  if (!listed) flag(who, "no card in KV -- its image URL is a 404");
+  // Cards drawn since the move to R2 (src/images.js) aren't in KV; the GETs below are
+  // what says whether the image actually loads.
+  console.log(`  card in KV : ${listed ? `yes ${JSON.stringify(listed.metadata ?? {})}` : "no (R2 holds new cards)"}`);
 
   const path = `/i/${player}/${date}.gif`;
   for (const [label, host] of [["workers.dev", WORKERS_HOST], ["swampkat", ZONE_HOST]]) {

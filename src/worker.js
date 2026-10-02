@@ -1,15 +1,15 @@
 import { rollDailyDog, rollPuppy, today } from "./roll.js";
 import { handleBot, renderCard, kennelFor, kennelPageData, kennelPreview, kennelPage } from "./bot.js";
 import { photoFor, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
-import { PLAYER_ID_RE, DATE_RE, cardKey, rollKey, dayKey, kennelKey, cleanName, boardRow, visibleRows } from "./keys.js";
+import { PLAYER_ID_RE, DATE_RE, rollKey, dayKey, cleanName, boardRow, visibleRows } from "./keys.js";
 import { megaKennel } from "./mega.js";
 import { recordRoll, boardProgress } from "./progress.js";
 import { dealDog, recordLitter } from "./litter.js";
 import { handleAccount, playsAs, publicAccount, webRow } from "./accounts.js";
+import { putCard, getCard, hasCard, getAlbum } from "./images.js";
 import { log } from "./log.js";
 
 const MAX_CARD_BYTES = 8_000_000; // animated cards are far heavier than a still
-const CARD_TTL_SECONDS = 60 * 60 * 24 * 30;
 const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const GIF_MAGIC = [0x47, 0x49, 0x46, 0x38]; // "GIF8", covering 87a and 89a
 const KENNEL_STAMP_RE = /^\d{4}-\d{2}-\d{2}-\d{1,4}$/;
@@ -227,10 +227,7 @@ async function route(request, url, env) {
       return Response.json({ error: "not a png or gif" }, { status: 415 });
     }
 
-    await env.STORE.put(cardKey(player, date), body, {
-      expirationTtl: CARD_TTL_SECONDS,
-      metadata: { date },
-    });
+    await putCard(env, player, date, body);
 
     return Response.json({ ok: true, url: `/i/${player}/${date}.png` });
   }
@@ -377,11 +374,9 @@ location.replace("/");
 
     // Prefer the card the player's browser rendered; fall back to the plain breed photo
     // if they never got far enough to upload one.
-    const stored = await env.STORE.get(cardKey(player, date), "stream");
-    const hasCard = stored !== null;
-    if (stored) await stored.cancel();
-    const fallback = hasCard ? null : await photoFor(dog);
-    const photo = hasCard
+    const stored = await hasCard(env, player, date);
+    const fallback = stored ? null : await photoFor(dog);
+    const photo = stored
       ? `${url.origin}/i/${player}/${date}.gif`
       : fallback && new URL(fallback, url.origin).toString(); // a frog's is a site path
 
@@ -427,7 +422,7 @@ async function kennelOwner(env, id) {
 // render failed, or it expired, or this location hasn't seen the write yet. Bounded to
 // rolls that exist, and stored once drawn, so this can't become a render-anything route.
 async function serveCard(request, env, player, date, render) {
-  let card = await env.STORE.get(cardKey(player, date), "arrayBuffer");
+  let card = await getCard(env, player, date);
   if (!card && render) {
     const dog = await env.STORE.get(rollKey(player, date), "json");
     if (dog) {
@@ -453,7 +448,7 @@ async function serveCard(request, env, player, date, render) {
 // An album image. Like a card, a missing one is drawn again -- but only if the stamp is
 // the album's current state, so this can't be used to render anything on demand.
 async function serveAlbum(request, env, player, stamp) {
-  let gif = await env.STORE.get(kennelKey(player, stamp), "arrayBuffer");
+  let gif = await getAlbum(env, player, stamp);
   if (!gif) {
     gif = (await kennelFor(env, player, stamp))?.gif ?? null;
     log.warn("kennel.rendered_on_read", { player, stamp, ok: Boolean(gif), colo: request.cf?.colo });

@@ -16,20 +16,18 @@ import { today, qualityFor } from "./roll.js";
 import { renderCardGif } from "./card.js";
 import { buildKennel, renderKennelGif, summary, albumLayout } from "./kennel.js";
 import { photoFor, fetchPhotoBytes, backfillPhoto } from "./photo.js";
-import { cardKey, rollKey, dayKey, guildKey, kennelKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
+import { rollKey, dayKey, guildKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
 import { linkDiscord } from "./accounts.js";
 import { meldPlan, meldApply } from "./meld.js";
 import { recordRoll } from "./progress.js";
 import { dealDog, recordLitter, puppiesOf } from "./litter.js";
+import { putCard, hasCard, putAlbum } from "./images.js";
 import { log } from "./log.js";
 
 const SNOWFLAKE_RE = /^\d{5,24}$/;
-const CARD_TTL_SECONDS = 60 * 60 * 24 * 30;
 // A smoke test shouldn't leave anything behind that someone has to go and delete.
 const TEST_TTL_SECONDS = 60 * 60 * 48;
 const BOARD_LIMIT = 200;
-// An album is redrawn whenever a dog is added, so an old one is only kept for a straggler.
-const KENNEL_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 export const botPlayerId = (discordId) => `discord-${discordId}`;
 const cardUrl = (origin, player, date) => `${origin}/i/${player}/${date}.gif`;
@@ -102,8 +100,6 @@ function present(dog, imageUrl, origin, player) {
   };
 }
 
-export const cardTtl = (dog) => (dog.test ? TEST_TTL_SECONDS : CARD_TTL_SECONDS);
-
 // Draws a dog's card and stores it. Never throws: the card is decoration on a roll that
 // has already been dealt and saved, so a failure here must not turn into a failed roll.
 // Returns the bytes, or null if even a photo-less card couldn't be drawn.
@@ -127,10 +123,7 @@ export async function renderCard(env, player, dog) {
   }
 
   try {
-    await env.STORE.put(cardKey(player, dog.date), gif, {
-      expirationTtl: cardTtl(dog),
-      metadata: { date: dog.date },
-    });
+    await putCard(env, player, dog.date, gif, { test: Boolean(dog.test) });
   } catch (err) {
     // The image route draws a missing card on demand, so this heals on first view.
     log.error("card.store_failed", { player, date: dog.date, err });
@@ -239,7 +232,7 @@ export async function kennelFor(env, player, want) {
   const name = kennelName(dogs);
   const gif = renderKennelGif(kennel, name);
   try {
-    await env.STORE.put(kennelKey(player, stamp), gif, { expirationTtl: KENNEL_TTL_SECONDS });
+    await putAlbum(env, player, stamp, gif);
   } catch (err) {
     // The image route redraws a missing album, so this heals on first view.
     log.warn("kennel.store_failed", { player, stamp, err });
@@ -314,9 +307,7 @@ export async function handleBot(request, url, env) {
     if (!saved || repaired) {
       card = (await renderCard(env, player, dog)) ? "rendered" : "failed";
     } else {
-      const existing = await env.STORE.get(cardKey(player, date), "stream");
-      if (existing) await existing.cancel();
-      else card = (await renderCard(env, player, dog)) ? "rendered" : "failed";
+      if (!(await hasCard(env, player, date))) card = (await renderCard(env, player, dog)) ? "rendered" : "failed";
     }
 
     log.info("bot.roll", { player, date, guildId: guildId || null, replayed: Boolean(saved), repaired, card, test: isTest });

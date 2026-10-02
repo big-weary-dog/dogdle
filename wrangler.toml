@@ -25,6 +25,14 @@ run_worker_first = ["/api/*"]
 binding = "STORE"
 id = "4c634ff1e5fd4d3ca547c5a2f1119806"
 
+# Rendered share cards and kennel albums (src/images.js). R2 rather than KV because R2 is
+# consistent everywhere at once: Discord's image proxy fetches a card from a different
+# location than the roll ran in, and KV could still be a 404 there. The bucket and the
+# lifecycle rules that expire it come from .github/workflows/r2-setup.yml.
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "dogdle-images"
+
 # Workers Logs: keeps every console line (the JSON ones from src/log.js become searchable
 # fields) along with each invocation's outcome, so a crash or a resource-limit kill is
 # visible in the dashboard. Without this the Worker's logs exist only in a live tail.
