@@ -178,4 +178,9 @@ export const TEMPERAMENT = [
   { text: "The neighbor waves. He nods.", emoji: "👋", value: 1, category: "temperament", effect: null },
   // The trait tournament, round 1: picked by a human from ten writers' best.
   { text: "Forgives easily. Remembers everything.", emoji: "🐘", value: 3, category: "temperament", effect: null },
+  // The trait tournament, round 2.
+  { text: "Can read. Hiding it.", emoji: "📖", value: 2, category: "temperament", effect: null },
+  { text: "Not invited to the squirrel's funeral", emoji: "🐿️", value: -2, category: "temperament", effect: null },
+  { text: "Accepted all cookies", emoji: "🍪", value: 2, category: "temperament", effect: null },
+  { text: "Remembers you before the beard", emoji: "🧔", value: 1, category: "temperament", effect: null },
 ];

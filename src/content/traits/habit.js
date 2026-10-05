@@ -119,4 +119,7 @@ export const HABIT = [
   { text: "Can swim. Chooses to sink.", emoji: "🏊", value: -1, category: "habit", effect: null },
   { text: "Calls the vet by his first name", emoji: "🩺", value: -1, category: "habit", effect: null },
   { text: "Sleeps through the smoke alarm", emoji: "🚨", value: -2, category: "habit", effect: null },
+  // The trait tournament, round 2.
+  { text: "Sucks in his stomach at the vet", emoji: "🫃", value: 0, category: "habit", effect: null },
+  { text: "Digs a hole exactly your length", emoji: "⚰️", value: -3, category: "habit", effect: null },
 ];

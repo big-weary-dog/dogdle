@@ -256,4 +256,18 @@ export const CIRCUMSTANCE = [
   { text: "Still paying for a streaming service he forgot", emoji: "📺", value: -2, category: "circumstance", effect: null },
   { text: "Has never once been audited", emoji: "🧾", value: 2, category: "circumstance", effect: null },
   { text: "Godfather to a goose", emoji: "🪿", value: 1, category: "circumstance", effect: null },
+  // The trait tournament, round 2.
+  { text: "Reward offered: $5, negotiable", emoji: "💵", value: -2, category: "circumstance", effect: null },
+  { text: "Listed as next of kin. Twice.", emoji: "🪪", value: 2, category: "circumstance", effect: null },
+  { text: "Was returned once. Nobody mentions it.", emoji: "📦", value: -3, category: "circumstance", effect: null },
+  { text: "Matched with a wolf. Got ghosted.", emoji: "🐺", value: -2, category: "circumstance", effect: null },
+  { text: "Second-best dog on the Christmas card", emoji: "🎄", value: -1, category: "circumstance", effect: null },
+  { text: "Ran away once. Sent a postcard.", emoji: "📮", value: 1, category: "circumstance", effect: null },
+  { text: "Survived the fire. Started it.", emoji: "🔥", value: -3, category: "circumstance", effect: null },
+  { text: "Co-signed a loan for a raccoon", emoji: "🦝", value: -3, category: "circumstance", effect: null },
+  { text: "Signed up for a free trial in 2019", emoji: "💳", value: -2, category: "circumstance", effect: null },
+  { text: "Neighbours have a photo of him from 1974", emoji: "🖼️", value: 0, category: "circumstance", effect: null },
+  { text: "Has a timeshare in a town that flooded", emoji: "🏖️", value: -2, category: "circumstance", effect: null },
+  { text: "Next of kin: a parrot", emoji: "🦜", value: -1, category: "circumstance", effect: null },
+  { text: "Was the getaway driver", emoji: "🚙", value: -1, category: "circumstance", effect: null },
 ];
