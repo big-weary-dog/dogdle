@@ -15,7 +15,7 @@ export const CIRCUMSTANCE = [
   { text: "Votes", emoji: "🗳️", value: 1, category: "circumstance", effect: null },
   { text: "Has strong opinions about the bin collection", emoji: "🗑️", value: 1, category: "circumstance", effect: null },
   { text: "Attended one protest. Unclear which side.", emoji: "📣", value: 0, category: "circumstance", effect: null },
-  { text: "Served on a jury", emoji: "👨‍⚖️", value: 2, category: "circumstance", effect: null },
+  { text: "Served on a jury", emoji: "👨‍⚖️", value: 3, category: "circumstance", effect: null },
   { text: "Banned from the community group chat", emoji: "💬", value: -1, category: "circumstance", effect: null },
 
   // ----- the machine -----
@@ -192,14 +192,14 @@ export const CIRCUMSTANCE = [
   { text: "Arrived at the base chased by a helicopter", emoji: "🚁", value: -3, category: "circumstance",
     effect: { type: "fall", layer: "front", params: { color: "#f8fafc", shape: "dot", count: 40, speed: 1.6, sway: 2.8, size: 3 } } },
   { text: "Stopped a library break-in. It smelled wrong.", emoji: "🕯️", value: 3, category: "circumstance", effect: null },
-  { text: "Wants his jade amulet back", emoji: "💎", value: -2, category: "circumstance", effect: null },
+  { text: "Wants his jade amulet back", emoji: "💎", value: -1, category: "circumstance", effect: null },
   { text: "Brought you the Yellow Sign. Good boy.", emoji: "🟨", value: -3, category: "circumstance",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.6, hue: 15, saturate: 1.8 } } },
   { text: "One bark, remixed into every song ever", emoji: "🎵", value: 1, category: "circumstance", group: "fame",
     effect: { type: "ripple", layer: "back", params: { color: "#a78bfa", rings: 4, speed: 1.6, maxRadius: 170 } } },
   { text: "Three-time World's Ugliest. Retired undefeated.", emoji: "🥴", value: 1, category: "circumstance", group: "fame", effect: null },
   { text: "Rated 12/10. Brent had concerns.", emoji: "💯", value: 1, category: "circumstance", group: "fame", effect: null },
-  { text: "Ambushed Napoleon with rabbits", emoji: "🐇", value: 1, category: "circumstance", effect: null },
+  { text: "Ambushed Napoleon with rabbits", emoji: "🐇", value: 2, category: "circumstance", effect: null },
   { text: "Grandma survived the Titanic", emoji: "🚢", value: 2, category: "circumstance", group: "pedigree", effect: null },
   { text: "Deserted a Roman legion", emoji: "⚔️", value: -1, category: "circumstance", effect: null },
   { text: "On a Greek vase, badly drawn", emoji: "🏺", value: -1, category: "circumstance", effect: null },
@@ -223,7 +223,7 @@ export const CIRCUMSTANCE = [
   // The writers' room, round one: five angles, three reviewers, fifty keepers.
   { text: "Chases cars. Caught one. Kept it.", emoji: "🚗", value: 2, category: "circumstance", effect: null },
   { text: "Came back from camping alone", emoji: "🔦", value: -3, category: "circumstance", effect: null },
-  { text: "Has a second family in Leeds", emoji: "🏠", value: -3, category: "circumstance", effect: null },
+  { text: "Has a second family in Leeds", emoji: "🏠", value: -2, category: "circumstance", effect: null },
   { text: "His vet file is sealed by a court", emoji: "⚖️", value: -3, category: "circumstance", effect: null },
   { text: "Found the stolen World Cup in a hedge", emoji: "🏆", value: 4, category: "circumstance", effect: null },
   { text: "Ring bearer. The ring is gone.", emoji: "💍", value: -2, category: "circumstance", effect: null },
@@ -242,7 +242,7 @@ export const CIRCUMSTANCE = [
   { text: "Has never been in the shed", emoji: "🔒", value: -1, category: "circumstance", effect: null },
   { text: "Fence was already like that", emoji: "🚧", value: -2, category: "circumstance", effect: null },
   { text: "Nothing happened on Tuesday", emoji: "📅", value: -1, category: "circumstance", effect: null },
-  { text: "Was at Dave's. Ask Dave.", emoji: "🍕", value: 0, category: "circumstance", effect: null },
+  { text: "Was at Dave's. Ask Dave.", emoji: "🍕", value: 1, category: "circumstance", effect: null },
   { text: "Never seen that man before", emoji: "🤷", value: -1, category: "circumstance", effect: null },
   { text: "Was not near the lake", emoji: "🦆", value: -1, category: "circumstance", effect: null },
   { text: "Nothing to declare", emoji: "🛃", value: -1, category: "circumstance", effect: null },
@@ -288,4 +288,9 @@ export const CIRCUMSTANCE = [
   { text: "Rehomed the family. Kept the house.", emoji: "🏠", value: 2, category: "circumstance", effect: null },
   { text: "Put the vet down", emoji: "💉", value: -4, category: "circumstance", effect: null },
   { text: "Witnessed a will. Is in it.", emoji: "🖋️", value: 2, category: "circumstance", effect: null },
+  // The trait tournament, round 4.
+  { text: "Last voice on the cockpit recorder", emoji: "✈️", value: -2, category: "circumstance", effect: null },
+  { text: "Nobel Prize, revoked. He knows why.", emoji: "🏅", value: -2, category: "circumstance", effect: null },
+  { text: "Wanted at The Hague. Mostly for shoes.", emoji: "⚖️", value: -3, category: "circumstance", effect: null },
+  { text: "Version 3. Versions 1 and 2 are in the garden.", emoji: "🪦", value: -3, category: "circumstance", effect: null },
 ];

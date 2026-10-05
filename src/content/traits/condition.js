@@ -82,7 +82,7 @@ export const CONDITION = [
     effect: { type: "ghost", layer: "subject", params: { opacity: 0.6, blur: 1.4 } } },
   { text: "Smells like a hospital", emoji: "🏥", value: -2, category: "condition", group: "smell",
     effect: { type: "fog", layer: "front", params: { color: "#e0f2fe", bands: 3, opacity: 0.24, speed: 0.35 } } },
-  { text: "Has a scar with a story", emoji: "🪡", value: 2, category: "condition", effect: null },
+  { text: "Has a scar with a story", emoji: "🪡", value: 3, category: "condition", effect: null },
   { text: "One with nature", emoji: "🍃", value: 4, category: "condition",
     effect: { type: "rise", layer: "front", params: { color: "#86efac", count: 24, speed: 0.4, sway: 3, size: 6, shape: "leaf" } } },
   { text: "Devout Buddhist", emoji: "☸️", value: 6, category: "condition",
@@ -121,9 +121,9 @@ export const CONDITION = [
   { text: "A different dog on full moons", emoji: "🌕", value: -5, category: "condition",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.2, hue: 250, saturate: 0.6 } } },
   { text: "One ear up, one ear down", emoji: "👂", value: 2, category: "condition", effect: null },
-  { text: "Has eyebrows. Uses them.", emoji: "🤨", value: 2, category: "condition", effect: null },
+  { text: "Has eyebrows. Uses them.", emoji: "🤨", value: 3, category: "condition", effect: null },
   { text: "Tongue permanently out", emoji: "👅", value: 1, category: "condition", effect: null },
-  { text: "Underbite of a Bond villain", emoji: "🦷", value: -1, category: "condition", effect: null },
+  { text: "Underbite of a Bond villain", emoji: "🦷", value: 0, category: "condition", effect: null },
   { text: "Descended from turnspit dogs", emoji: "🍖", value: 0, category: "condition", group: "pedigree",
     effect: { type: "rise", layer: "front", params: { color: "#fb923c", count: 14, speed: 0.8, sway: 1.5, size: 3, glow: true } } },
   { text: "Great-great-grandson of Freud's dog", emoji: "🛋️", value: 3, category: "condition", group: "pedigree",
@@ -191,7 +191,7 @@ export const CONDITION = [
   { text: "Gold tooth. Not his.", emoji: "🦷", value: 1, category: "condition", effect: null },
   { text: "A spider wrote SOME DOG over him", emoji: "🕸️", value: 2, category: "condition", effect: null },
   { text: "Hollow. Full of Greeks.", emoji: "🐴", value: -3, category: "condition", effect: null },
-  { text: "Left the woods in a nicer collar", emoji: "🌲", value: 1, category: "condition", effect: null },
+  { text: "Left the woods in a nicer collar", emoji: "🌲", value: 2, category: "condition", effect: null },
   { text: "Smiles. People call animal control.", emoji: "😬", value: -1, category: "condition", effect: null },
   // The boring writers' room: extremely mundane, some suspiciously so.
   { text: "Has always been this colour", emoji: "🖌️", value: -1, category: "condition", effect: null },
@@ -200,7 +200,7 @@ export const CONDITION = [
   { text: "Matches the couch", emoji: "🟫", value: 0, category: "condition", effect: null },
   { text: "Mostly fur", emoji: "🧶", value: 0, category: "condition", effect: null },
   { text: "Has a collar. It's blue.", emoji: "🔵", value: 0, category: "condition", effect: null },
-  { text: "Was fed. Is fine.", emoji: "🍚", value: 1, category: "condition", effect: null },
+  { text: "Was fed. Is fine.", emoji: "🍚", value: 2, category: "condition", effect: null },
   // The trait tournament, round 1: picked by a human from ten writers' best.
   { text: "Weight recorded as \"yes\"", emoji: "⚖️", value: -1, category: "condition", effect: null },
   { text: "Was bigger in the photos", emoji: "📸", value: -2, category: "condition", effect: null },
@@ -208,4 +208,6 @@ export const CONDITION = [
   { text: "Not the original dog", emoji: "🔄", value: -2, category: "condition", effect: null },
   // The trait tournament, round 3.
   { text: "Receipt says 'dog (used)'", emoji: "🧾", value: -2, category: "condition", effect: null },
+  // The trait tournament, round 4.
+  { text: "A laugh track plays when he falls over", emoji: "📺", value: 1, category: "condition", effect: null },
 ];
