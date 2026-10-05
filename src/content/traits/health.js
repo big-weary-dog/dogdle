@@ -54,7 +54,7 @@ export const HEALTH = [
     effect: { type: "chromatic", layer: "subject", params: { offset: 2 } } },
   { text: "Ate a bee", emoji: "🐝", value: -1, category: "health",
     effect: { type: "squish", layer: "subject", params: { period: 1100 } } },
-  { text: "Ate a bee. Again.", emoji: "🐝", value: -3, category: "health",
+  { text: "Ate a bee. Again.", emoji: "🐝", value: -2, category: "health",
     effect: { type: "squish", layer: "subject", params: { period: 800 } } },
   { text: "Allergic to other dogs", emoji: "🤧", value: -5, category: "health",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.3, hue: 320, saturate: 1.3 } } },
@@ -70,7 +70,7 @@ export const HEALTH = [
     effect: { type: "glitch", layer: "front", params: { color: "#7c3aed", intensity: 0.3, scanlines: false } } },
   { text: "Has snout fever", emoji: "🌡️", value: -3, category: "health",
     effect: { type: "tint", layer: "subject", params: { sepia: 0.25, hue: 340, saturate: 1.4 } } },
-  { text: "Bitten on the nose by a bat. Unvaccinated.", emoji: "🦇", value: -4, category: "health", effect: null },
+  { text: "Bitten on the nose by a bat. Unvaccinated.", emoji: "🦇", value: -3, category: "health", effect: null },
   { text: "Mummified once. Got better.", emoji: "⚱️", value: -2, category: "health", effect: null },
   // The writers' room, round one: five angles, three reviewers, fifty keepers.
   { text: "Grass sommelier. Throws up bad years.", emoji: "🍷", value: -1, category: "health", effect: null },
