@@ -83,4 +83,7 @@ export const HEALTH = [
   { text: "Pulse steady under questioning", emoji: "💓", value: -1, category: "health", effect: null },
   { text: "Stool sample: unremarkable", emoji: "🧪", value: 0, category: "health", effect: null },
   { text: "Blinks at a normal rate", emoji: "👁️", value: 0, category: "health", effect: null },
+  // The trait tournament, round 1: picked by a human from ten writers' best.
+  { text: "Insurance claim denied", emoji: "📄", value: -2, category: "health", effect: null },
+  { text: "Ate a whole birthday cake. Fine.", emoji: "🎂", value: -1, category: "health", effect: null },
 ];

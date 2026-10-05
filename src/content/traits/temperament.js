@@ -176,4 +176,6 @@ export const TEMPERAMENT = [
   { text: "Seemed like a nice dog", emoji: "🗣️", value: 0, category: "temperament", effect: null },
   { text: "Neither agrees nor disagrees", emoji: "☑️", value: -1, category: "temperament", effect: null },
   { text: "The neighbor waves. He nods.", emoji: "👋", value: 1, category: "temperament", effect: null },
+  // The trait tournament, round 1: picked by a human from ten writers' best.
+  { text: "Forgives easily. Remembers everything.", emoji: "🐘", value: 3, category: "temperament", effect: null },
 ];

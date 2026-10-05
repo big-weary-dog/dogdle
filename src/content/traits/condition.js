@@ -201,4 +201,7 @@ export const CONDITION = [
   { text: "Mostly fur", emoji: "🧶", value: 0, category: "condition", effect: null },
   { text: "Has a collar. It's blue.", emoji: "🔵", value: 0, category: "condition", effect: null },
   { text: "Was fed. Is fine.", emoji: "🍚", value: 1, category: "condition", effect: null },
+  // The trait tournament, round 1: picked by a human from ten writers' best.
+  { text: "Weight recorded as \"yes\"", emoji: "⚖️", value: -1, category: "condition", effect: null },
+  { text: "Was bigger in the photos", emoji: "📸", value: -2, category: "condition", effect: null },
 ];

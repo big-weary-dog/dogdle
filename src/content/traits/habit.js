@@ -115,4 +115,8 @@ export const HABIT = [
   { text: "Has a mat. Uses the mat.", emoji: "🧺", value: 1, category: "habit", effect: null },
   { text: "Has a side of the sofa", emoji: "🛋️", value: -1, category: "habit", effect: null },
   { text: "Sits", emoji: "🪑", value: 1, category: "habit", effect: null },
+  // The trait tournament, round 1: picked by a human from ten writers' best.
+  { text: "Can swim. Chooses to sink.", emoji: "🏊", value: -1, category: "habit", effect: null },
+  { text: "Calls the vet by his first name", emoji: "🩺", value: -1, category: "habit", effect: null },
+  { text: "Sleeps through the smoke alarm", emoji: "🚨", value: -2, category: "habit", effect: null },
 ];

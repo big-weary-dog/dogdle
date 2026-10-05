@@ -250,4 +250,10 @@ export const CIRCUMSTANCE = [
   { text: "Present", emoji: "✋", value: 1, category: "circumstance", effect: null },
   { text: "Just a dog, officer", emoji: "👮", value: -1, category: "circumstance", effect: null },
   { text: "No priors", emoji: "📁", value: 1, category: "circumstance", effect: null },
+  // The trait tournament, round 1: picked by a human from ten writers' best.
+  { text: "Microchip registered to a stranger", emoji: "🔖", value: -2, category: "circumstance", effect: null },
+  { text: "Left on read by the vet", emoji: "💬", value: -1, category: "circumstance", effect: null },
+  { text: "Still paying for a streaming service he forgot", emoji: "📺", value: -2, category: "circumstance", effect: null },
+  { text: "Has never once been audited", emoji: "🧾", value: 2, category: "circumstance", effect: null },
+  { text: "Godfather to a goose", emoji: "🪿", value: 1, category: "circumstance", effect: null },
 ];
