@@ -1,0 +1,135 @@
+name: Read Worker logs
+
+# Read-only. Pulls the Worker's own logs (Workers Logs, [observability] in wrangler.toml)
+# for the last few hours and prints what matters for the cards: every request for a card
+# or album image -- who asked, from where, what it got back and how long it took -- next to
+# the bot rolls that drew them, plus every warning and error. This is how to see what
+# Discord's image proxy actually got when a card came up blank.
+on:
+  workflow_dispatch:
+    inputs:
+      hours:
+        description: How many hours back to look
+        default: "48"
+        required: false
+
+jobs:
+  logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query Workers Logs
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          HOURS: ${{ inputs.hours || '48' }}
+        run: |
+          cat > /tmp/logs.py <<'PY'
+          import json, os, sys, time, urllib.request, collections
+
+          TOKEN = os.environ["CF_TOKEN"]
+          API = "https://api.cloudflare.com/client/v4"
+
+          def call(method, path, body=None):
+              req = urllib.request.Request(API + path, method=method,
+                  data=json.dumps(body).encode() if body is not None else None,
+                  headers={"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"})
+              try:
+                  with urllib.request.urlopen(req, timeout=60) as r:
+                      return json.load(r)
+              except urllib.error.HTTPError as e:
+                  return {"success": False, "status": e.code, "body": e.read().decode()[:2000]}
+
+          accounts = call("GET", "/accounts").get("result") or []
+          if not accounts:
+              sys.exit("::error::no account visible to the token")
+          account = accounts[0]["id"]
+
+          now = int(time.time() * 1000)
+          start = now - int(float(os.environ["HOURS"]) * 3600 * 1000)
+          step = 30 * 60 * 1000  # half-hour windows keep each page under the limit
+
+          events, t, shown_schema = [], start, False
+          while t < now:
+              body = {
+                  "queryId": "dogdle-logs",
+                  "timeframe": {"from": t, "to": min(t + step, now)},
+                  "view": "events",
+                  "limit": 2000,
+                  "parameters": {
+                      "datasets": ["cloudflare-workers"],
+                      "filters": [{"key": "$metadata.service", "operation": "eq", "type": "string", "value": "dogdle"}],
+                  },
+              }
+              res = call("POST", f"/accounts/{account}/workers/observability/telemetry/query", body)
+              if not res.get("success"):
+                  print("query failed:", json.dumps(res)[:2000])
+                  sys.exit("::error::Workers Logs query failed (the token may need 'Workers Observability: Read')")
+              page = ((res.get("result") or {}).get("events") or {}).get("events") or []
+              if page and not shown_schema:
+                  print("=== one raw event, for reference ===")
+                  print(json.dumps(page[0], indent=1)[:3000])
+                  shown_schema = True
+              if len(page) >= 2000:
+                  print(f"::warning::window at {t} hit the 2000-event limit; some events are missing")
+              events += page
+              t += step
+
+          print(f"\n{len(events)} events in the last {os.environ['HOURS']}h")
+
+          def get(d, *path):
+              for p in path:
+                  if not isinstance(d, dict): return None
+                  d = d.get(p)
+              return d
+
+          def when(e):
+              ts = get(e, "timestamp") or get(e, "$metadata", "startTime") or 0
+              return time.strftime("%m-%d %H:%M:%S", time.gmtime(ts / 1000)) + "Z" if ts else "?"
+
+          def src(e):
+              s = get(e, "source")
+              if isinstance(s, str):
+                  try: s = json.loads(s)
+                  except Exception: s = {"message": s}
+              return s if isinstance(s, dict) else {}
+
+          def url(e):
+              return (get(e, "$workers", "event", "request", "url") or get(e, "$metadata", "url") or "")
+
+          counts = collections.Counter()
+          for e in events:
+              counts[src(e).get("event") or get(e, "$metadata", "type") or "?"] += 1
+          print("\n=== log lines by event ===")
+          for k, n in counts.most_common(40): print(f"{n:6}  {k}")
+
+          print("\n=== warnings and errors ===")
+          for e in sorted(events, key=lambda e: get(e, "timestamp") or 0):
+              s = src(e)
+              lvl = s.get("level") or get(e, "$metadata", "level")
+              if lvl in ("warn", "error"):
+                  print(when(e), lvl, json.dumps(s)[:400])
+
+          print("\n=== bot rolls ===")
+          for e in sorted(events, key=lambda e: get(e, "timestamp") or 0):
+              s = src(e)
+              if s.get("event") in ("bot.roll", "card.rendered"):
+                  print(when(e), json.dumps({k: s.get(k) for k in ("event", "player", "date", "card", "replayed", "ms", "bytes", "photo")}))
+
+          print("\n=== image requests (/i/, /k/, /u/) ===")
+          seen = set()
+          for e in sorted(events, key=lambda e: get(e, "timestamp") or 0):
+              u = url(e)
+              if not any(p in u for p in ("/i/", "/k/", "/u/")): continue
+              key = (get(e, "$metadata", "requestId") or get(e, "$workers", "requestId") or id(e))
+              if key in seen: continue
+              seen.add(key)
+              req = get(e, "$workers", "event", "request") or {}
+              hdr = req.get("headers") or {}
+              print(when(e),
+                    get(e, "$workers", "event", "response", "status") or get(e, "$metadata", "statusCode"),
+                    get(e, "$workers", "outcome"),
+                    f"{get(e, '$workers', 'wallTimeMs')}ms" if get(e, '$workers', 'wallTimeMs') is not None else "",
+                    (get(req, "cf", "colo") or ""),
+                    u.split("://", 1)[-1],
+                    (hdr.get("user-agent") or "")[:60])
+          PY
+          python3 /tmp/logs.py

@@ -127,7 +127,8 @@ fine; don't run two *balance corrections* at once.
   anonymous web players into Discord players; `src/meld.js`), `card-audit.yml` (recent Discord
   cards end to end, plus Worker error counts), `verify-breeds.yml` (weekly slug check),
   `frog-photos.yml` (openly licensed frog photos from Commons onto a scratch branch),
-  `r2-setup.yml` (creates the images bucket and its expiry rules; safe to re-run).
+  `r2-setup.yml` (creates the images bucket and its expiry rules; safe to re-run),
+  `worker-logs.yml` (Workers Logs: image requests, bot rolls, warnings and errors).
   Report blocked hosts rather than trying to route around them.
 - **Log through `src/log.js`**, not bare `console.*`: one JSON object per event, which is
   what makes Workers Logs filterable. A failure you handle quietly still gets a `warn`.
