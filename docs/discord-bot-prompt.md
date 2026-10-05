@@ -75,7 +75,14 @@ aren't sure whether someone has rolled.
 }
 ```
 
-`image` is a plain animated GIF, 560×320, ~250–480KB. Put it straight in an embed.
+`image` is a plain animated GIF, 560×320, ~250–600KB. **Upload it, don't link it:** fetch
+the bytes from `image`, attach them to the message as `card.gif`, and set the embed image
+to `attachment://card.gif`. Linking the URL in the embed works most of the time, but
+Discord's image proxy sometimes shows a blank card for a large animated GIF it is seeing
+for the first time, even though our server answered it with the full image in well under a
+second (the server logs show every one). A retry then shows the dog, from Discord's cache.
+An attachment is stored by Discord when the message is sent, so there is nothing to fetch
+later and nothing to come up blank. If the fetch from `image` fails, fall back to the URL.
 `kennel` is the player's album page on the website: every dog they've rolled.
 
 About one day in forty, a player's roll isn't a dog: **a frog has got in**. The payload
@@ -219,7 +226,7 @@ a one-line title. The traits are already in the image; do not repeat them as tex
 │ 🌟 Steve the Coonhound             │   ← title: qualityEmoji + text
 │ Exceptional Animal · +16 · Rare    │   ← one line of detail
 │ ┌────────────────────────────────┐ │
-│ │  [ the 560×320 animated card ] │ │   ← embed image = `image`
+│ │  [ the 560×320 animated card ] │ │   ← embed image = attachment://card.gif
 │ └────────────────────────────────┘ │
 └────────────────────────────────────┘
 ```
@@ -235,7 +242,8 @@ a one-line title. The traits are already in the image; do not repeat them as tex
 Post it each morning for **yesterday**. Structure, in one message:
 
 1. **A header line**, then the leaderboard grouped by quality tier.
-2. **One embed per player** — author = display name + avatar, image = their card.
+2. **One embed per player** — author = display name + avatar, image = their card, uploaded
+   as an attachment like Message 1 (`card-1.gif`, `card-2.gif`, … one per embed).
 3. **A link button, "Roll now!"**, pointing at `https://dogdle.swampkat.com/`.
 
 Rows arrive sorted by score, and tiers are monotonic in score, so you can group
