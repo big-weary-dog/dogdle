@@ -88,4 +88,6 @@ export const HEALTH = [
   { text: "Ate a whole birthday cake. Fine.", emoji: "🎂", value: -1, category: "health", effect: null },
   // The trait tournament, round 2.
   { text: "Diagnosis pending since 2019", emoji: "⏳", value: -1, category: "health", effect: null },
+  // The trait tournament, round 3.
+  { text: "Organ donor. Already donated.", emoji: "🫀", value: 0, category: "health", effect: null },
 ];

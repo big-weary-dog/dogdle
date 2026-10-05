@@ -183,4 +183,10 @@ export const TEMPERAMENT = [
   { text: "Not invited to the squirrel's funeral", emoji: "🐿️", value: -2, category: "temperament", effect: null },
   { text: "Accepted all cookies", emoji: "🍪", value: 2, category: "temperament", effect: null },
   { text: "Remembers you before the beard", emoji: "🧔", value: 1, category: "temperament", effect: null },
+  // The trait tournament, round 3.
+  { text: "Bark, translated: \"I know\"", emoji: "🔤", value: 2, category: "temperament", effect: null },
+  { text: "Pleaded guilty to save time", emoji: "⚖️", value: 1, category: "temperament", effect: null },
+  { text: "Knows which floorboard you avoid", emoji: "🪵", value: -2, category: "temperament", effect: null },
+  { text: "Remembers your previous owner. You're the first.", emoji: "🧠", value: -3, category: "temperament", effect: null },
+  { text: "Taught a man to sit. Took years.", emoji: "🪑", value: 0, category: "temperament", effect: null },
 ];

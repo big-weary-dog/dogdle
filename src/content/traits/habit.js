@@ -122,4 +122,8 @@ export const HABIT = [
   // The trait tournament, round 2.
   { text: "Sucks in his stomach at the vet", emoji: "🫃", value: 0, category: "habit", effect: null },
   { text: "Digs a hole exactly your length", emoji: "⚰️", value: -3, category: "habit", effect: null },
+  // The trait tournament, round 3.
+  { text: "Signed the visitor log as 'Gary'", emoji: "🖊️", value: 0, category: "habit", effect: null },
+  { text: "Practices being picked", emoji: "🙋", value: -1, category: "habit", effect: null },
+  { text: "Practises your signature", emoji: "✍️", value: -2, category: "habit", effect: null },
 ];

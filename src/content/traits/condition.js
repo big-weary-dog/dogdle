@@ -206,4 +206,6 @@ export const CONDITION = [
   { text: "Was bigger in the photos", emoji: "📸", value: -2, category: "condition", effect: null },
   // The trait tournament, round 2.
   { text: "Not the original dog", emoji: "🔄", value: -2, category: "condition", effect: null },
+  // The trait tournament, round 3.
+  { text: "Receipt says 'dog (used)'", emoji: "🧾", value: -2, category: "condition", effect: null },
 ];
