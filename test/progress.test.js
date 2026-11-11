@@ -212,7 +212,8 @@ test("the web board carries each player's progress, and no player id", async () 
   const own = fresh();
   addDog(own, dog);
   assert.deepEqual(pip.progress, progressOf(countSeen(own)));
-  assert.ok(pip.progress.percent >= 1);
+  // Not percent: it's today's real dog, and one with few traits rounds down to 0%.
+  assert.ok(pip.progress.found > 0);
 
   const felfox = board.rows.find((r) => r.player === "Felfox");
   const kennel = await (await site(e, `/api/kennel?player=${discord}`)).json();
