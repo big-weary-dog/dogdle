@@ -8,7 +8,9 @@ import assert from "node:assert/strict";
 import { rollDailyDog } from "../src/roll.js";
 import { renderCardGif, composeCard, layoutRows, CARD } from "../src/card.js";
 import { readFileSync } from "node:fs";
-import { BACKGROUNDS, MODIFIERS, FROG, FROG_TRAITS, FROG_PHOTOS } from "../src/content/index.js";
+import {
+  BACKGROUNDS, MODIFIERS, FROG, FROG_TRAITS, FROG_PHOTOS, SEASONAL_TRAITS, SEASONAL_BACKGROUNDS,
+} from "../src/content/index.js";
 import ATLAS from "../src/generated/atlas.js";
 import { KENNEL_EMOJI } from "../src/kennel.js";
 import { decodePhoto } from "../src/draw.js";
@@ -69,7 +71,7 @@ test("a rendered card is a real GIF with the frames we asked for", () => {
 
 test("every effect in the content tables survives a headless render", () => {
   // One dog per effect, so a broken effect fails here rather than on somebody's roll.
-  const specs = [...BACKGROUNDS, ...MODIFIERS, ...FROG_TRAITS].map((x) => x.effect);
+  const specs = [...BACKGROUNDS, ...SEASONAL_BACKGROUNDS, ...MODIFIERS, ...SEASONAL_TRAITS, ...FROG_TRAITS].map((x) => x.effect);
 
   for (const effect of specs) {
     if (!effect) continue;
@@ -100,12 +102,12 @@ const rowsOf = (dog) => [
 const trimmed = (lines) => lines.at(-1).endsWith("..");
 
 test("every trait name fits on the card, wrapping rather than trimming", () => {
-  for (const m of [...MODIFIERS.filter((t) => !t.obsolete), ...FROG_TRAITS]) {
+  for (const m of [...MODIFIERS.filter((t) => !t.obsolete), ...SEASONAL_TRAITS, ...FROG_TRAITS]) {
     const { lines } = layoutRows([m]);
     assert.ok(!trimmed(lines[0]), `"${m.text}" doesn't fit in two lines`);
     assert.equal(lines[0].join(" "), m.text, `"${m.text}" lost words when wrapped`);
   }
-  for (const b of BACKGROUNDS) {
+  for (const b of [...BACKGROUNDS, ...SEASONAL_BACKGROUNDS]) {
     const { lines } = layoutRows([{ text: b.name, value: b.value }]);
     assert.ok(!trimmed(lines[0]), `background "${b.name}" doesn't fit`);
   }
@@ -135,6 +137,8 @@ test("the atlas covers every emoji the card and the album draw", () => {
     ...BACKGROUNDS.map((b) => b.emoji),
     ...MODIFIERS.map((m) => m.emoji),
     ...FROG_TRAITS.map((m) => m.emoji),
+    ...SEASONAL_BACKGROUNDS.map((b) => b.emoji),
+    ...SEASONAL_TRAITS.map((m) => m.emoji),
     "🧬", // the breed row, which belongs to no table
     FROG.emoji, // a frog's breed row
     ...KENNEL_EMOJI,

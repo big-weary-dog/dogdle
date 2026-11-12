@@ -17,6 +17,11 @@ export const SEEDS = [
   ["discord-900000000000000002", "2026-09-22"],
   ["8f14e45f-ceea-467a-9c1e-1b2c3d4e5f60", "2026-07-04"],
   ["8f14e45f-ceea-467a-9c1e-1b2c3d4e5f61", "2026-07-04"],
+  // Holiday seasons: Thanksgiving, Hanukkah inside early Christmas, Christmas, New Year.
+  ["golden-marmot", "2026-11-26"],
+  ["golden-newt", "2026-12-08"],
+  ["golden-osprey", "2026-12-25"],
+  ["golden-pika", "2027-01-01"],
   // Frog days, so the intruders are pinned too.
   ["golden-mudskipper", "2026-06-15"],
   ["golden-toad", "2026-05-05"],

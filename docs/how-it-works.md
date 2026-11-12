@@ -71,6 +71,41 @@ pulls openly licensed frogs from Commons onto a scratch branch, `frog-candidates
 under 200KB), add them to `FROG_PHOTOS` with their credit, then run it again with
 `clean=true` to delete the branch. New photos only reach future frogs.
 
+### Holiday seasons
+
+Around a holiday, dogs dress for it. Each season in `src/content/seasons/` has a date (fixed,
+"fourth Thursday of November", or a table for Hanukkah, which follows the Hebrew calendar
+and is checked against `Intl`'s), a run-up, a run-down, and its own traits and places:
+
+| Season | Window | Traits | Places |
+|---|---|---|---|
+| 🦃 Thanksgiving | three weeks before to a week after | 58 | 18 |
+| 🕎 Hanukkah | a week before the first candle to the day after the eighth night | 16 | 4 |
+| 🎄 Christmas | three weeks before to New Year's Day | 52 | 12 |
+| 🕯️ Kwanzaa | Dec 23 – Jan 1 | 9 | 2 |
+| 🎆 New Year | Dec 27 – Jan 2 | 15 | 4 |
+| 👹👑🌄🎊📦 Krampusnacht, St. Lucia, the solstice, Festivus, Boxing Day | the day | 4–5 each | 1 each |
+
+A dog in a window is dealt exactly as usual, then `seasonal()` in `src/roll.js` swaps some of
+it for the holiday's. It's generous on purpose: **every dog in a window gets at least one
+holiday trait**, more follow the closer the day (about half the traits on the day itself),
+and a holiday place replaces the background a quarter of the time at the start of the
+run-up and four times in five on the day. Where windows overlap, each swap picks a season
+weighted by how close its holiday is, so Festivus and Christmas share Dec 23. A puppy's
+inherited traits are never swapped, only its fresh ones. Frogs don't celebrate.
+
+The swap has its own hash (`season:player:date`), so a day outside every window deals the
+dog it always did, and an in-season dog keeps its breed and name. Seasonal traits and
+places aren't in the kennel's collection or the board's progress, which count what can
+turn up any day, and a stored dog marks each seasonal find with a `season` field.
+
+**Balance.** A season replaces everyday traits and places with its own, so its traits
+should average what everyday traits do (about −0.26) and its places what everyday places
+do (about +0.9). `npm run balance` prints each season's sum against its aim and the average
+dog on its first day, the holiday and its last day; `test/seasons.test.js` fails any day
+in the windows whose average dog drifts past ±0.5. Adding a season: a new file, appended
+to the list in `seasons/index.js` (the order is part of how in-season dogs are dealt).
+
 ---
 
 ## Visuals

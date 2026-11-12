@@ -5,6 +5,7 @@
 //   node scripts/sheet.mjs                          every background -> sheet.png
 //   node scripts/sheet.mjs out.png                  every background -> out.png
 //   node scripts/sheet.mjs out.png beach,volcano    just those keys
+//   node scripts/sheet.mjs out.png seasonal         every holiday background
 //
 // Open the PNG with the Read tool to look at it.
 
@@ -12,17 +13,20 @@ import { writeFileSync } from "fs";
 import { RasterSurface } from "../src/raster.js";
 import { paintWorld, createLayers } from "../public/effects.js";
 import { drawText, fillRect, blitSurface } from "../src/draw.js";
-import { BACKGROUNDS } from "../src/content/index.js";
+import { BACKGROUNDS, SEASONAL_BACKGROUNDS } from "../src/content/index.js";
+
+// Seasonal places too: `seasonal` as the key list draws just those.
+const ALL = [...BACKGROUNDS, ...SEASONAL_BACKGROUNDS];
 import { encodePng } from "./lib/png.mjs";
 
 const [out = "sheet.png", keyArg] = process.argv.slice(2);
-const wanted = keyArg ? keyArg.split(",") : null;
-const missing = wanted?.filter((k) => !BACKGROUNDS.some((b) => b.key === k)) ?? [];
+const wanted = keyArg === "seasonal" ? SEASONAL_BACKGROUNDS.map((b) => b.key) : keyArg ? keyArg.split(",") : null;
+const missing = wanted?.filter((k) => !ALL.some((b) => b.key === k)) ?? [];
 if (missing.length) {
   console.error(`unknown background keys: ${missing.join(", ")}`);
   process.exit(1);
 }
-const list = wanted ? wanted.map((k) => BACKGROUNDS.find((b) => b.key === k)) : BACKGROUNDS;
+const list = wanted ? wanted.map((k) => ALL.find((b) => b.key === k)) : BACKGROUNDS;
 
 const SW = 240, SH = 256, LABEL = 22, COLS = Math.min(5, list.length);
 const ROWS = Math.ceil(list.length / COLS);

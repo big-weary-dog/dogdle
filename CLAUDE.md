@@ -9,7 +9,7 @@ file is the short version of how to work here without breaking anything.
 ```bash
 npm test          # the whole suite, ~5s. Run it before every commit.
 npm run balance   # where the average dog sits, tier spread, and what to nudge if it drifted
-npm run sheet -- out.png beach,volcano   # contact sheet of backgrounds (omit keys for all)
+npm run sheet -- out.png beach,volcano   # contact sheet of backgrounds (omit keys for all; `seasonal` for holidays)
 npm run card -- alice,bob 2026-09-22     # render Discord cards offline -> card-<player>.gif
 npm run kennel -- alice 40               # render a 40-day kennel album -> kennel-<player>.gif
 npm run bake      # re-record test/golden.json and test/content-inventory.json
@@ -25,6 +25,7 @@ the Read tool; don't guess at how a visual looks from its data.
 | Where | What |
 |---|---|
 | `src/content/` | Everything a player sees: `traits/<category>.js`, `backgrounds.js`, `names.js`, `tiers.js`, and `frogs.js` (the ~1-in-40 intruders, with their own traits). `index.js` is the barrel. |
+| `src/content/seasons/` | Holidays: one file each with its dates, window, traits and places; `calendar.js` does the dates. `seasonal()` in `src/roll.js` deals them, boosted, around the day. |
 | `src/roll.js` | The deterministic generator. `hash(player:date)` seeds the PRNG. |
 | `src/breeds.js` | Breed table, Dog CEO slugs, rarity weights and values. |
 | `src/worker.js` | Web routes. `src/bot.js` is the Discord bot API (`/api/bot/*`). |
@@ -86,7 +87,8 @@ the Read tool; don't guess at how a visual looks from its data.
 
 1. `npm test`. A golden or inventory failure after an *intended* change → `npm run bake`,
    then read the diff it made: it should show exactly what you meant to change.
-2. `npm run balance` if values, groups or pools changed.
+2. `npm run balance` if values, groups or pools changed. A season balances on its own:
+   its traits should sum to the aim the report prints, and its places average about +0.9.
    New traits skew generous: aim a batch's values to sum to about `−0.3 × count` so
    the correction stays small.
 3. `npm run atlas` if you used a new emoji.
@@ -102,6 +104,7 @@ Several agents can work at once if each stays in a lane. Lanes are by file owner
 | Backgrounds | `src/content/backgrounds.js` | Snapshots, maybe atlas |
 | Names / tiers | `src/content/names.js`, `tiers.js` | Snapshots |
 | Frogs | `src/content/frogs.js`, `public/frogs/` | Snapshots, maybe atlas |
+| Seasons | `src/content/seasons/*.js` (one lane per file) | Snapshots, maybe atlas |
 | Discord bot API | `src/bot.js`, `src/kennel.js`, `docs/discord-bot-prompt.md`, `test/bot.test.js` | `src/keys.js` if rows change |
 | Web UI | `public/app.js`, `public/index.html`, `public/dev.*`, `public/kennel*`, `public/mega*`, `public/account.js`, `src/mega.js`, `src/accounts.js` | `src/bot.js` for `/api/bot/link` |
 | Card renderer | `src/card.js`, `src/draw.js`, `src/raster.js` | — |

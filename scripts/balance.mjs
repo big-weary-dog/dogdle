@@ -11,7 +11,7 @@
 import { rollDailyDog } from "../src/roll.js";
 import {
   MODIFIERS, BACKGROUNDS, BACKGROUND_WEIGHTS, QUALITY_TIERS,
-  MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX,
+  MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, SEASONS,
 } from "../src/content/index.js";
 
 // Dogs only. A frog is a deliberate tax on top of a balanced dog, so it's reported on its
@@ -94,4 +94,35 @@ if (Math.abs(mean) < 0.15) {
     }
   }
   if (negatives.length + positives.length < points) console.log("\n  (not enough ungrouped candidates -- widen a band)");
+}
+
+// Holiday seasons swap in their own traits and places, so each has to balance on its own:
+// a season's traits should average what everyday traits do, and its places what everyday
+// places do. Measured on its first day, the holiday itself, and its last day.
+const placeMean = (list, weight) => list.reduce((s, b) => s + b.value * weight(b), 0) / list.reduce((s, b) => s + weight(b), 0);
+const everydayPlace = Object.entries(BACKGROUND_WEIGHTS).reduce((sum, [r, w]) => {
+  const pool = BACKGROUNDS.filter((b) => b.rarity === r);
+  return sum + (w / wTotal) * (pool.reduce((s, b) => s + b.value, 0) / pool.length);
+}, 0);
+const shift = (date, n) => {
+  const d = new Date(`${date}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+};
+const averageOn = (date) => {
+  const ds = Array.from({ length: 6000 }, (_, i) => rollDailyDog(`balance-${i}`, date)).filter((d) => !d.frog);
+  return ds.reduce((s, d) => s + d.score, 0) / ds.length;
+};
+const year = new Date().getUTCFullYear();
+console.log(`\nseasons (${year}): everyday trait mean ${traitMean.toFixed(2)}, everyday place mean ${everydayPlace.toFixed(2)}`);
+for (const s of SEASONS) {
+  const first = s.date(year);
+  if (!first) { console.log(`  ${s.key}: no date for ${year}`); continue; }
+  const sum = s.traits.reduce((a, t) => a + t.value, 0);
+  const target = Math.round(traitMean * s.traits.length);
+  const place = placeMean(s.backgrounds, (b) => BACKGROUND_WEIGHTS[b.rarity]);
+  const span = [shift(first, -s.before), first, shift(first, s.days - 1 + s.after)];
+  const avgs = span.map((d) => `${d.slice(5)} ${averageOn(d).toFixed(2).padStart(5)}`).join("  ");
+  const off = sum - target;
+  console.log(`  ${s.key.padEnd(13)} traits ${String(s.traits.length).padStart(2)} sum ${String(sum).padStart(4)} (aim ${target}${off ? `, ${off > 0 ? "lower" : "raise"} by ${Math.abs(off)}` : ""})  places ${place.toFixed(2)}  | ${avgs}`);
 }

@@ -5,14 +5,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { BACKGROUNDS, MODIFIERS, FROG_TRAITS } from "../src/content/index.js";
+import {
+  BACKGROUNDS, MODIFIERS, FROG_TRAITS, SEASONAL_TRAITS, SEASONAL_BACKGROUNDS,
+} from "../src/content/index.js";
 import { EFFECT_TYPES, DOM_EFFECTS, SUBJECT_STYLES, subjectStyle } from "../public/effects.js";
 
 const LAYERS = new Set(["back", "front", "subject"]);
 
 const allEffects = [
-  ...BACKGROUNDS.map((b) => ({ owner: b.key, effect: b.effect })),
-  ...[...MODIFIERS, ...FROG_TRAITS].filter((m) => m.effect).map((m) => ({ owner: m.text, effect: m.effect })),
+  ...[...BACKGROUNDS, ...SEASONAL_BACKGROUNDS].map((b) => ({ owner: b.key, effect: b.effect })),
+  ...[...MODIFIERS, ...SEASONAL_TRAITS, ...FROG_TRAITS].filter((m) => m.effect).map((m) => ({ owner: m.text, effect: m.effect })),
 ];
 
 test("every referenced effect type is one the engine implements", () => {
@@ -65,7 +67,7 @@ test("subject styles compose into usable CSS", () => {
 
 test("background props use shapes the renderer draws", () => {
   const SHAPES = new Set(["rect", "ellipse", "tri", "hills", "poly"]);
-  for (const b of BACKGROUNDS) {
+  for (const b of [...BACKGROUNDS, ...SEASONAL_BACKGROUNDS]) {
     for (const p of b.props ?? []) {
       assert.ok(SHAPES.has(p.shape), `unknown prop shape "${p.shape}" in ${b.key}`);
 

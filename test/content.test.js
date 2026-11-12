@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 
 import {
   BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, NAMES, QUALITY_TIERS,
-  FROG, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MAX, FROG_PHOTOS,
+  FROG, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MAX, FROG_PHOTOS, SEASONAL_TRAITS, SEASONAL_BACKGROUNDS,
 } from "../src/content/index.js";
 import { readdirSync, readFileSync } from "node:fs";
 import { decodePhoto } from "../src/draw.js";
@@ -16,7 +16,7 @@ import { BREEDS, RARITIES, RARITY_ORDER } from "../src/breeds.js";
 const spawnable = MODIFIERS.filter((m) => !m.obsolete);
 
 test("every modifier is fully specified", () => {
-  for (const m of [...MODIFIERS, ...FROG_TRAITS]) {
+  for (const m of [...MODIFIERS, ...SEASONAL_TRAITS, ...FROG_TRAITS]) {
     assert.ok(m.text?.length, `modifier missing text: ${JSON.stringify(m)}`);
     assert.ok(m.emoji?.length, `missing emoji: ${m.text}`);
     assert.equal(typeof m.value, "number", `non-numeric value: ${m.text}`);
@@ -28,14 +28,14 @@ test("every modifier is fully specified", () => {
 
 test("modifier text is unique", () => {
   const seen = new Set();
-  for (const m of [...MODIFIERS, ...FROG_TRAITS]) {
+  for (const m of [...MODIFIERS, ...SEASONAL_TRAITS, ...FROG_TRAITS]) {
     assert.ok(!seen.has(m.text), `duplicate modifier: ${m.text}`);
     seen.add(m.text);
   }
 });
 
 test("every background is fully specified", () => {
-  for (const b of BACKGROUNDS) {
+  for (const b of [...BACKGROUNDS, ...SEASONAL_BACKGROUNDS]) {
     assert.ok(b.key?.length, `background missing key: ${b.name}`);
     assert.ok(b.emoji?.length, `missing emoji: ${b.name}`);
     assert.ok(b.name?.length, `missing name: ${b.key}`);
@@ -47,7 +47,7 @@ test("every background is fully specified", () => {
 });
 
 test("background keys are unique", () => {
-  const keys = BACKGROUNDS.map((b) => b.key);
+  const keys = [...BACKGROUNDS, ...SEASONAL_BACKGROUNDS].map((b) => b.key);
   assert.equal(new Set(keys).size, keys.length, "duplicate background key");
 });
 
@@ -77,7 +77,7 @@ test("breed slugs are unique and rarities are known", () => {
 
 test("colours are hex strings the canvas can parse", () => {
   const hex = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/;
-  for (const b of BACKGROUNDS) {
+  for (const b of [...BACKGROUNDS, ...SEASONAL_BACKGROUNDS]) {
     for (const c of b.sky) assert.match(c, hex, `bad sky colour in ${b.key}: ${c}`);
     if (b.ground) assert.match(b.ground, hex, `bad ground colour in ${b.key}: ${b.ground}`);
     for (const p of b.props ?? []) assert.match(p.color, hex, `bad prop colour in ${b.key}: ${p.color}`);

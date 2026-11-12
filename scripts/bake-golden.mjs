@@ -19,11 +19,16 @@ import { rollDailyDog } from "../src/roll.js";
 import {
   NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS,
   MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS,
-  FROG, FROG_CHANCE, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MIN, FROG_TRAIT_COUNT_MAX,
+  FROG, FROG_CHANCE, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MIN, FROG_TRAIT_COUNT_MAX, SEASONS,
 } from "../src/content/index.js";
 import { SEEDS } from "../test/golden-seeds.js";
 
 const by = (key) => (a, b) => String(a[key]).localeCompare(String(b[key]));
+// A season's dials, with its dates for a few years: the dates are functions in the source.
+const seasonal = (s) => ({
+  ...s, date: undefined, dates: [2026, 2027, 2028].map((y) => s.date(y) ?? null),
+  traits: [...s.traits].sort(by("text")), backgrounds: [...s.backgrounds].sort(by("key")),
+});
 
 // One line per entry: readable as a diff, a fraction of the size of pretty-printing.
 function serialize(obj) {
@@ -48,10 +53,12 @@ writeFileSync(
     frog: { ...FROG, chance: FROG_CHANCE, traitCount: { min: FROG_TRAIT_COUNT_MIN, max: FROG_TRAIT_COUNT_MAX } },
     frogNames: [...FROG_NAMES].sort(),
     frogTraits: [...FROG_TRAITS].sort(by("text")),
+    seasons: SEASONS.map(seasonal),
   })
 );
 console.log(
-  `inventory: ${NAMES.length} names, ${BACKGROUNDS.length} backgrounds, ${MODIFIERS.length} traits, ${FROG_TRAITS.length} frog traits`
+  `inventory: ${NAMES.length} names, ${BACKGROUNDS.length} backgrounds, ${MODIFIERS.length} traits, ${FROG_TRAITS.length} frog traits, ` +
+    `${SEASONS.length} seasons (${SEASONS.reduce((n, s) => n + s.traits.length, 0)} traits, ${SEASONS.reduce((n, s) => n + s.backgrounds.length, 0)} places)`
 );
 
 // What the generator chose, not what the content says those choices contain.

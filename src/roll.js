@@ -4,7 +4,7 @@
 import { BREEDS, RARITIES, RARITY_ORDER, breedsByRarity, breedValue } from "./breeds.js";
 import {
   NAMES, BACKGROUNDS, BACKGROUND_WEIGHTS, MODIFIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX, QUALITY_TIERS,
-  FROG, FROG_CHANCE, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MIN, FROG_TRAIT_COUNT_MAX,
+  FROG, FROG_CHANCE, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MIN, FROG_TRAIT_COUNT_MAX, seasonsOn,
 } from "./content/index.js";
 
 function mulberry32(seed) {
@@ -90,6 +90,62 @@ function pickBackground(rng) {
 
 const pickCount = (rng, min, max) => min + Math.floor(rng() * (max - min + 1));
 
+// ---------- holiday seasons ----------
+//
+// In a holiday's window (content/seasons/), a dog is dealt exactly as usual and then some
+// of it is swapped for the holiday's own traits and places. The swap runs off its own
+// hash, so a day outside every window deals the dog it always did, and an in-season dog
+// keeps its breed and name.
+//
+// Generous on purpose: every dog in a window gets at least one holiday trait, and the
+// closer the holiday, the more of the rest follow, and the likelier a holiday place.
+// On the day itself that's about half the traits and four places in five.
+const SEASON_PLACE = { base: 0.25, peak: 0.55 };
+const SEASON_TRAIT = { base: 0.1, peak: 0.35 };
+
+function weighted(rng, items, weight) {
+  const total = items.reduce((sum, x) => sum + weight(x), 0);
+  let roll = rng() * total;
+  for (const x of items) {
+    roll -= weight(x);
+    if (roll <= 0) return x;
+  }
+  return items.at(-1);
+}
+
+// `swappable` is which trait slots may change: all of them, or a puppy's fresh ones.
+// When seasons overlap, each swap picks one, weighted by how close its holiday is.
+function seasonal(playerId, dateStr, background, modifiers, swappable) {
+  const active = seasonsOn(dateStr);
+  if (!active.length) return { background, modifiers };
+  const rng = mulberry32(hashString(`season:${playerId}:${dateStr}`));
+  const strength = Math.max(...active.map((a) => a.strength));
+
+  const places = active.filter((a) => a.season.backgrounds.length);
+  if (places.length && rng() < SEASON_PLACE.base + SEASON_PLACE.peak * strength) {
+    const { season } = weighted(rng, places, (a) => a.strength);
+    background = weighted(rng, season.backgrounds, (b) => BACKGROUND_WEIGHTS[b.rarity]);
+  }
+
+  const withTraits = active.filter((a) => a.season.traits.length);
+  const out = modifiers.slice();
+  const taken = new Set(out.map((m) => m.text));
+  const slots = swappable.slice();
+  let swapped = 0;
+  while (slots.length && withTraits.length) {
+    const [slot] = slots.splice(Math.floor(rng() * slots.length), 1);
+    if (swapped && rng() >= SEASON_TRAIT.base + SEASON_TRAIT.peak * strength) continue;
+    const { season } = weighted(rng, withTraits, (a) => a.strength);
+    const fresh = season.traits.filter((t) => !t.obsolete && !taken.has(t.text));
+    if (!fresh.length) continue;
+    const trait = pick(rng, fresh);
+    taken.add(trait.text);
+    out[slot] = trait;
+    swapped++;
+  }
+  return { background, modifiers: out };
+}
+
 // A frog is decided by its own hash rather than the dog's generator, so frogs arriving
 // didn't re-deal a single day that stayed a dog. See content/frogs.js.
 export function isFrogDay(playerId, dateStr) {
@@ -104,11 +160,12 @@ export function rollDailyDog(playerId, dateStr = today(), { frog = isFrogDay(pla
   const breedRarity = pickRarity(rng, BREED_WEIGHTS);
   const pool = breedsByRarity(breedRarity);
   const breed = pool.length ? pick(rng, pool) : pick(rng, BREEDS);
-  const background = pickBackground(rng);
+  const dealtBackground = pickBackground(rng);
 
   const name = pick(rng, NAMES);
   const modifierCount = pickCount(rng, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX);
-  const modifiers = sampleDistinct(rng, SPAWNABLE_MODIFIERS, modifierCount);
+  const drawn = sampleDistinct(rng, SPAWNABLE_MODIFIERS, modifierCount);
+  const { background, modifiers } = seasonal(playerId, dateStr, dealtBackground, drawn, drawn.map((_, i) => i));
   const rarity = RARITIES[breed.rarity];
 
   return dealt(dateStr, {
@@ -151,7 +208,7 @@ export function rollPuppy(playerId, dateStr, parents) {
   const rng = mulberry32(hashString(`litter:${playerId}:${dateStr}`));
   const [a, b] = parents.map((p) => breedOf(p.dog));
   const breed = a.name !== b.name && rng() < MUTT_CHANCE ? MUTT : pick(rng, [a, b]);
-  const background = pickBackground(rng);
+  const dealtBackground = pickBackground(rng);
   const name = pick(rng, NAMES);
   const count = pickCount(rng, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX);
 
@@ -178,6 +235,9 @@ export function rollPuppy(playerId, dateStr, parents) {
   const fresh = SPAWNABLE_MODIFIERS.slice();
   while (chosen.length < count && fresh.length) take(fresh.splice(Math.floor(rng() * fresh.length), 1)[0], null);
 
+  // The season only touches the fresh traits: what a puppy inherits stays inherited.
+  const ownSlots = chosen.flatMap((c, i) => (c.from === null ? [i] : []));
+  const { background, modifiers } = seasonal(`litter:${playerId}`, dateStr, dealtBackground, chosen.map((c) => c.m), ownSlots);
   const rarity = RARITIES[breed.rarity];
   const dog = dealt(dateStr, {
     name,
@@ -188,7 +248,7 @@ export function rollPuppy(playerId, dateStr, parents) {
     rarityColor: rarity.color,
     rarityGlow: rarity.glow,
     breedValue: breedValue(breed),
-  }, background, chosen.map((c) => c.m));
+  }, background, modifiers);
   chosen.forEach((c, i) => { if (c.from !== null) dog.modifiers[i].from = c.from; });
   dog.puppy = {
     parents: parents.map(({ dog: p, owner, kennel }) => ({
@@ -237,6 +297,7 @@ function dealt(dateStr, animal, background, modifiers) {
       ground: background.ground,
       props: background.props ?? [],
       effect: background.effect,
+      ...(background.season ? { season: background.season } : {}),
     },
     modifiers: modifiers.map((m) => ({
       text: m.text,
@@ -245,6 +306,7 @@ function dealt(dateStr, animal, background, modifiers) {
       category: m.category,
       // Only when it has one, so a stored dog doesn't carry a field full of nulls.
       ...(m.group ? { group: m.group } : {}),
+      ...(m.season ? { season: m.season } : {}),
       effect: m.effect,
     })),
     score,

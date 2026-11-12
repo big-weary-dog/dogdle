@@ -16,7 +16,7 @@
 
 import { chromium } from "playwright";
 import { writeFileSync, mkdirSync } from "fs";
-import { BACKGROUNDS, MODIFIERS, FROG, FROG_TRAITS } from "../src/content/index.js";
+import { BACKGROUNDS, MODIFIERS, FROG, FROG_TRAITS, SEASONAL_TRAITS, SEASONAL_BACKGROUNDS } from "../src/content/index.js";
 import { KENNEL_EMOJI } from "../src/kennel.js";
 
 const TEXT_SIZES = [
@@ -38,6 +38,8 @@ const emoji = [...new Set([
   ...BACKGROUNDS.map((b) => b.emoji),
   ...MODIFIERS.map((m) => m.emoji),
   ...FROG_TRAITS.map((m) => m.emoji),
+  ...SEASONAL_BACKGROUNDS.map((b) => b.emoji),
+  ...SEASONAL_TRAITS.map((m) => m.emoji),
   ...EXTRA,
   ...KENNEL_EMOJI, // the album (src/kennel.js)
 ])];

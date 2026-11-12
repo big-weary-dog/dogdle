@@ -8,6 +8,7 @@
 //   tiers.js          the nine quality tiers
 //   traits/<kind>.js  one file per trait category
 //   frogs.js          the intruders: their names and their own traits
+//   seasons/          holidays: their dates, and the traits and places dealt around them
 //
 // Nothing here depends on the order entries sit in those files -- see traits/index.js.
 
@@ -18,3 +19,4 @@ export { MODIFIERS, MODIFIER_COUNT_MIN, MODIFIER_COUNT_MAX } from "./traits/inde
 export {
   FROG, FROG_CHANCE, FROG_NAMES, FROG_TRAITS, FROG_TRAIT_COUNT_MIN, FROG_TRAIT_COUNT_MAX, FROG_PHOTOS,
 } from "./frogs.js";
+export { SEASONS, SEASONAL_TRAITS, SEASONAL_BACKGROUNDS, seasonsOn } from "./seasons/index.js";
