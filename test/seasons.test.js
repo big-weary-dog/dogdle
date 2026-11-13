@@ -99,7 +99,7 @@ test("a day outside every window deals no seasonal anything", () => {
   }
 });
 
-test("in a window, every dog gets the holiday, and more of it the closer the day", () => {
+test("in a window, the holiday is a sprinkle that thickens toward the day", () => {
   const rate = (date) => {
     let traits = 0;
     let places = 0;
@@ -108,32 +108,36 @@ test("in a window, every dog gets the holiday, and more of it the closer the day
       const dog = rollDailyDog(`in-season-${i}`, date);
       if (dog.frog) continue;
       const own = dog.modifiers.filter((m) => m.season);
-      assert.ok(own.length >= 1, `${date}: a dog with no holiday trait`);
       for (const m of own) assert.ok(seasonsOn(date).some((a) => a.season.key === m.season), `${date}: ${m.text} is out of season`);
       traits += own.length;
       if (dog.background.season) places++;
     }
     return { traits: traits / n, places: places / n };
   };
+  // About one holiday trait per dog on the day, a few percent three weeks out; a holiday
+  // place on about a third of dogs on the day. Never most of a dog.
   const early = rate("2026-11-05");
   const day = rate("2026-11-26");
-  assert.ok(day.traits > early.traits + 1, `the day (${day.traits}) should beat the run-up (${early.traits})`);
-  assert.ok(day.places > 0.7, `a holiday place on most dogs on the day: ${day.places}`);
-  assert.ok(early.places > 0.2, `and on some from the start: ${early.places}`);
+  assert.ok(early.traits > 0.05 && early.traits < 0.35, `three weeks out: ${early.traits} holiday traits a dog`);
+  assert.ok(day.traits > 0.7 && day.traits < 1.4, `on the day: ${day.traits} holiday traits a dog`);
+  assert.ok(early.places > 0.02 && early.places < 0.15, `three weeks out: ${early.places} holiday places`);
+  assert.ok(day.places > 0.25 && day.places < 0.45, `on the day: ${day.places} holiday places`);
 });
 
 test("a puppy in season keeps what it inherited", () => {
   const parent = (id) => ({ dog: rollDailyDog(id, "2026-12-24"), owner: id, kennel: null });
+  let festive = 0;
   for (let i = 0; i < 300; i++) {
     const parents = [parent(`ma-${i}`), parent(`pa-${i}`)];
     const pup = rollPuppy(`pup-${i}`, "2026-12-25", parents);
-    assert.ok(pup.modifiers.some((m) => m.season), "a seasonal puppy gets the holiday too");
+    if (pup.modifiers.some((m) => m.season)) festive++;
     for (const m of pup.modifiers.filter((x) => x.from !== undefined)) {
       assert.ok(!m.season, "an inherited slot was swapped for a holiday trait");
       const p = parents[m.from].dog;
       assert.ok(p.modifiers.some((x) => x.text === m.text), `"${m.text}" isn't from parent ${m.from}`);
     }
   }
+  assert.ok(festive > 30, `puppies get the holiday in their fresh traits too: ${festive} of 300`);
 });
 
 test("no season tilts the average dog, from its first day to its last", () => {
@@ -157,10 +161,11 @@ test("seasonal finds stay out of the collection, so nobody's progress drops", ()
 });
 
 test("a stored seasonal dog says which season each find came from", () => {
-  const dog = rollDailyDog("season-label", "2026-11-26");
-  const own = dog.modifiers.filter((x) => x.season);
+  const dogs = Array.from({ length: 40 }, (_, i) => rollDailyDog(`season-label-${i}`, "2026-11-26"));
+  const own = dogs.flatMap((d) => d.modifiers.filter((x) => x.season));
   assert.ok(own.length >= 1);
   for (const m of own) assert.equal(m.season, "thanksgiving");
-  const plain = dog.modifiers.find((x) => !x.season);
-  if (plain) assert.ok(!("season" in plain), "an everyday trait carries no season field");
+  for (const d of dogs) for (const m of d.modifiers.filter((x) => !x.season)) {
+    assert.ok(!("season" in m), "an everyday trait carries no season field");
+  }
 });

@@ -87,10 +87,12 @@ and is checked against `Intl`'s), a run-up, a run-down, and its own traits and p
 | 👹👑🌄🎊📦 Krampusnacht, St. Lucia, the solstice, Festivus, Boxing Day | the day | 4–5 each | 1 each |
 
 A dog in a window is dealt exactly as usual, then `seasonal()` in `src/roll.js` swaps some of
-it for the holiday's. It's generous on purpose: **every dog in a window gets at least one
-holiday trait**, more follow the closer the day (about half the traits on the day itself),
-and a holiday place replaces the background a quarter of the time at the start of the
-run-up and four times in five on the day. Where windows overlap, each swap picks a season
+it for the holiday's. It's a sprinkle that thickens toward the day: each trait slot, and the
+place, is more likely to be the holiday's the closer it is. Three weeks out, about one dog
+in six gets a holiday trait and one in twenty a holiday place; on the day itself, about one
+holiday trait per dog and a holiday place one time in three. (It launched guaranteeing every
+dog a holiday trait and giving half of them on the day, which swamped the everyday game.)
+Where windows overlap, each swap picks a season
 weighted by how close its holiday is, so Festivus and Christmas share Dec 23. A puppy's
 inherited traits are never swapped, only its fresh ones. Frogs don't celebrate.
 

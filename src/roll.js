@@ -97,11 +97,12 @@ const pickCount = (rng, min, max) => min + Math.floor(rng() * (max - min + 1));
 // hash, so a day outside every window deals the dog it always did, and an in-season dog
 // keeps its breed and name.
 //
-// Generous on purpose: every dog in a window gets at least one holiday trait, and the
-// closer the holiday, the more of the rest follow, and the likelier a holiday place.
-// On the day itself that's about half the traits and four places in five.
-const SEASON_PLACE = { base: 0.25, peak: 0.55 };
-const SEASON_TRAIT = { base: 0.1, peak: 0.35 };
+// A sprinkle, not a takeover: the closer the holiday, the likelier each trait slot and the
+// place are to be the holiday's. On the day itself that's about one holiday trait per dog
+// and a holiday place one time in three; three weeks out, one dog in six gets anything.
+// (It once guaranteed every dog a holiday trait and gave half of them on the day: too much.)
+const SEASON_PLACE = { base: 0.05, peak: 0.3 };
+const SEASON_TRAIT = { base: 0.02, peak: 0.15 };
 
 function weighted(rng, items, weight) {
   const total = items.reduce((sum, x) => sum + weight(x), 0);
@@ -131,17 +132,15 @@ function seasonal(playerId, dateStr, background, modifiers, swappable) {
   const out = modifiers.slice();
   const taken = new Set(out.map((m) => m.text));
   const slots = swappable.slice();
-  let swapped = 0;
   while (slots.length && withTraits.length) {
     const [slot] = slots.splice(Math.floor(rng() * slots.length), 1);
-    if (swapped && rng() >= SEASON_TRAIT.base + SEASON_TRAIT.peak * strength) continue;
+    if (rng() >= SEASON_TRAIT.base + SEASON_TRAIT.peak * strength) continue;
     const { season } = weighted(rng, withTraits, (a) => a.strength);
     const fresh = season.traits.filter((t) => !t.obsolete && !taken.has(t.text));
     if (!fresh.length) continue;
     const trait = pick(rng, fresh);
     taken.add(trait.text);
     out[slot] = trait;
-    swapped++;
   }
   return { background, modifiers: out };
 }
