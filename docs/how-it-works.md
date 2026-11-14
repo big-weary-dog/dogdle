@@ -91,7 +91,13 @@ it for the holiday's. It's a sprinkle that thickens toward the day: each trait s
 place, is more likely to be the holiday's the closer it is. Three weeks out, about one dog
 in six gets a holiday trait and one in twenty a holiday place; on the day itself, about one
 holiday trait per dog and a holiday place one time in three. (It launched guaranteeing every
-dog a holiday trait and giving half of them on the day, which swamped the everyday game.)
+dog a holiday trait for the whole window, which swamped the everyday game.)
+
+**The holiday itself is holiday-maxxed.** A season's `peak` days are Thanksgiving, the first
+night of Hanukkah, Christmas Day, the first day of Kwanzaa, and New Year's Eve and Day.
+On those days every dog gets at least one holiday trait, about half its traits are holiday
+ones, 85% of dogs stand somewhere festive, and the holiday whose day it is takes most of
+the picks. The small one-day holidays have no peak and stay sprinkles.
 Where windows overlap, each swap picks a season
 weighted by how close its holiday is, so Festivus and Christmas share Dec 23. A puppy's
 inherited traits are never swapped, only its fresh ones. Frogs don't celebrate.

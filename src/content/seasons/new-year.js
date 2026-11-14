@@ -8,6 +8,7 @@ export const NEW_YEAR = {
   emoji: "🎆",
   date: fixed(12, 31),
   days: 2,
+  peak: 2, // New Year's Eve and Day: holiday-maxxed
   before: 4,
   after: 1,
 

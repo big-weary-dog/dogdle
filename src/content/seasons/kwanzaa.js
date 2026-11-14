@@ -8,6 +8,7 @@ export const KWANZAA = {
   emoji: "🕯️",
   date: fixed(12, 26),
   days: 7,
+  peak: 1, // the first day: holiday-maxxed
   before: 3,
   after: 0,
 
@@ -24,7 +25,7 @@ export const KWANZAA = {
   ],
 
   backgrounds: [
-    { key: "kinara-table", emoji: "🕯️", name: "The Kinara Table", rarity: "uncommon", value: 1,
+    { key: "kinara-table", emoji: "🕯️", name: "The Kinara Table", rarity: "uncommon", value: 0,
       sky: ["#3b1a08", "#8a3b12"], ground: "#4a230c",
       effect: { type: "rise", layer: "front", params: { color: "#fcd34d", count: 12, speed: 0.25, sway: 1.5, size: 2.5, glow: true } },
       props: [

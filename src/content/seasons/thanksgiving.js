@@ -9,6 +9,7 @@ export const THANKSGIVING = {
   emoji: "🦃",
   date: (year) => nthWeekday(year, 11, 4, 4),
   days: 1,
+  peak: 1, // Thanksgiving Day: holiday-maxxed
   before: 21,
   after: 7,
 

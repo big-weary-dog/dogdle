@@ -9,6 +9,7 @@ export const CHRISTMAS = {
   emoji: "🎄",
   date: fixed(12, 25),
   days: 1,
+  peak: 1, // Christmas Day: holiday-maxxed
   before: 21,
   after: 7,
 

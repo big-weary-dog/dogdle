@@ -104,6 +104,12 @@ const pickCount = (rng, min, max) => min + Math.floor(rng() * (max - min + 1));
 const SEASON_PLACE = { base: 0.05, peak: 0.3 };
 const SEASON_TRAIT = { base: 0.02, peak: 0.15 };
 
+// Except on the holiday itself -- a season's `peak` days: Thanksgiving, Christmas Day, the
+// first night of Hanukkah, the first day of Kwanzaa, New Year's Eve and Day. Then it's
+// holiday-maxxed: every dog gets at least one holiday trait, about half its traits are,
+// most dogs stand somewhere festive, and the holiday whose day it is gets most of the picks.
+const HOLIDAY = { place: 0.85, trait: 0.5, weight: 4 };
+
 function weighted(rng, items, weight) {
   const total = items.reduce((sum, x) => sum + weight(x), 0);
   let roll = rng() * total;
@@ -121,10 +127,14 @@ function seasonal(playerId, dateStr, background, modifiers, swappable) {
   if (!active.length) return { background, modifiers };
   const rng = mulberry32(hashString(`season:${playerId}:${dateStr}`));
   const strength = Math.max(...active.map((a) => a.strength));
+  const holiday = active.some((a) => a.peak);
+  const placeChance = holiday ? HOLIDAY.place : SEASON_PLACE.base + SEASON_PLACE.peak * strength;
+  const traitChance = holiday ? HOLIDAY.trait : SEASON_TRAIT.base + SEASON_TRAIT.peak * strength;
+  const weight = (a) => a.strength * (a.peak ? HOLIDAY.weight : 1);
 
   const places = active.filter((a) => a.season.backgrounds.length);
-  if (places.length && rng() < SEASON_PLACE.base + SEASON_PLACE.peak * strength) {
-    const { season } = weighted(rng, places, (a) => a.strength);
+  if (places.length && rng() < placeChance) {
+    const { season } = weighted(rng, places, weight);
     background = weighted(rng, season.backgrounds, (b) => BACKGROUND_WEIGHTS[b.rarity]);
   }
 
@@ -132,15 +142,18 @@ function seasonal(playerId, dateStr, background, modifiers, swappable) {
   const out = modifiers.slice();
   const taken = new Set(out.map((m) => m.text));
   const slots = swappable.slice();
+  let swapped = 0;
   while (slots.length && withTraits.length) {
     const [slot] = slots.splice(Math.floor(rng() * slots.length), 1);
-    if (rng() >= SEASON_TRAIT.base + SEASON_TRAIT.peak * strength) continue;
-    const { season } = weighted(rng, withTraits, (a) => a.strength);
+    // On the holiday the first slot is always the holiday's; otherwise each slot rolls.
+    if (!(holiday && !swapped) && rng() >= traitChance) continue;
+    const { season } = weighted(rng, withTraits, weight);
     const fresh = season.traits.filter((t) => !t.obsolete && !taken.has(t.text));
     if (!fresh.length) continue;
     const trait = pick(rng, fresh);
     taken.add(trait.text);
     out[slot] = trait;
+    swapped++;
   }
   return { background, modifiers: out };
 }

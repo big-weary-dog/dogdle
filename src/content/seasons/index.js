@@ -8,7 +8,7 @@
 // The order of this list is part of how an in-season dog is dealt: add new seasons at
 // the end. Entries inside a season are sorted on their content, as everywhere else.
 
-import { strengthOn } from "./calendar.js";
+import { strengthOn, peakOn } from "./calendar.js";
 import { THANKSGIVING } from "./thanksgiving.js";
 import { HANUKKAH } from "./hanukkah.js";
 import { CHRISTMAS } from "./christmas.js";
@@ -28,6 +28,8 @@ export const SEASONS = [THANKSGIVING, HANUKKAH, CHRISTMAS, KWANZAA, NEW_YEAR, ..
 export const SEASONAL_TRAITS = SEASONS.flatMap((s) => s.traits);
 export const SEASONAL_BACKGROUNDS = SEASONS.flatMap((s) => s.backgrounds);
 
-// The seasons a day falls in, each with its strength (up to 1, on the holiday itself).
+// The seasons a day falls in, each with its strength (up to 1, on the holiday itself) and
+// whether this is one of its peak days.
 export const seasonsOn = (dateStr) =>
-  SEASONS.map((season) => ({ season, strength: strengthOn(season, dateStr) })).filter((a) => a.strength > 0);
+  SEASONS.map((season) => ({ season, strength: strengthOn(season, dateStr), peak: peakOn(season, dateStr) }))
+    .filter((a) => a.strength > 0);

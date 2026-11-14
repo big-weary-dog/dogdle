@@ -17,6 +17,7 @@ export const HANUKKAH = {
   emoji: "🕎",
   date: table(HANUKKAH_EVES),
   days: 9,
+  peak: 1, // the first night: holiday-maxxed
   before: 7,
   after: 1,
 

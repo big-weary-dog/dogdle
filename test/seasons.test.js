@@ -114,14 +114,40 @@ test("in a window, the holiday is a sprinkle that thickens toward the day", () =
     }
     return { traits: traits / n, places: places / n };
   };
-  // About one holiday trait per dog on the day, a few percent three weeks out; a holiday
-  // place on about a third of dogs on the day. Never most of a dog.
+  // A few percent three weeks out, about one holiday trait per dog and a holiday place on
+  // a third of dogs the day before. Never most of a dog -- until the day itself.
   const early = rate("2026-11-05");
-  const day = rate("2026-11-26");
+  const eve = rate("2026-11-25");
   assert.ok(early.traits > 0.05 && early.traits < 0.35, `three weeks out: ${early.traits} holiday traits a dog`);
-  assert.ok(day.traits > 0.7 && day.traits < 1.4, `on the day: ${day.traits} holiday traits a dog`);
+  assert.ok(eve.traits > 0.7 && eve.traits < 1.4, `the day before: ${eve.traits} holiday traits a dog`);
   assert.ok(early.places > 0.02 && early.places < 0.15, `three weeks out: ${early.places} holiday places`);
-  assert.ok(day.places > 0.25 && day.places < 0.45, `on the day: ${day.places} holiday places`);
+  assert.ok(eve.places > 0.25 && eve.places < 0.45, `the day before: ${eve.places} holiday places`);
+});
+
+test("on the holiday itself, it's holiday-maxxed", () => {
+  for (const [date, key] of [["2026-11-26", "thanksgiving"], ["2026-12-04", "hanukkah"], ["2026-12-25", "christmas"],
+    ["2026-12-26", "kwanzaa"], ["2026-12-31", "new-year"], ["2027-01-01", "new-year"]]) {
+    assert.ok(seasonsOn(date).some((a) => a.season.key === key && a.peak), `${date} is ${key}'s day`);
+    let traits = 0;
+    let places = 0;
+    let own = 0;
+    let dogs = 0;
+    for (let i = 0; i < 1500; i++) {
+      const dog = rollDailyDog(`holiday-${i}`, date);
+      if (dog.frog) continue;
+      dogs++;
+      const festive = dog.modifiers.filter((m) => m.season);
+      assert.ok(festive.length >= 1, `${date}: a dog with no holiday trait on the holiday`);
+      traits += festive.length;
+      own += festive.filter((m) => m.season === key).length;
+      if (dog.background.season) places++;
+    }
+    assert.ok(traits / dogs > 2.5, `${date}: only ${(traits / dogs).toFixed(2)} holiday traits a dog`);
+    assert.ok(places / dogs > 0.75, `${date}: only ${places / dogs} holiday places`);
+    assert.ok(own / traits > 0.6, `${date}: ${key} has only ${((100 * own) / traits).toFixed(0)}% of its own day`);
+  }
+  // The small days are sprinkles, even on the day.
+  assert.ok(!seasonsOn("2026-12-23").some((a) => a.peak), "Festivus isn't maxxed");
 });
 
 test("a puppy in season keeps what it inherited", () => {

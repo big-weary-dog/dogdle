@@ -23,6 +23,17 @@ export function nthWeekday(year, month, weekday, n) {
 // From a table, for holidays on another calendar. A year past the table has no season.
 export const table = (dates) => (year) => dates[year];
 
+// The holiday itself: the first `peak` days of the season (none if it has no `peak`),
+// when it takes over the dog instead of sprinkling it.
+export function peakOn(season, dateStr) {
+  const day = dayNumber(dateStr);
+  const year = +dateStr.slice(0, 4);
+  return [year - 1, year, year + 1].some((y) => {
+    const start = season.date(y);
+    return start && day >= dayNumber(start) && day < dayNumber(start) + (season.peak ?? 0);
+  });
+}
+
 // 0 outside the window, else up to 1. Checks the neighbouring years too, so a window
 // that crosses New Year is found from either side of it.
 export function strengthOn(season, dateStr) {
