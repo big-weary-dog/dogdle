@@ -42,43 +42,59 @@ async function put(env, object, kvKey, bytes, ttl, metadata) {
   await env.STORE.put(kvKey, bytes, { expirationTtl: ttl, metadata });
 }
 
-async function get(env, objects, kvKey) {
+// An image and what it was stored with, as { bytes, meta }, or null.
+async function getEntry(env, objects, kvKey) {
   if (env.IMAGES) {
     for (const object of objects) {
       try {
         const found = await env.IMAGES.get(object);
-        if (found) return found.arrayBuffer();
+        if (found) return { bytes: await found.arrayBuffer(), meta: found.customMetadata ?? {} };
       } catch (err) {
         log.warn("images.r2_get_failed", { object, err });
       }
     }
   }
-  return env.STORE.get(kvKey, "arrayBuffer");
+  const { value, metadata } = await env.STORE.getWithMetadata(kvKey, "arrayBuffer");
+  return value ? { bytes: value, meta: metadata ?? {} } : null;
 }
 
-async function has(env, objects, kvKey) {
+const get = async (env, objects, kvKey) => (await getEntry(env, objects, kvKey))?.bytes ?? null;
+
+// What an image was stored with, without its bytes: {} for one stored without any, null
+// when there is no image.
+async function meta(env, objects, kvKey) {
   if (env.IMAGES) {
     for (const object of objects) {
       try {
-        if (await env.IMAGES.head(object)) return true;
+        const head = await env.IMAGES.head(object);
+        if (head) return head.customMetadata ?? {};
       } catch (err) {
         log.warn("images.r2_head_failed", { object, err });
       }
     }
   }
-  const stream = await env.STORE.get(kvKey, "stream");
-  if (stream) await stream.cancel();
-  return stream !== null;
+  const { value, metadata } = await env.STORE.getWithMetadata(kvKey, "stream");
+  if (!value) return null;
+  await value.cancel?.();
+  return metadata ?? {};
 }
+
+const has = async (env, objects, kvKey) => (await meta(env, objects, kvKey)) !== null;
 
 // A card is a test card or not by its dog; reading one doesn't know which, so it tries both.
 const cardObjects = (player, date) => [cardObject(player, date, false), cardObject(player, date, true)];
 
-export const putCard = (env, player, date, bytes, { test = false } = {}) =>
+// A card remembers whether it drew the photo its dog has (`photo`: drawn, missing or none)
+// and how many times it has been drawn without it (`tries`), so one that came out without
+// its dog can be drawn again (src/bot.js, cardIsStale). R2 metadata is strings only.
+export const putCard = (env, player, date, bytes, { test = false, photo, tries } = {}) =>
   put(env, cardObject(player, date, test), cardKey(player, date), bytes,
-    test ? TEST_TTL_SECONDS : CARD_TTL_SECONDS, { date });
+    test ? TEST_TTL_SECONDS : CARD_TTL_SECONDS,
+    { date, ...(photo ? { photo } : {}), ...(tries ? { tries: String(tries) } : {}) });
 export const getCard = (env, player, date) => get(env, cardObjects(player, date), cardKey(player, date));
+export const getCardEntry = (env, player, date) => getEntry(env, cardObjects(player, date), cardKey(player, date));
 export const hasCard = (env, player, date) => has(env, cardObjects(player, date), cardKey(player, date));
+export const cardMeta = (env, player, date) => meta(env, cardObjects(player, date), cardKey(player, date));
 
 export const putAlbum = (env, player, stamp, bytes) =>
   put(env, albumObject(player, stamp), kennelKey(player, stamp), bytes, ALBUM_TTL_SECONDS, { stamp });

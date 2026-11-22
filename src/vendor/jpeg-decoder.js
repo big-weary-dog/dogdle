@@ -1,5 +1,8 @@
 // Vendored from jpeg-js (MIT), converted to ESM. dog.ceo serves JPEG, and Workers have
 // no image decoder, so the card renderer needs one to draw the photo.
+// Dogdle changes, all marked "Dogdle": a quarter-scale decode for big JPEGs
+// (opts.reduceAboveMP, opts.maxReducedResolutionInMP), since some Dog CEO photos are 8MP
+// phone shots and a full decode of one needs more memory than a Worker can spare.
 // Always call with { useTArray: true } -- the Buffer path does not exist in a Worker.
 /* -*- tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
@@ -261,6 +264,7 @@ var JpegImage = (function jpegImage() {
       var mcuCol = mcu % mcusPerLine;
       var blockRow = mcuRow * component.v + row;
       var blockCol = mcuCol * component.h + col;
+      if (component.reducedCols) return decodeReduced(component, decode, blockRow, blockCol);
       // If the block is missing and we're in tolerant mode, just skip it.
       if (component.blocks[blockRow] === undefined && opts.tolerantDecoding)
         return;
@@ -269,10 +273,29 @@ var JpegImage = (function jpegImage() {
     function decodeBlock(component, decode, mcu) {
       var blockRow = (mcu / component.blocksPerLine) | 0;
       var blockCol = mcu % component.blocksPerLine;
+      if (component.reducedCols) return decodeReduced(component, decode, blockRow, blockCol);
       // If the block is missing and we're in tolerant mode, just skip it.
       if (component.blocks[blockRow] === undefined && opts.tolerantDecoding)
         return;
       decode(component, component.blocks[blockRow][blockCol]);
+    }
+    // Dogdle: a reduced (quarter-scale) decode. Every coefficient still has to be read to get
+    // through the bitstream, but a baseline image keeps only the four lowest frequencies of
+    // each block -- enough for 2x2 pixels of output -- instead of all 64 as Int32. A
+    // progressive one has to keep them all, since later scans refine earlier ones, but as
+    // Int16 in one buffer rather than an Int32Array per block.
+    function decodeReduced(component, decode, blockRow, blockCol) {
+      if (blockRow >= component.reducedRows) return;
+      var i = blockRow * component.reducedCols + blockCol;
+      if (component.coefs) return decode(component, component.coefs.subarray(i * 64, i * 64 + 64));
+      var zz = component.scratch;
+      zz.fill(0);
+      decode(component, zz);
+      var lf = component.lowFreq, o = i * 4;
+      lf[o] = zz[0];
+      lf[o + 1] = zz[1];
+      lf[o + 2] = zz[8];
+      lf[o + 3] = zz[9];
     }
 
     var componentsLength = components.length;
@@ -357,7 +380,37 @@ var JpegImage = (function jpegImage() {
     return offset - startOffset;
   }
 
+  // Dogdle: each 8x8 block of a reduced component becomes 2x2 pixels, each the average of
+  // one 4x4 quadrant of the block, computed from its four lowest DCT coefficients. The
+  // mean of cos((2x+1)pi/16) over a half block is +/-QUADRANT.
+  var QUADRANT = (Math.cos(Math.PI / 16) + Math.cos(3 * Math.PI / 16) + Math.cos(5 * Math.PI / 16) + Math.cos(7 * Math.PI / 16)) / 4;
+  function buildReducedComponentData(component) {
+    var qt = component.quantizationTable;
+    // Where a block's coefficients 0, 1, 8 and 9 sit: packed in fours, or in place in 64s.
+    var lf = component.coefs || component.lowFreq, stride = component.coefs ? 64 : 4;
+    var c1 = component.coefs ? 1 : 1, c8 = component.coefs ? 8 : 2, c9 = component.coefs ? 9 : 3;
+    var w = component.blocksPerLine * 2, lines = [];
+    var a = QUADRANT / Math.SQRT2 / 4, b = QUADRANT * QUADRANT / 4;
+    requestMemoryAllocation(w * component.blocksPerColumn * 2);
+    for (var blockRow = 0; blockRow < component.blocksPerColumn; blockRow++) {
+      var top = new Uint8Array(w), bottom = new Uint8Array(w);
+      for (var blockCol = 0; blockCol < component.blocksPerLine; blockCol++) {
+        var o = (blockRow * component.reducedCols + blockCol) * stride;
+        var dc = lf[o] * qt[0] / 8 + 128;
+        var h = lf[o + c1] * qt[1] * a, v = lf[o + c8] * qt[8] * a, d = lf[o + c9] * qt[9] * b;
+        var x = blockCol * 2;
+        top[x] = clampTo8bit(Math.round(dc + h + v + d));
+        top[x + 1] = clampTo8bit(Math.round(dc - h + v - d));
+        bottom[x] = clampTo8bit(Math.round(dc + h - v - d));
+        bottom[x + 1] = clampTo8bit(Math.round(dc - h - v + d));
+      }
+      lines.push(top, bottom);
+    }
+    return lines;
+  }
+
   function buildComponentData(frame, component) {
+    if (component.reducedCols) return buildReducedComponentData(component);
     var lines = [];
     var blocksPerLine = component.blocksPerLine;
     var blocksPerColumn = component.blocksPerColumn;
@@ -602,6 +655,25 @@ var JpegImage = (function jpegImage() {
             var blocksToAllocate = blocksPerColumnForMcu * blocksPerLineForMcu;
             var blocks = [];
 
+            if (frame.reduced) {
+              component.reducedRows = blocksPerColumnForMcu;
+              component.reducedCols = blocksPerLineForMcu;
+              if (frame.progressive) {
+                // Every coefficient, as Int16 (2 x 64 = 128 bytes a block).
+                requestMemoryAllocation(blocksToAllocate * 128);
+                component.coefs = new Int16Array(blocksToAllocate * 64);
+              } else {
+                // Four Int32 coefficients a block, and one scratch block to decode into.
+                requestMemoryAllocation(blocksToAllocate * 16 + 256);
+                component.lowFreq = new Int32Array(blocksToAllocate * 4);
+                component.scratch = new Int32Array(64);
+              }
+              component.blocksPerLine = blocksPerLine;
+              component.blocksPerColumn = blocksPerColumn;
+              component.blocks = blocks;
+              continue;
+            }
+
             // Each block is a Int32Array of length 64 (4 x 64 = 256 bytes)
             requestMemoryAllocation(blocksToAllocate * 256);
 
@@ -738,7 +810,15 @@ var JpegImage = (function jpegImage() {
             frame.componentsOrder = [];
 
             var pixelsInFrame = frame.scanLines * frame.samplesPerLine;
-            if (pixelsInFrame > maxResolutionInPixels) {
+            // Dogdle: a big JPEG is decoded at quarter scale (reduceAboveMP), which costs far
+            // less a pixel, so it answers to its own, larger limit.
+            frame.reduced = frame.precision === 8 && this.opts.reduceAboveMP > 0 &&
+              pixelsInFrame > this.opts.reduceAboveMP * 1000 * 1000;
+            if (frame.reduced) {
+              var maxReduced = (this.opts.maxReducedResolutionInMP || this.opts.maxResolutionInMP) * 1000 * 1000;
+              if (pixelsInFrame > maxReduced)
+                throw new Error(`maxReducedResolutionInMP limit exceeded by ${Math.ceil((pixelsInFrame - maxReduced) / 1e6)}MP`);
+            } else if (pixelsInFrame > maxResolutionInPixels) {
               var exceededAmount = Math.ceil((pixelsInFrame - maxResolutionInPixels) / 1e6);
               throw new Error(`maxResolutionInMP limit exceeded by ${exceededAmount}MP`);
             }
@@ -861,8 +941,9 @@ var JpegImage = (function jpegImage() {
         }
       }
 
-      this.width = frame.samplesPerLine;
-      this.height = frame.scanLines;
+      this.width = frame.reduced ? Math.ceil(frame.samplesPerLine / 4) : frame.samplesPerLine;
+      this.height = frame.reduced ? Math.ceil(frame.scanLines / 4) : frame.scanLines;
+      this.reduced = Boolean(frame.reduced);
       this.jfif = jfif;
       this.adobe = adobe;
       this.components = [];
@@ -1125,6 +1206,7 @@ function decode(jpegData, userOpts = {}) {
     var image = {
       width: decoder.width,
       height: decoder.height,
+      reduced: decoder.reduced, // Dogdle: decoded at quarter scale
       exifBuffer: decoder.exifBuffer,
       data: opts.useTArray ?
         new Uint8Array(bytesNeeded) :

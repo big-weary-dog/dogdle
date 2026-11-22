@@ -14,6 +14,7 @@ import {
 import ATLAS from "../src/generated/atlas.js";
 import { KENNEL_EMOJI } from "../src/kennel.js";
 import { decodePhoto } from "../src/draw.js";
+import decodeJpeg from "../src/vendor/jpeg-decoder.js";
 import { setLogSink } from "../src/log.js";
 
 const GIF89A = [0x47, 0x49, 0x46, 0x38, 0x39, 0x61];
@@ -165,8 +166,49 @@ test("a photo too big for a Worker is refused, not decoded", () => {
     setLogSink(previous);
   }
   assert.deepEqual(seen.map((e) => e.event), ["photo.decode_failed", "photo.decode_failed"]);
-  assert.match(seen[0].err.message, /maxResolutionInMP/);
+  assert.match(seen[0].err.message, /ResolutionInMP limit exceeded/);
   assert.equal(seen[1].head, "89504e47");
+});
+
+// The mutts' Dog CEO photos are 8MP phone shots (breeds/mix), and decoding one in full
+// needed ~90MB: every mutt card came out blank. These two fixtures are that size, as a
+// smooth top-to-bottom gradient from #c08040 to #304060 so they stay ~50KB.
+test("an 8MP photo, baseline or progressive, decodes at quarter scale under the cap", () => {
+  for (const file of ["big-baseline.jpg", "big-progressive.jpg"]) {
+    const img = decodePhoto(readFileSync(`test/fixtures/${file}`));
+    assert.ok(img, `${file} didn't decode`);
+    assert.equal(img.reduced, true, `${file} should be decoded at quarter scale`);
+    assert.deepEqual([img.width, img.height], [650, 750]);
+    let err = 0;
+    for (const y of [10, 200, 375, 600, 740]) {
+      const t = (y + 0.5) / img.height;
+      const want = [0xc0 + (0x30 - 0xc0) * t, 0x80 + (0x40 - 0x80) * t, 0x40 + (0x60 - 0x40) * t];
+      for (let c = 0; c < 3; c++) err = Math.max(err, Math.abs(img.data[(y * img.width + 300) * 4 + c] - want[c]));
+    }
+    assert.ok(err < 8, `${file}: off the gradient by ${err}`);
+  }
+});
+
+test("a quarter-scale decode matches the full decode, averaged down", () => {
+  // A real photo, forced down the reduced path: each output pixel should be the mean of a
+  // 4x4 patch of the full decode, give or take the bits of the block it can't see.
+  const bytes = readFileSync(`public/frogs/${FROG_PHOTOS[0].file}`);
+  const full = decodeJpeg(bytes, { useTArray: true });
+  const small = decodeJpeg(bytes, { useTArray: true, reduceAboveMP: 0.01, maxReducedResolutionInMP: 1 });
+  assert.equal(small.reduced, true);
+  assert.deepEqual([small.width, small.height], [Math.ceil(full.width / 4), Math.ceil(full.height / 4)]);
+  let total = 0, n = 0;
+  for (let y = 0; y < Math.floor(full.height / 4); y++) {
+    for (let x = 0; x < Math.floor(full.width / 4); x++) {
+      for (let c = 0; c < 3; c++) {
+        let sum = 0;
+        for (let dy = 0; dy < 4; dy++) for (let dx = 0; dx < 4; dx++) sum += full.data[((y * 4 + dy) * full.width + x * 4 + dx) * 4 + c];
+        total += Math.abs(sum / 16 - small.data[(y * small.width + x) * 4 + c]);
+        n++;
+      }
+    }
+  }
+  assert.ok(total / n < 4, `mean error ${(total / n).toFixed(2)} against the full decode`);
 });
 
 test("a frog without a photo draws the big frog glyph", () => {

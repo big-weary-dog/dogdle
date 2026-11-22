@@ -210,9 +210,15 @@ export const hexToRgb = (hex) => {
 
 // A Worker has 128MB. The decoder's own default ceiling is 512MB, so a huge photo would
 // kill the isolate outright -- no card, no log, a blank embed. Capped, it throws instead,
-// which is caught below and costs only the photo. Dog CEO photos run well under 2MP
-// (~12 bytes a pixel while decoding); this leaves room for several times that.
-const DECODE_LIMITS = { maxMemoryUsageInMB: 64, maxResolutionInMP: 8 };
+// which is caught below and costs only the photo.
+//
+// Most Dog CEO photos are 500px, but some aren't: the mutts (`breeds/mix`) are 8MP phone
+// shots, and a full decode of one needs ~90MB (~12 bytes a pixel), which blanked every
+// mutt card. Anything over 2MP is decoded at quarter scale instead, straight from each
+// block's lowest frequencies, for a fraction of the memory -- an 8MP photo still comes out
+// ~600x800, far more than the card draws. Only a huge progressive photo with full-size
+// colour can still hit the cap.
+const DECODE_LIMITS = { maxMemoryUsageInMB: 64, maxResolutionInMP: 8, reduceAboveMP: 2, maxReducedResolutionInMP: 24 };
 
 // Decoding is the expensive half and the photo never changes between frames, so it is
 // split out and done once.

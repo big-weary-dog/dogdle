@@ -1,12 +1,12 @@
 import { rollDailyDog, rollPuppy, today } from "./roll.js";
-import { handleBot, renderCard, kennelFor, kennelPageData, kennelPreview, kennelPage } from "./bot.js";
+import { handleBot, renderCard, cardIsStale, kennelFor, kennelPageData, kennelPreview, kennelPage } from "./bot.js";
 import { photoFor, backfillPhoto, PHOTO_HOST, PHOTO_TIMEOUT_MS } from "./photo.js";
 import { PLAYER_ID_RE, DATE_RE, rollKey, dayKey, cleanName, boardRow, visibleRows } from "./keys.js";
 import { megaKennel } from "./mega.js";
 import { recordRoll, boardProgress } from "./progress.js";
 import { dealDog, recordLitter } from "./litter.js";
 import { handleAccount, playsAs, publicAccount, webRow } from "./accounts.js";
-import { putCard, getCard, hasCard, getAlbum } from "./images.js";
+import { putCard, getCardEntry, hasCard, getAlbum } from "./images.js";
 import { log } from "./log.js";
 
 const MAX_CARD_BYTES = 8_000_000; // animated cards are far heavier than a still
@@ -419,15 +419,20 @@ async function kennelOwner(env, id) {
 }
 
 // A stored card, or -- where `render` allows -- one drawn again from the stored roll: the
-// render failed, or it expired, or this location hasn't seen the write yet. Bounded to
-// rolls that exist, and stored once drawn, so this can't become a render-anything route.
+// render failed, or it expired, or this location hasn't seen the write yet, or it was
+// stored without its dog's photo (cardIsStale). Bounded to rolls that exist, and stored
+// once drawn, so this can't become a render-anything route.
 async function serveCard(request, env, player, date, render) {
-  let card = await getCard(env, player, date);
-  if (!card && render) {
+  const entry = await getCardEntry(env, player, date);
+  let card = entry?.bytes ?? null;
+  // A card from before cards said whether they drew their photo needs its dog to judge.
+  const unknown = entry && entry.meta?.photo === undefined;
+  if (render && (!entry || unknown || cardIsStale(entry.meta, null))) {
     const dog = await env.STORE.get(rollKey(player, date), "json");
-    if (dog) {
-      card = await renderCard(env, player, dog);
-      log.warn("card.rendered_on_read", { player, date, ok: Boolean(card), colo: request.cf?.colo });
+    if (dog && (!entry || cardIsStale(entry.meta, dog))) {
+      const redrawn = await renderCard(env, player, dog, { tries: Number(entry?.meta?.tries || 0) });
+      card = redrawn ?? card;
+      log.warn("card.rendered_on_read", { player, date, ok: Boolean(redrawn), stale: Boolean(entry), colo: request.cf?.colo });
     }
   }
 

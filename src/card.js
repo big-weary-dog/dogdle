@@ -149,6 +149,10 @@ export function layoutRows(rows, width = CARD.width - CARD.sceneWidth, height = 
   return { rowH: rowHeight(), lines };
 }
 
+// `photo` is the JPEG's bytes, or one already decoded (decodePhoto) by a caller that needs
+// to know whether it worked.
+const photoOf = (photo) => (!photo ? null : photo.data && photo.width ? photo : decodePhoto(photo));
+
 // Composes a single still card -- the same pipeline as the GIF, minus the animation.
 // Used by tests and for eyeballing the layout.
 export function composeCard(dog, opts = {}) {
@@ -164,7 +168,7 @@ export function composeCard(dog, opts = {}) {
   paintWorld(ctx, sceneW, h, dog.background);
   const back = createLayers(effects, "back");
   const front = createLayers(effects, "front");
-  const photo = opts.photo ? decodePhoto(opts.photo) : null;
+  const photo = photoOf(opts.photo);
 
   for (let f = 0; f < (opts.settle ?? 6); f++) {
     for (const l of back) l.draw(ctx, sceneW, h, 120, f * 120);
@@ -198,7 +202,7 @@ export function renderCardGif(dog, opts = {}) {
   // here, so paint it once and copy the buffer per frame.
   paintWorld(ctx, sceneW, h, dog.background);
   const sceneBase = scene.data.slice();
-  const photo = opts.photo ? decodePhoto(opts.photo) : null;
+  const photo = photoOf(opts.photo);
 
   paintSidebar(card, dog, sceneW, w - sceneW, h);
 

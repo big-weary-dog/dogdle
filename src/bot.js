@@ -14,6 +14,7 @@
 
 import { today, qualityFor } from "./roll.js";
 import { renderCardGif } from "./card.js";
+import { decodePhoto } from "./draw.js";
 import { buildKennel, renderKennelGif, summary, albumLayout } from "./kennel.js";
 import { photoFor, fetchPhotoBytes, backfillPhoto } from "./photo.js";
 import { rollKey, dayKey, guildKey, cleanName, boardRow, visibleRows, DATE_RE } from "./keys.js";
@@ -21,7 +22,7 @@ import { linkDiscord } from "./accounts.js";
 import { meldPlan, meldApply } from "./meld.js";
 import { recordRoll } from "./progress.js";
 import { dealDog, recordLitter, puppiesOf } from "./litter.js";
-import { putCard, hasCard, putAlbum } from "./images.js";
+import { putCard, cardMeta, putAlbum } from "./images.js";
 import { log } from "./log.js";
 
 const SNOWFLAKE_RE = /^\d{5,24}$/;
@@ -100,12 +101,28 @@ function present(dog, imageUrl, origin, player) {
   };
 }
 
+// Whether a stored card (its metadata, from cardMeta; null for none) should be drawn
+// again: there isn't one; it was stored without the photo its dog has, and hasn't run out
+// of tries -- so a photo that never loads can't make every view a render; or it's a mutt
+// card drawn before big photos could be decoded (2026-11), which says nothing either way
+// but was almost certainly blank. The last needs the dog, so it's only checked with one.
+export const CARD_TRIES = 3;
+export function cardIsStale(meta, dog) {
+  if (!meta) return true;
+  if (meta.photo === "missing") return Number(meta.tries || 1) < CARD_TRIES;
+  return meta.photo === undefined && Boolean(dog?.photo) && dog.breedSlug === "mix";
+}
+
 // Draws a dog's card and stores it. Never throws: the card is decoration on a roll that
 // has already been dealt and saved, so a failure here must not turn into a failed roll.
 // Returns the bytes, or null if even a photo-less card couldn't be drawn.
-export async function renderCard(env, player, dog) {
+// `tries` is how many times it has already been drawn without its photo.
+export async function renderCard(env, player, dog, { tries = 0 } = {}) {
   const started = Date.now();
-  const photo = await fetchPhotoBytes(dog.photo, env);
+  const bytes = await fetchPhotoBytes(dog.photo, env);
+  // Decoded here rather than by the renderer, to know whether the card shows its dog.
+  let photo = bytes ? decodePhoto(bytes) : null;
+  const drawn = () => (photo ? "drawn" : dog.photo ? "missing" : "none");
 
   let gif;
   try {
@@ -114,6 +131,7 @@ export async function renderCard(env, player, dog) {
     // A photo the decoder chokes on shouldn't cost the player their whole card.
     log.error("card.render_failed", { player, date: dog.date, withPhoto: Boolean(photo), err });
     if (!photo) return null;
+    photo = null;
     try {
       gif = renderCardGif(dog);
     } catch (again) {
@@ -122,8 +140,11 @@ export async function renderCard(env, player, dog) {
     }
   }
 
+  const status = drawn();
   try {
-    await putCard(env, player, dog.date, gif, { test: Boolean(dog.test) });
+    await putCard(env, player, dog.date, gif, {
+      test: Boolean(dog.test), photo: status, tries: status === "missing" ? tries + 1 : 0,
+    });
   } catch (err) {
     // The image route draws a missing card on demand, so this heals on first view.
     log.error("card.store_failed", { player, date: dog.date, err });
@@ -132,7 +153,8 @@ export async function renderCard(env, player, dog) {
   log.info("card.rendered", {
     player,
     date: dog.date,
-    photo: Boolean(photo),
+    photo: status,
+    ...(status === "missing" ? { tries: tries + 1 } : {}),
     bytes: gif.byteLength,
     ms: Date.now() - started,
   });
@@ -307,7 +329,11 @@ export async function handleBot(request, url, env) {
     if (!saved || repaired) {
       card = (await renderCard(env, player, dog)) ? "rendered" : "failed";
     } else {
-      if (!(await hasCard(env, player, date))) card = (await renderCard(env, player, dog)) ? "rendered" : "failed";
+      // A replay draws the card again if it's missing or came out without its dog.
+      const meta = await cardMeta(env, player, date);
+      if (cardIsStale(meta, dog)) {
+        card = (await renderCard(env, player, dog, { tries: Number(meta?.tries || 0) })) ? "rendered" : "failed";
+      }
     }
 
     log.info("bot.roll", { player, date, guildId: guildId || null, replayed: Boolean(saved), repaired, card, test: isTest });

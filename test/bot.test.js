@@ -5,10 +5,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { handleBot, botPlayerId } from "../src/bot.js";
+import { readFileSync } from "node:fs";
+import { handleBot, botPlayerId, CARD_TRIES } from "../src/bot.js";
 import { PLAYER_ID_RE } from "../src/keys.js";
 import { today, rollDailyDog } from "../src/roll.js";
-import { BACKGROUNDS, QUALITY_TIERS } from "../src/content/index.js";
+import { BACKGROUNDS, QUALITY_TIERS, FROG_PHOTOS } from "../src/content/index.js";
 import { BREEDS } from "../src/breeds.js";
 import { setLogSink } from "../src/log.js";
 
@@ -358,6 +359,81 @@ test("a Discord card missing from KV is drawn from the roll instead of a 404", a
   assert.deepEqual([...new Uint8Array(await res.arrayBuffer()).slice(0, 4)], [0x47, 0x49, 0x46, 0x38]);
   assert.ok(cardOf(e), "the drawn card should be stored for next time");
   assert.equal(events("card.rendered_on_read").length, 1);
+});
+
+// A card drawn without its dog: the photo was too big to decode (the mutts' 8MP photos),
+// or didn't load. It says so, and is drawn again when asked -- a few times at most.
+const JPEG = readFileSync(`public/frogs/${FROG_PHOTOS[0].file}`);
+async function withPhotos(fn) {
+  const offline = globalThis.fetch;
+  globalThis.fetch = async (url) => (String(url).startsWith("https://images.dog.ceo/")
+    ? new Response(JPEG, { headers: { "content-type": "image/jpeg" } })
+    : offline(url));
+  try {
+    return await fn();
+  } finally {
+    globalThis.fetch = offline;
+  }
+}
+// A rolled dog with a photo, and its card's metadata set to `meta`.
+async function rolledWithCard(meta, fields = {}) {
+  const e = env();
+  await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER } });
+  const key = `roll:${botPlayerId(USER)}:${today()}`;
+  const dog = { ...JSON.parse(e.STORE.store.get(key).value), photo: "https://images.dog.ceo/breeds/mix/ella.jpg", ...fields };
+  e.STORE.store.get(key).value = JSON.stringify(dog);
+  cardOf(e).metadata = { date: today(), ...meta };
+  logged = [];
+  return e;
+}
+const replay = (e) => withPhotos(() => call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER } }));
+
+test("a card says whether it drew its dog's photo", async () => {
+  const e = env();
+  await call(e, "/api/bot/roll", { method: "POST", body: { discordId: USER } });
+  assert.equal(cardOf(e).metadata.photo, "none", "offline, the dog has no photo to draw");
+  assert.equal(events("card.rendered").at(-1).photo, "none", "and the log says the same");
+});
+
+test("a card stored without its photo is drawn again on the next ask, a few times at most", async () => {
+  const e = await rolledWithCard({ photo: "missing", tries: "1" });
+  await replay(e);
+  assert.equal(events("bot.roll").at(-1).card, "rendered");
+  assert.equal(cardOf(e).metadata.photo, "drawn");
+
+  // A photo that never draws stops being retried.
+  const stuck = await rolledWithCard({ photo: "missing", tries: String(CARD_TRIES) });
+  await replay(stuck);
+  assert.equal(events("bot.roll").at(-1).card, "cached");
+});
+
+test("a mutt card from before big photos decoded is drawn again once", async () => {
+  const e = await rolledWithCard({}, { breedSlug: "mix" });
+  await replay(e);
+  assert.equal(events("bot.roll").at(-1).card, "rendered");
+  assert.equal(cardOf(e).metadata.photo, "drawn");
+  logged = [];
+  await replay(e);
+  assert.equal(events("bot.roll").at(-1).card, "cached", "once drawn, it says so and stays");
+
+  // Any other card from back then is left alone.
+  const other = await rolledWithCard({}, { breedSlug: "pug" });
+  await replay(other);
+  assert.equal(events("bot.roll").at(-1).card, "cached");
+});
+
+test("the image route draws a card stored without its photo again", async () => {
+  for (const [meta, fields] of [[{ photo: "missing", tries: "1" }, {}], [{}, { breedSlug: "mix" }]]) {
+    const e = await rolledWithCard(meta, fields);
+    const res = await withPhotos(() => imageRequest(e));
+    assert.equal(res.status, 200);
+    assert.equal(events("card.rendered_on_read").length, 1, JSON.stringify(meta));
+    assert.equal(cardOf(e).metadata.photo, "drawn");
+  }
+  // A good card from back then is served as it is.
+  const e = await rolledWithCard({}, { breedSlug: "pug" });
+  assert.equal((await withPhotos(() => imageRequest(e))).status, 200);
+  assert.equal(events("card.rendered_on_read").length, 0);
 });
 
 test("an image with no roll behind it is a 404 no proxy may keep", async () => {

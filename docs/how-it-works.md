@@ -576,7 +576,15 @@ pixel buffer:
   with a headless browser into `src/generated/atlas.js` — text as alpha coverage (so it can
   be tinted), emoji as RGBA. **Add an emoji to the content tables and you must re-run it**;
   `npm test` fails if the atlas is missing one.
-- Breed photos are JPEG, decoded by a vendored pure-JS decoder.
+- Breed photos are JPEG, decoded by a vendored pure-JS decoder, capped at 64MB so a huge
+  photo throws (and costs only the photo) instead of killing the Worker. Most Dog CEO
+  photos are 500px, but the mutts' (`breeds/mix`) are 8MP phone shots that needed ~90MB,
+  so every mutt card came out blank. Anything over 2MP is now decoded at **quarter scale**
+  straight from each block's lowest DCT frequencies (our change to the vendored decoder,
+  marked "Dogdle"): an 8MP photo comes out ~600×800 in ~10–30MB.
+- A stored card says whether it drew its dog's photo (`photo`: drawn, missing or none). One
+  that came out without it is drawn again on the next ask or image fetch, up to three
+  times (`cardIsStale` in `src/bot.js`), and so is a mutt card from before the fix.
 
 The world and the sidebar are static, so both are painted once and copied per frame —
 profiling showed `paintWorld` was 509ms of a 629ms render before that. A 560×320, 12-frame
