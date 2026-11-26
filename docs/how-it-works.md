@@ -14,7 +14,7 @@ Every dog is four independent rolls, combined:
 | Part | Source | Notes |
 |---|---|---|
 | **Breed** | `src/breeds.js` | ~130 breeds, each mapped to a [Dog CEO](https://dog.ceo/dog-api/) slug so a real photo exists. Rarity follows real-world prevalence — Labradors are common, Otterhounds are legendary. Scores 0 / +1 / +2 / +4 / +6 by rarity, with one exception below. |
-| **Background** | `src/content/backgrounds.js` | 101 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
+| **Background** | `src/content/backgrounds.js` | 102 scenes with their own rarity weights, deliberately flatter than the breed table so a boring scene only turns up ~30% of the time. |
 | **Name** | `src/content/names.js` | Flat pick from 3,006: 150 hand-picked, plus 2,856 real names off Seattle's dog licences (`dog-names.js`). |
 | **Traits** | `src/content/traits/` | 567 of them; 4–8 per dog, averaging 6, drawn without replacement. 151 belong to a **group** — see below. |
 
